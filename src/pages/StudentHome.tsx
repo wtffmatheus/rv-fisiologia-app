@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Home,
+  KeyRound,
   LogOut,
   Play,
   UserRound,
@@ -74,6 +75,12 @@ export default function StudentHome({ profile }: { profile: Profile }) {
   const [newEmail, setNewEmail] = useState('')
   const [emailMessage, setEmailMessage] = useState('')
   const [emailLoading, setEmailLoading] = useState(false)
+
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordMessage, setPasswordMessage] = useState('')
+  const [passwordLoading, setPasswordLoading] = useState(false)
 
 
   async function loadStudentData() {
@@ -235,7 +242,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
   const completedCount = lessons.filter((lesson) => completedLessonIds.has(lesson.id)).length
   const percentage = lessons.length ? Math.round((completedCount / lessons.length) * 100) : 0
   const nextLesson =
-    lessons.find((lesson) => !completedLessonIds.has(lesson.id)) ?? lessons[0] ?? null
+    lessons.find((lesson) => !completedLessonIds.has(lesson.id)) ?? null
 
   const selectedIndex = selectedLesson
     ? lessons.findIndex((lesson) => lesson.id === selectedLesson.id)
@@ -434,12 +441,17 @@ export default function StudentHome({ profile }: { profile: Profile }) {
           <button
             className="primary finishLesson"
             onClick={() => completeLesson(selectedLesson)}
-            disabled={completedLessonIds.has(selectedLesson.id)}
+            disabled={
+              completedLessonIds.has(selectedLesson.id) ||
+              selectedLesson.exercises.length === 0
+            }
           >
             <CheckCircle2 size={18} />
             {completedLessonIds.has(selectedLesson.id)
               ? 'Aula concluída'
-              : 'Concluir e avançar'}
+              : selectedLesson.exercises.length === 0
+                ? 'Conteúdo em preparação'
+                : 'Concluir e avançar'}
           </button>
 
           {followingLesson && (
@@ -629,6 +641,67 @@ export default function StudentHome({ profile }: { profile: Profile }) {
     setEmailLoading(false)
   }
 
+  async function changePassword(event: FormEvent) {
+    event.preventDefault()
+    setPasswordMessage('')
+
+    if (!currentPassword) {
+      setPasswordMessage('Digite sua senha atual.')
+      return
+    }
+
+    if (newPassword.length < 8) {
+      setPasswordMessage('A nova senha precisa ter pelo menos 8 caracteres.')
+      return
+    }
+
+    if (newPassword === currentPassword) {
+      setPasswordMessage('A nova senha precisa ser diferente da senha atual.')
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordMessage('A confirmação da nova senha não confere.')
+      return
+    }
+
+    const email = accountEmail.trim().toLowerCase()
+
+    if (!email) {
+      setPasswordMessage('Não foi possível identificar o e-mail da sua conta.')
+      return
+    }
+
+    setPasswordLoading(true)
+
+    const { error: reauthError } = await supabase.auth.signInWithPassword({
+      email,
+      password: currentPassword,
+    })
+
+    if (reauthError) {
+      setPasswordMessage('Senha atual incorreta.')
+      setPasswordLoading(false)
+      return
+    }
+
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    })
+
+    if (error) {
+      setPasswordMessage(error.message)
+      setPasswordLoading(false)
+      return
+    }
+
+    setCurrentPassword('')
+    setNewPassword('')
+    setConfirmPassword('')
+    setPasswordMessage('Senha alterada com sucesso.')
+    setPasswordLoading(false)
+  }
+
   function renderProfile() {
     return (
       <section className="studentProfileScreen">
@@ -702,6 +775,76 @@ export default function StudentHome({ profile }: { profile: Profile }) {
           {emailMessage && (
             <div className="accountInlineMessage" role="status">
               {emailMessage}
+            </div>
+          )}
+        </section>
+
+        <section className="accountSettingsCard passwordSettingsCard">
+          <div className="accountSettingsHeader">
+            <div>
+              <span className="miniLabel">SEGURANÇA</span>
+              <h2>Alterar senha</h2>
+              <p className="muted">
+                Confirme sua senha atual e escolha uma nova senha para sua conta.
+              </p>
+            </div>
+            <KeyRound size={20} />
+          </div>
+
+          <form className="accountPasswordForm" onSubmit={changePassword}>
+            <label>
+              Senha atual
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(event) => setCurrentPassword(event.target.value)}
+                placeholder="Digite sua senha atual"
+                autoComplete="current-password"
+                required
+              />
+            </label>
+
+            <label>
+              Nova senha
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                placeholder="Mínimo de 8 caracteres"
+                minLength={8}
+                autoComplete="new-password"
+                required
+              />
+            </label>
+
+            <label>
+              Confirmar nova senha
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                placeholder="Digite novamente"
+                minLength={8}
+                autoComplete="new-password"
+                required
+              />
+            </label>
+
+            <button className="secondary passwordSaveButton" disabled={passwordLoading}>
+              {passwordLoading ? 'Alterando...' : 'Alterar senha'}
+            </button>
+          </form>
+
+          {passwordMessage && (
+            <div
+              className={
+                passwordMessage === 'Senha alterada com sucesso.'
+                  ? 'accountInlineMessage success'
+                  : 'accountInlineMessage'
+              }
+              role="status"
+            >
+              {passwordMessage}
             </div>
           )}
         </section>

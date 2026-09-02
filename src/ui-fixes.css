@@ -1634,3 +1634,93 @@
     flex-direction: column;
   }
 }
+
+
+/* RV_STUDENT_ACCOUNT_P1_LOTE4 */
+
+.passwordSettingsCard {
+  margin-top: 14px;
+}
+
+.passwordSettingsCard .accountSettingsHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.passwordSettingsCard .accountSettingsHeader > svg {
+  flex: 0 0 auto;
+  margin-top: 3px;
+  color: var(--accent);
+}
+
+.accountPasswordForm {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.accountPasswordForm label {
+  min-width: 0;
+  margin: 0;
+  display: grid;
+  gap: 7px;
+  color: #dce8f6;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.accountPasswordForm input {
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #061837;
+  color: var(--text);
+  outline: none;
+}
+
+.accountPasswordForm input:focus {
+  border-color: rgba(35, 200, 191, .48);
+  box-shadow: 0 0 0 3px rgba(35, 200, 191, .05);
+}
+
+.passwordSaveButton {
+  min-height: 44px;
+  white-space: nowrap;
+}
+
+.accountInlineMessage.success {
+  border-color: rgba(35, 200, 191, .26);
+  background: rgba(35, 200, 191, .09);
+  color: #bff7f2;
+}
+
+.finishLesson:disabled {
+  cursor: not-allowed;
+}
+
+@media (max-width: 980px) {
+  .accountPasswordForm {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .accountPasswordForm .passwordSaveButton {
+    width: 100%;
+  }
+}
+
+@media (max-width: 620px) {
+  .accountPasswordForm {
+    grid-template-columns: 1fr;
+  }
+
+  .passwordSettingsCard .accountSettingsHeader {
+    align-items: flex-start;
+  }
+}
