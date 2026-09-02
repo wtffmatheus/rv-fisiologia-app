@@ -33,14 +33,26 @@ button { cursor: pointer; }
 img { display: block; }
 
 /* LOGIN - mantido no formato que já estava funcionando */
-.auth { min-height: 100vh; display: grid; grid-template-columns: 1.1fr .9fr; }
+.auth {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
+  overflow-x: hidden;
+}
 .brand {
+  min-width: 0;
   padding: 56px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   background: linear-gradient(180deg, #03142f 0%, #041a3d 100%);
   border-right: 1px solid var(--border);
+}
+
+.brand > div:last-child {
+  align-self: center;
+  max-width: 720px;
+  transform: translateY(-18px);
 }
 .brandLogo {
   width: 126px !important;
@@ -49,14 +61,34 @@ img { display: block; }
   object-fit: contain;
 }
 .brand h1 {
-  font-size: clamp(48px, 5vw, 72px);
-  max-width: 680px;
-  line-height: 1.02;
-  letter-spacing: -2.5px;
-  margin: 10px 0 16px;
+  font-size: clamp(46px, 4.2vw, 64px);
+  max-width: 720px;
+  line-height: .99;
+  letter-spacing: -2px;
+  margin: 12px 0 20px;
+  text-wrap: balance;
 }
-.brand p { max-width: 540px; color: #c5d2e2; line-height: 1.55; }
-.loginWrap { display: grid; place-items: center; padding: 24px; }
+
+.brand p {
+  max-width: 570px;
+  color: #c5d2e2;
+  line-height: 1.6;
+}
+
+.brandFeatures {
+  margin-top: 24px;
+  display: grid;
+  gap: 7px;
+  color: #d8e3f0;
+  font-size: 14px;
+}
+
+.loginWrap {
+  min-width: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
 .card, .statusCard {
   width: min(450px, 100%);
   padding: 38px;
@@ -228,9 +260,22 @@ img { display: block; }
 .emptyState { padding: 36px 18px; color: var(--muted); text-align: center; font-size: 13px; }
 
 @media (max-width: 980px) {
-  .auth { grid-template-columns: 1fr; }
-  .brand { display: none; }
-  .loginWrap { min-height: 100vh; }
+  .auth {
+    display: block;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .brand {
+    display: none;
+  }
+
+  .loginWrap {
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 24px;
+  }
   .studentPage { width: min(760px, calc(100% - 28px)); }
   .studentGrid { grid-template-columns: 1fr; }
   .lessonList { grid-template-columns: 1fr; }
