@@ -609,3 +609,95 @@
     padding: 1.1rem;
   }
 }
+
+
+/* RV_AUTH_LAYOUT_FIX_V2 */
+
+/* Organiza corretamente os campos do login/cadastro/recuperação */
+.auth .card form {
+  display: grid;
+  gap: 17px;
+  margin-top: 22px;
+}
+
+.auth .card form label {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  color: #f4f8ff;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.auth .card form input {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  margin: 0;
+  padding: 13px 14px;
+}
+
+.auth .card form .primary {
+  min-height: 48px;
+  margin-top: 1px;
+}
+
+/* Evita que os textos fiquem espremidos logo acima do formulário */
+.auth .card > .muted {
+  margin: 0 0 2px;
+}
+
+/* "Esqueci minha senha" */
+.authForgotRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 13px;
+}
+
+.authForgotLink {
+  width: auto !important;
+  margin: 0 !important;
+  padding: 3px 0 !important;
+  font-size: 13px !important;
+  line-height: 1.35;
+}
+
+/* Link entrar/cadastrar */
+.auth .card > button.link:last-child {
+  margin-top: 18px;
+  padding: 5px 0;
+  line-height: 1.4;
+}
+
+/* Mensagens do auth não grudam no formulário */
+.auth .card .message {
+  margin: 16px 0 0;
+}
+
+/* Um pouco mais de respiro no card no desktop */
+@media (min-width: 721px) {
+  .auth .card {
+    padding: 40px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 720px) {
+  .auth .loginWrap {
+    padding: 18px;
+  }
+
+  .auth .card {
+    padding: 28px 22px;
+  }
+
+  .auth .card form {
+    gap: 15px;
+    margin-top: 20px;
+  }
+
+  .authForgotRow {
+    margin-top: 12px;
+  }
+}
