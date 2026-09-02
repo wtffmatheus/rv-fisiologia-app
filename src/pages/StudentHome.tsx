@@ -294,7 +294,6 @@ export default function StudentHome({ profile }: { profile: Profile }) {
         <header className="studentHeader">
           <div className="studentBrand">
             <img src="/logo-rv-app.png" className="headerLogo" alt="RV Fisiologia" />
-            <span>RV Fisiologia</span>
           </div>
           <button className="iconButton" onClick={() => supabase.auth.signOut()} aria-label="Sair">
             <LogOut size={18} />
@@ -724,7 +723,6 @@ export default function StudentHome({ profile }: { profile: Profile }) {
       <header className="studentHeader studentHeaderMain">
         <div className="studentBrand">
           <img src="/logo-rv-app.png" className="headerLogo" alt="RV Fisiologia" />
-          <span>RV Fisiologia</span>
         </div>
 
         <nav className="studentDesktopNav" aria-label="Navegação do aluno">
