@@ -7,6 +7,10 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
   "background_color": "#04142f",
   "theme_color": "#04142f",
   "orientation": "any",
@@ -15,6 +19,7 @@
     "health",
     "education"
   ],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icons/icon-rvapp-192.png",
