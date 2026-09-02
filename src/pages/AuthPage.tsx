@@ -28,7 +28,9 @@ export default function AuthPage() {
       if (error) {
         setMessage(error.message)
       } else {
-        setMessage('Cadastro enviado com sucesso. Agora é só aguardar a liberação do acesso pela equipe RV.')
+        setMessage(
+          'Cadastro enviado com sucesso. Agora é só aguardar a liberação do acesso pela equipe RV.',
+        )
         setName('')
         setEmail('')
         setPassword('')
@@ -48,46 +50,38 @@ export default function AuthPage() {
   }
 
   return (
-    <main className="auth-layout">
-      <section className="brand-panel">
-        <div className="brand-top">
-          <img className="brand-logo" src="/logo-rv.png" alt="RV Fisiologia" />
+    <main className="auth">
+      <section className="brand">
+        <div>
+          <img className="brandLogo" src="/logo-rv.png" alt="RV Fisiologia" />
         </div>
 
-        <div className="brand-content">
+        <div>
           <p className="eyebrow">RV FISIOLOGIA</p>
           <h1>Ciência, estratégia e resultados.</h1>
-          <p className="brand-copy">
+          <p>
             Treinos organizados, acompanhamento e evolução em um só lugar.
           </p>
-        </div>
 
-        <div className="brand-features">
-          <div className="feature-item">
-            <span className="feature-dot" />
-            Aulas e treinos liberados por programa
-          </div>
-          <div className="feature-item">
-            <span className="feature-dot" />
-            Acompanhamento individual do aluno
-          </div>
-          <div className="feature-item">
-            <span className="feature-dot" />
-            Acesso pelo celular, tablet ou computador
+          <div className="brandFeatures">
+            <div>Aulas e treinos liberados por programa</div>
+            <div>Acompanhamento individual do aluno</div>
+            <div>Acesso pelo celular, tablet ou computador</div>
           </div>
         </div>
       </section>
 
-      <section className="auth-card-wrap">
-        <div className="auth-card">
-          <img className="card-logo" src="/logo-rv.png" alt="RV Fisiologia" />
+      <section className="loginWrap">
+        <div className="card">
+          <img className="mobileLogo" src="/logo-rv.png" alt="RV Fisiologia" />
 
           <p className="eyebrow">ÁREA DO ALUNO</p>
           <h2>{mode === 'login' ? 'Acesse sua conta' : 'Crie sua conta'}</h2>
+
           <p className="muted">
             {mode === 'login'
               ? 'Entre com seu e-mail e senha.'
-              : 'Após o cadastro, a equipe RV irá analisar e liberar o seu acesso manualmente.'}
+              : 'Após o cadastro, a equipe RV irá analisar e liberar o seu acesso.'}
           </p>
 
           <form onSubmit={handleSubmit}>
@@ -96,7 +90,7 @@ export default function AuthPage() {
                 Nome
                 <input
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(event) => setName(event.target.value)}
                   placeholder="Seu nome"
                   required
                 />
@@ -108,7 +102,7 @@ export default function AuthPage() {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(event) => setEmail(event.target.value)}
                 placeholder="seuemail@exemplo.com"
                 required
               />
@@ -119,22 +113,22 @@ export default function AuthPage() {
               <input
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(event) => setPassword(event.target.value)}
                 placeholder="Digite sua senha"
                 minLength={6}
                 required
               />
             </label>
 
-            <button className="primary-btn" disabled={loading}>
+            <button className="primary" disabled={loading}>
               {loading ? 'Aguarde...' : mode === 'login' ? 'Entrar' : 'Criar cadastro'}
             </button>
           </form>
 
-          {message && <p className="form-message">{message}</p>}
+          {message && <p className="message">{message}</p>}
 
           <button
-            className="text-btn"
+            className="link"
             type="button"
             onClick={() => {
               setMode(mode === 'login' ? 'register' : 'login')
