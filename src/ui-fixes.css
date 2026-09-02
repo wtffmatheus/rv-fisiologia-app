@@ -1,6 +1,6 @@
-/* RV Fisiologia — correções de interface (carregado por último) */
+/* RV Fisiologia — correções finais de interface */
 
-/* Login: mantém o conteúdo da esquerda centralizado e equilibrado */
+/* LOGIN */
 .brand {
   display: grid;
   grid-template-rows: auto 1fr;
@@ -35,13 +35,9 @@
   font-size: 14px;
 }
 
-/* Área do aluno */
-.studentPage {
-  padding-bottom: 132px;
-}
-
+/* ÁREA DO ALUNO */
 .studentScrollTarget {
-  scroll-margin-top: 105px;
+  scroll-margin-top: 112px;
 }
 
 .studentProfileSection {
@@ -120,24 +116,26 @@
   font-weight: 750;
 }
 
-/* Hotbar: eram 4 colunas para 3 botões. Agora são exatamente 3. */
+/* NAVEGAÇÃO DO ALUNO */
 .bottomNav {
+  z-index: 1000;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  width: min(430px, calc(100% - 24px));
-  bottom: max(12px, env(safe-area-inset-bottom));
-  padding: 6px;
-  border-radius: 15px;
 }
 
 .bottomNav button {
   width: 100%;
   min-width: 0;
-  min-height: 54px;
-  padding: 7px 8px;
-  transition:
-    color .16s ease,
-    background .16s ease,
-    transform .16s ease;
+  border: 0;
+  color: #7f95b4;
+  background: transparent;
+  text-decoration: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  border-radius: 9px;
+  font-weight: 700;
+  transition: color .16s ease, background .16s ease, transform .16s ease;
 }
 
 .bottomNav button:active {
@@ -151,19 +149,55 @@
 
 .bottomNav button span {
   font-size: 10px;
-  font-weight: 700;
 }
 
-@media (max-width: 980px) {
-  .brand {
-    display: none;
+/* DESKTOP / TABLET HORIZONTAL */
+@media (min-width: 721px) {
+  .studentPage {
+    padding-bottom: 48px;
+  }
+
+  .bottomNav {
+    position: fixed;
+    top: 22px;
+    bottom: auto;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: min(330px, 46vw);
+    display: grid;
+    padding: 5px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(3, 16, 38, .90);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 12px 34px rgba(0, 0, 0, .22);
+  }
+
+  .bottomNav button {
+    min-height: 40px;
+    flex-direction: row;
+    padding: 7px 10px;
+  }
+
+  .bottomNav button span {
+    font-size: 11px;
   }
 }
 
-@media (max-width: 560px) {
+/* MOBILE: dock fixo na borda inferior */
+@media (max-width: 720px) {
+  .brand {
+    display: none;
+  }
+
   .studentPage {
     width: min(100% - 22px, 760px);
-    padding-bottom: 122px;
+    padding-bottom: calc(104px + env(safe-area-inset-bottom));
+  }
+
+  .studentScrollTarget {
+    scroll-margin-top: 86px;
   }
 
   .studentProfileSection {
@@ -176,12 +210,42 @@
   }
 
   .bottomNav {
-    width: calc(100% - 16px);
-    bottom: max(8px, env(safe-area-inset-bottom));
-    border-radius: 14px;
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transform: none;
+    width: 100%;
+    max-width: none;
+    display: grid;
+    padding:
+      7px
+      max(10px, env(safe-area-inset-right))
+      calc(7px + env(safe-area-inset-bottom))
+      max(10px, env(safe-area-inset-left));
+    border: 0;
+    border-top: 1px solid var(--border);
+    border-radius: 0;
+    background: rgba(3, 16, 38, .98);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 -12px 32px rgba(0, 0, 0, .28);
   }
 
   .bottomNav button {
-    min-height: 52px;
+    min-height: 56px;
+    flex-direction: column;
+    gap: 4px;
+    padding: 7px 6px;
+  }
+
+  .bottomNav button span {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 980px) and (min-width: 721px) {
+  .brand {
+    display: none;
   }
 }
