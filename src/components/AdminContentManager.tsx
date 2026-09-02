@@ -4,6 +4,7 @@ import {
   ArrowUp,
   Check,
   Copy,
+  Eye,
   ChevronRight,
   FileVideo,
   FolderPlus,
@@ -307,6 +308,7 @@ export default function AdminContentManager() {
   const [feedback, setFeedback] = useState<Feedback>(null)
   const [uploadStatusByExercise, setUploadStatusByExercise] = useState<Record<number, UploadStatus>>({})
   const [newExerciseUploadStatus, setNewExerciseUploadStatus] = useState<UploadStatus | null>(null)
+  const [showStudentPreview, setShowStudentPreview] = useState(false)
 
   const selectedProgram = useMemo(
     () => programs.find((program) => program.id === selectedProgramId) ?? null,
@@ -317,6 +319,20 @@ export default function AdminContentManager() {
     () => lessons.find((lesson) => lesson.id === selectedLessonId) ?? null,
     [lessons, selectedLessonId],
   )
+
+  const selectedLessonSiblings = useMemo(
+    () =>
+      selectedLesson
+        ? lessons
+            .filter((lesson) => lesson.week_id === selectedLesson.week_id)
+            .sort((a, b) => a.lesson_number - b.lesson_number)
+        : [],
+    [lessons, selectedLesson],
+  )
+
+  const selectedLessonSiblingIndex = selectedLesson
+    ? selectedLessonSiblings.findIndex((lesson) => lesson.id === selectedLesson.id)
+    : -1
 
   const weeksWithLessons = useMemo(
     () =>
@@ -808,6 +824,189 @@ export default function AdminContentManager() {
     await loadExercises(selectedLessonId)
   }
 
+  async function persistLessonStructure(
+    orderedLessons: Lesson[],
+    preferredLessonId?: number | null,
+  ) {
+    if (!selectedProgramId) return false
+
+    const normalized = orderedLessons.map((lesson, index) => ({
+      ...lesson,
+      lesson_number: index + 1,
+    }))
+
+    setLessons(normalized)
+
+    const results = await Promise.all(
+      normalized.map((lesson) =>
+        supabase
+          .from('lessons')
+          .update({
+            week_id: lesson.week_id,
+            lesson_number: lesson.lesson_number,
+          })
+          .eq('id', lesson.id),
+      ),
+    )
+
+    const failed = results.find((result) => result.error)
+
+    if (failed?.error) {
+      setFeedback({
+        type: 'error',
+        text: `Erro ao reorganizar aulas: ${failed.error.message}`,
+      })
+      await loadProgramStructure(selectedProgramId, preferredLessonId ?? selectedLessonId)
+      return false
+    }
+
+    await loadProgramStructure(selectedProgramId, preferredLessonId ?? selectedLessonId)
+    return true
+  }
+
+  async function moveWeek(index: number, direction: -1 | 1) {
+    if (!selectedProgramId) return
+
+    const targetIndex = index + direction
+    if (targetIndex < 0 || targetIndex >= weeks.length) return
+
+    const orderedWeeks = [...weeks].sort((a, b) => a.week_number - b.week_number)
+    const reordered = [...orderedWeeks]
+    const [item] = reordered.splice(index, 1)
+    reordered.splice(targetIndex, 0, item)
+
+    const normalizedWeeks = reordered.map((week, order) => ({
+      ...week,
+      week_number: order + 1,
+    }))
+
+    setSaving(true)
+    setWeeks(normalizedWeeks)
+
+    try {
+      const results = await Promise.all(
+        normalizedWeeks.map((week) =>
+          supabase
+            .from('weeks')
+            .update({ week_number: week.week_number })
+            .eq('id', week.id),
+        ),
+      )
+
+      const failed = results.find((result) => result.error)
+      if (failed?.error) throw failed.error
+
+      const orderedLessons = normalizedWeeks.flatMap((week) =>
+        lessons
+          .filter((lesson) => lesson.week_id === week.id)
+          .sort((a, b) => a.lesson_number - b.lesson_number),
+      )
+
+      const ok = await persistLessonStructure(orderedLessons, selectedLessonId)
+
+      if (ok) {
+        setFeedback({
+          type: 'success',
+          text: 'Ordem das semanas atualizada.',
+        })
+      }
+    } catch (error) {
+      setFeedback({
+        type: 'error',
+        text: `Erro ao mover semana: ${error instanceof Error ? error.message : 'erro desconhecido'}`,
+      })
+      await loadProgramStructure(selectedProgramId, selectedLessonId)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function moveLessonWithinWeek(lesson: Lesson, direction: -1 | 1) {
+    if (!selectedProgramId) return
+
+    const siblings = lessons
+      .filter((item) => item.week_id === lesson.week_id)
+      .sort((a, b) => a.lesson_number - b.lesson_number)
+
+    const currentIndex = siblings.findIndex((item) => item.id === lesson.id)
+    const targetIndex = currentIndex + direction
+
+    if (
+      currentIndex < 0 ||
+      targetIndex < 0 ||
+      targetIndex >= siblings.length
+    ) {
+      return
+    }
+
+    const reorderedSiblings = [...siblings]
+    const [item] = reorderedSiblings.splice(currentIndex, 1)
+    reorderedSiblings.splice(targetIndex, 0, item)
+
+    const orderedLessons = [...weeks]
+      .sort((a, b) => a.week_number - b.week_number)
+      .flatMap((week) =>
+        week.id === lesson.week_id
+          ? reorderedSiblings
+          : lessons
+              .filter((item) => item.week_id === week.id)
+              .sort((a, b) => a.lesson_number - b.lesson_number),
+      )
+
+    setSaving(true)
+
+    try {
+      const ok = await persistLessonStructure(orderedLessons, lesson.id)
+
+      if (ok) {
+        setFeedback({
+          type: 'success',
+          text: 'Ordem das aulas atualizada.',
+        })
+      }
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function moveLessonToWeek(lesson: Lesson, targetWeekId: number) {
+    if (!selectedProgramId || lesson.week_id === targetWeekId) return
+
+    const targetWeek = weeks.find((week) => week.id === targetWeekId)
+    if (!targetWeek) return
+
+    const movedLesson: Lesson = {
+      ...lesson,
+      week_id: targetWeekId,
+      lesson_number: Number.MAX_SAFE_INTEGER,
+    }
+
+    const orderedLessons = [...weeks]
+      .sort((a, b) => a.week_number - b.week_number)
+      .flatMap((week) => {
+        const group = lessons
+          .filter((item) => item.id !== lesson.id && item.week_id === week.id)
+          .sort((a, b) => a.lesson_number - b.lesson_number)
+
+        return week.id === targetWeekId ? [...group, movedLesson] : group
+      })
+
+    setSaving(true)
+
+    try {
+      const ok = await persistLessonStructure(orderedLessons, lesson.id)
+
+      if (ok) {
+        setFeedback({
+          type: 'success',
+          text: `Aula movida para ${targetWeek.title || `Semana ${targetWeek.week_number}`}.`,
+        })
+      }
+    } finally {
+      setSaving(false)
+    }
+  }
+
   async function saveProgram() {
     if (!selectedProgramId || !programTitle.trim()) return
 
@@ -1283,6 +1482,109 @@ export default function AdminContentManager() {
         </div>
       )}
 
+      {showStudentPreview && selectedLesson && selectedProgram && (
+        <div
+          className="studentPreviewBackdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Prévia da aula como aluno"
+          onMouseDown={(event) => {
+            if (event.currentTarget === event.target) {
+              setShowStudentPreview(false)
+            }
+          }}
+        >
+          <div className="studentPreviewModal">
+            <div className="studentPreviewTopbar">
+              <div>
+                <span>PRÉVIA DO ALUNO</span>
+                <strong>{selectedProgram.title}</strong>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowStudentPreview(false)}
+                aria-label="Fechar prévia"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="studentPreviewScreen">
+              <div className="studentPreviewLessonHero">
+                <span>
+                  {selectedProgram.title} · Aula {String(selectedLesson.lesson_number).padStart(2, '0')}
+                </span>
+                <h1>{lessonTitle || selectedLesson.title}</h1>
+                {(lessonDescription || selectedLesson.description) && (
+                  <p>{lessonDescription || selectedLesson.description}</p>
+                )}
+              </div>
+
+              <div className="studentPreviewExercises">
+                {exercises.length === 0 ? (
+                  <div className="studentPreviewEmpty">
+                    <FileVideo size={25} />
+                    <strong>Conteúdo em preparação</strong>
+                    <span>Esta aula ainda não possui exercícios cadastrados.</span>
+                  </div>
+                ) : (
+                  exercises.map((exercise, index) => (
+                    <article className="studentPreviewExerciseCard" key={exercise.id}>
+                      <div className="studentPreviewExerciseHeading">
+                        <span>{String(index + 1).padStart(2, '0')}</span>
+                        <div>
+                          <small>EXERCÍCIO</small>
+                          <h2>{exercise.title}</h2>
+                        </div>
+                      </div>
+
+                      {videoPreviews[exercise.id] || exercise.video_url ? (
+                        <div
+                          className={`standardizedVideo ratio-${(exercise.video_ratio || '9:16').replace(':', '')} fit-${exercise.video_fit || 'cover'} studentPreviewVideo`}
+                        >
+                          <video
+                            controls
+                            playsInline
+                            preload="metadata"
+                            src={videoPreviews[exercise.id] || exercise.video_url || undefined}
+                          />
+                        </div>
+                      ) : (
+                        <div className="studentPreviewVideoEmpty">
+                          <FileVideo size={24} />
+                          <span>Vídeo ainda não disponível</span>
+                        </div>
+                      )}
+
+                      <div className="studentPreviewMeta">
+                        <div>
+                          <span>Séries</span>
+                          <strong>{exercise.sets || '—'}</strong>
+                        </div>
+                        <div>
+                          <span>Repetições / tempo</span>
+                          <strong>{exercise.repetitions || '—'}</strong>
+                        </div>
+                        <div>
+                          <span>Descanso</span>
+                          <strong>
+                            {exercise.rest_seconds ? `${exercise.rest_seconds}s` : '—'}
+                          </strong>
+                        </div>
+                      </div>
+
+                      {exercise.instructions && (
+                        <p className="studentPreviewInstructions">{exercise.instructions}</p>
+                      )}
+                    </article>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <aside className="contentSidebar">
         <div className="contentSidebarHeader">
           <div>
@@ -1384,7 +1686,7 @@ export default function AdminContentManager() {
                   </button>
                 </div>
 
-                {weeksWithLessons.map((week) => (
+                {weeksWithLessons.map((week, weekIndex) => (
                   <div className="weekGroup" key={week.id}>
                     <div className="weekGroupHeader weekGroupHeaderEditable">
                       <input
@@ -1401,6 +1703,20 @@ export default function AdminContentManager() {
                       />
 
                       <div className="weekHeaderActions">
+                        <button
+                          onClick={() => moveWeek(weekIndex, -1)}
+                          title="Subir semana"
+                          disabled={saving || weekIndex === 0}
+                        >
+                          <ArrowUp size={14} />
+                        </button>
+                        <button
+                          onClick={() => moveWeek(weekIndex, 1)}
+                          title="Descer semana"
+                          disabled={saving || weekIndex === weeksWithLessons.length - 1}
+                        >
+                          <ArrowDown size={14} />
+                        </button>
                         <button onClick={() => saveWeek(week)} title="Salvar nome da semana">
                           <Save size={14} />
                         </button>
@@ -1450,6 +1766,32 @@ export default function AdminContentManager() {
                       </div>
                       <div className="lessonTopActions">
                         <button
+                          className="outlineAction compactAction iconCompactAction"
+                          onClick={() => moveLessonWithinWeek(selectedLesson, -1)}
+                          disabled={saving || selectedLessonSiblingIndex <= 0}
+                          title="Subir aula dentro da semana"
+                        >
+                          <ArrowUp size={15} /> Subir
+                        </button>
+                        <button
+                          className="outlineAction compactAction iconCompactAction"
+                          onClick={() => moveLessonWithinWeek(selectedLesson, 1)}
+                          disabled={
+                            saving ||
+                            selectedLessonSiblingIndex < 0 ||
+                            selectedLessonSiblingIndex >= selectedLessonSiblings.length - 1
+                          }
+                          title="Descer aula dentro da semana"
+                        >
+                          <ArrowDown size={15} /> Descer
+                        </button>
+                        <button
+                          className="outlineAction compactAction previewStudentButton"
+                          onClick={() => setShowStudentPreview(true)}
+                        >
+                          <Eye size={15} /> Prévia do aluno
+                        </button>
+                        <button
                           className="outlineAction compactAction"
                           onClick={() => duplicateLesson(selectedLesson)}
                           disabled={saving}
@@ -1463,6 +1805,24 @@ export default function AdminContentManager() {
                     </div>
 
                     <div className="lessonFormGrid">
+                      <label>
+                        Semana
+                        <select
+                          value={selectedLesson.week_id}
+                          onChange={(event) =>
+                            moveLessonToWeek(selectedLesson, Number(event.target.value))
+                          }
+                          disabled={saving || weeks.length <= 1}
+                        >
+                          {[...weeks]
+                            .sort((a, b) => a.week_number - b.week_number)
+                            .map((week) => (
+                              <option key={week.id} value={week.id}>
+                                {week.title || `Semana ${week.week_number}`}
+                              </option>
+                            ))}
+                        </select>
+                      </label>
                       <label>
                         Título
                         <input value={lessonTitle} onChange={(event) => setLessonTitle(event.target.value)} />
