@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   BookOpen,
   CheckCircle2,
@@ -71,8 +71,6 @@ export default function StudentHome({ profile }: { profile: Profile }) {
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
 
-  const programSectionRef = useRef<HTMLElement | null>(null)
-  const profileSectionRef = useRef<HTMLElement | null>(null)
 
   async function resolveExerciseVideos(program: Program) {
     const nextWeeks = await Promise.all(
@@ -250,25 +248,16 @@ export default function StudentHome({ profile }: { profile: Profile }) {
     }
   }
 
-  function goHome() {
-    setActiveNav('home')
+  function changeTab(tab: StudentNav) {
+    setSelectedLessonId(null)
+    setActiveNav(tab)
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
-  function goProgram() {
-    setActiveNav('program')
-    programSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-
-  function goProfile() {
-    setActiveNav('profile')
-    profileSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   function openLesson(lessonId: number) {
     setActiveNav('program')
     setSelectedLessonId(lessonId)
-    window.scrollTo({ top: 0 })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   if (loading) return <div className="center">Carregando seu programa...</div>
@@ -296,6 +285,8 @@ export default function StudentHome({ profile }: { profile: Profile }) {
       </main>
     )
   }
+
+  const activeProgram: Program = program
 
   if (selectedLesson) {
     return (
@@ -439,81 +430,100 @@ export default function StudentHome({ profile }: { profile: Profile }) {
       )
     : '—'
 
-  return (
-    <main className="studentPage">
-      <header className="studentHeader">
-        <div className="studentBrand">
-          <img src="/logo-rv.png" className="headerLogo" alt="RV Fisiologia" />
-          <span>RV Fisiologia</span>
-        </div>
-        <button className="iconButton" onClick={() => supabase.auth.signOut()} aria-label="Sair">
-          <LogOut size={18} />
-        </button>
-      </header>
-
-      <section className="studentHero">
-        <div>
-          <p className="eyebrow">SEU ACOMPANHAMENTO</p>
-          <h1>Olá, {firstName}.</h1>
-          <p className="muted">Acesse suas aulas e acompanhe seu progresso.</p>
-        </div>
-      </section>
-
-      {message && <div className="studentMessage">{message}</div>}
-
-      <section className="studentGrid">
-        <article className="programMainCard">
-          <div className="programCardTop">
-            <div>
-              <span className="miniLabel">METODOLOGIA</span>
-              <h2>{program.title}</h2>
-            </div>
-            <strong>{percentage}%</strong>
+  function renderHome() {
+    return (
+      <>
+        <section className="studentHero studentTabHero">
+          <div>
+            <p className="eyebrow">SEU ACOMPANHAMENTO</p>
+            <h1>Olá, {firstName}.</h1>
+            <p className="muted">Acesse suas aulas e acompanhe seu progresso.</p>
           </div>
+        </section>
 
-          <div className="progressBar">
-            <span style={{ width: `${percentage}%` }} />
-          </div>
-
-          <p className="muted smallText">
-            {completedCount} de {lessons.length} aulas concluídas
-          </p>
-
-          {nextLesson && (
-            <button className="primary programAction" onClick={() => openLesson(nextLesson.id)}>
-              Continuar na aula {String(nextLesson.lesson_number).padStart(2, '0')}
-              <ChevronRight size={18} />
-            </button>
-          )}
-        </article>
-
-        <article className="nextLessonCard">
-          <span className="miniLabel">PRÓXIMA NÃO CONCLUÍDA</span>
-          {nextLesson ? (
-            <>
-              <div className="nextLessonInfo">
-                <div>
-                  <h2>{nextLesson.title}</h2>
-                  <p className="muted">{nextLesson.exercises.length} exercício(s)</p>
-                </div>
-                <span className="lessonNumber">
-                  {String(nextLesson.lesson_number).padStart(2, '0')}
-                </span>
+        <section className="studentGrid">
+          <article className="programMainCard">
+            <div className="programCardTop">
+              <div>
+                <span className="miniLabel">METODOLOGIA</span>
+                <h2>{activeProgram.title}</h2>
               </div>
+              <strong>{percentage}%</strong>
+            </div>
 
-              <button className="secondary wideButton" onClick={() => openLesson(nextLesson.id)}>
-                Abrir aula
+            <div className="progressBar">
+              <span style={{ width: `${percentage}%` }} />
+            </div>
+
+            <p className="muted smallText">
+              {completedCount} de {lessons.length} aulas concluídas
+            </p>
+
+            {nextLesson && (
+              <button className="primary programAction" onClick={() => openLesson(nextLesson.id)}>
+                Continuar na aula {String(nextLesson.lesson_number).padStart(2, '0')}
+                <ChevronRight size={18} />
               </button>
-            </>
-          ) : (
-            <p className="muted">Programa concluído.</p>
-          )}
-        </article>
-      </section>
+            )}
+          </article>
 
-      <div ref={programSectionRef}>
-        {program.weeks.map((week) => (
-          <section className="lessonsSection studentScrollTarget" key={week.id}>
+          <article className="nextLessonCard">
+            <span className="miniLabel">PRÓXIMA NÃO CONCLUÍDA</span>
+            {nextLesson ? (
+              <>
+                <div className="nextLessonInfo">
+                  <div>
+                    <h2>{nextLesson.title}</h2>
+                    <p className="muted">{nextLesson.exercises.length} exercício(s)</p>
+                  </div>
+                  <span className="lessonNumber">
+                    {String(nextLesson.lesson_number).padStart(2, '0')}
+                  </span>
+                </div>
+
+                <button className="secondary wideButton" onClick={() => openLesson(nextLesson.id)}>
+                  Abrir aula
+                </button>
+              </>
+            ) : (
+              <p className="muted">Programa concluído.</p>
+            )}
+          </article>
+        </section>
+
+        <section className="homeProgramShortcut">
+          <div>
+            <span className="miniLabel">SEU PLANO</span>
+            <h2>Veja todas as semanas e aulas</h2>
+            <p className="muted">Acesse a estrutura completa da metodologia {activeProgram.title}.</p>
+          </div>
+          <button className="secondary" onClick={() => changeTab('program')}>
+            Ver programa <ChevronRight size={17} />
+          </button>
+        </section>
+      </>
+    )
+  }
+
+  function renderProgram() {
+    return (
+      <>
+        <section className="studentTabIntro">
+          <div>
+            <p className="eyebrow">PROGRAMA</p>
+            <h1>{activeProgram.title}</h1>
+            <p className="muted">
+              {activeProgram.description || 'Todas as aulas da sua metodologia, organizadas por semana.'}
+            </p>
+          </div>
+          <div className="programSummaryPill">
+            <strong>{percentage}%</strong>
+            <span>{completedCount}/{lessons.length} aulas</span>
+          </div>
+        </section>
+
+        {activeProgram.weeks.map((week) => (
+          <section className="lessonsSection" key={week.id}>
             <div className="sectionHeading">
               <div>
                 <span className="miniLabel">SEMANA {week.week_number}</span>
@@ -544,83 +554,137 @@ export default function StudentHome({ profile }: { profile: Profile }) {
                             : 'Conteúdo em preparação'}
                       </span>
                     </div>
-                    {completed ? (
-                      <CheckCircle2 size={17} />
-                    ) : (
-                      <ChevronRight size={17} />
-                    )}
+                    {completed ? <CheckCircle2 size={17} /> : <ChevronRight size={17} />}
                   </button>
                 )
               })}
             </div>
           </section>
         ))}
-      </div>
+      </>
+    )
+  }
 
-      <section
-        className="studentProfileSection studentScrollTarget"
-        ref={profileSectionRef}
-      >
-        <div className="studentProfileHeading">
-          <div>
-            <span className="miniLabel">SEU PERFIL</span>
-            <h2>{profile.name || 'Aluno RV'}</h2>
-          </div>
-          <div className="studentProfileAvatar">
+  function renderProfile() {
+    return (
+      <section className="studentProfileScreen">
+        <div className="profileScreenHero">
+          <div className="studentProfileAvatar studentProfileAvatarLarge">
             {(profile.name || 'A').charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <p className="eyebrow">MEU PERFIL</p>
+            <h1>{profile.name || 'Aluno RV'}</h1>
+            <p className="muted">Informações da sua conta e do acompanhamento atual.</p>
           </div>
         </div>
 
-        <div className="studentProfileGrid">
+        <div className="studentProfileGrid profileScreenGrid">
           <div>
             <span>E-mail</span>
             <strong>{profile.email}</strong>
           </div>
           <div>
             <span>Metodologia</span>
-            <strong>{program.title}</strong>
+            <strong>{activeProgram.title}</strong>
           </div>
           <div>
-            <span>Início</span>
+            <span>Início do programa</span>
             <strong>{startDate}</strong>
           </div>
           <div>
             <span>Progresso</span>
             <strong>{percentage}% concluído</strong>
           </div>
+          <div>
+            <span>Aulas concluídas</span>
+            <strong>{completedCount} de {lessons.length}</strong>
+          </div>
+          <div>
+            <span>Status</span>
+            <strong>Acesso ativo</strong>
+          </div>
         </div>
 
-        <button className="studentProfileLogout" onClick={() => supabase.auth.signOut()}>
-          <LogOut size={17} />
-          Sair da conta
-        </button>
+        <div className="profileActions">
+          <button className="secondary" onClick={() => changeTab('program')}>
+            <BookOpen size={17} /> Ver meu programa
+          </button>
+          <button className="studentProfileLogout" onClick={() => supabase.auth.signOut()}>
+            <LogOut size={17} /> Sair da conta
+          </button>
+        </div>
       </section>
+    )
+  }
 
-      <nav className="bottomNav" aria-label="Navegação do aluno">
+  return (
+    <main className={`studentPage studentTabbedPage tab-${activeNav}`}>
+      <header className="studentHeader studentHeaderMain">
+        <div className="studentBrand">
+          <img src="/logo-rv.png" className="headerLogo" alt="RV Fisiologia" />
+          <span>RV Fisiologia</span>
+        </div>
+
+        <nav className="studentDesktopNav" aria-label="Navegação do aluno">
+          <button
+            className={activeNav === 'home' ? 'active' : ''}
+            onClick={() => changeTab('home')}
+          >
+            <Home size={16} /> <span>Início</span>
+          </button>
+          <button
+            className={activeNav === 'program' ? 'active' : ''}
+            onClick={() => changeTab('program')}
+          >
+            <BookOpen size={16} /> <span>Programa</span>
+          </button>
+          <button
+            className={activeNav === 'profile' ? 'active' : ''}
+            onClick={() => changeTab('profile')}
+          >
+            <UserRound size={16} /> <span>Perfil</span>
+          </button>
+        </nav>
+
+        <button className="iconButton" onClick={() => supabase.auth.signOut()} aria-label="Sair">
+          <LogOut size={18} />
+        </button>
+      </header>
+
+      {message && <div className="studentMessage studentPageMessage">{message}</div>}
+
+      <div className="studentTabContent" key={activeNav}>
+        {activeNav === 'home' && renderHome()}
+        {activeNav === 'program' && renderProgram()}
+        {activeNav === 'profile' && renderProfile()}
+      </div>
+
+      <nav className="bottomNav mobileStudentNav" aria-label="Navegação do aluno">
         <button
           className={activeNav === 'home' ? 'active' : ''}
-          onClick={goHome}
+          onClick={() => changeTab('home')}
           aria-current={activeNav === 'home' ? 'page' : undefined}
         >
-          <Home size={19} />
+          <Home size={20} />
           <span>Início</span>
         </button>
 
         <button
           className={activeNav === 'program' ? 'active' : ''}
-          onClick={goProgram}
+          onClick={() => changeTab('program')}
           aria-current={activeNav === 'program' ? 'page' : undefined}
         >
-          <BookOpen size={19} />
+          <BookOpen size={20} />
           <span>Programa</span>
         </button>
 
         <button
           className={activeNav === 'profile' ? 'active' : ''}
-          onClick={goProfile}
+          onClick={() => changeTab('profile')}
           aria-current={activeNav === 'profile' ? 'page' : undefined}
         >
-          <UserRound size={19} />
+          <UserRound size={20} />
           <span>Perfil</span>
         </button>
       </nav>
