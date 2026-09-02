@@ -231,3 +231,93 @@
 
   .bottomNav.mobileStudentNav button span { font-size: 10px !important; font-weight: 700; }
 }
+
+
+/* Upload de vídeo já no cadastro de novo exercício */
+.newExerciseVideoField {
+  display: grid;
+  gap: 9px;
+  padding: 14px;
+  border: 1px dashed rgba(35, 200, 191, .24);
+  border-radius: 12px;
+  background: rgba(35, 200, 191, .035);
+}
+
+.newExerciseVideoLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.newExerciseVideoLabel span {
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.newExerciseVideoLabel small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.newExerciseUploadButton {
+  width: fit-content;
+}
+
+.newExerciseVideoSelected {
+  min-width: 0;
+  padding: 10px 11px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #061837;
+}
+
+.newExerciseVideoSelected > svg {
+  color: var(--accent);
+}
+
+.newExerciseVideoSelected > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.newExerciseVideoSelected strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.newExerciseVideoSelected span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.newExerciseVideoSelected button {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #ff9da6;
+}
+
+@media (max-width: 720px) {
+  .newExerciseVideoLabel {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .newExerciseUploadButton {
+    width: 100%;
+    justify-content: center;
+  }
+}

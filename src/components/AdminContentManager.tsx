@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useMemo, useState } from 'react'
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ArrowDown,
   ArrowUp,
@@ -68,6 +68,37 @@ function safeFileName(name: string) {
     .replace(/^-|-$/g, '')
 }
 
+
+function getVideoMeta(file: File) {
+  const extension = file.name.split('.').pop()?.toLowerCase() ?? ''
+  const allowedExtensions = ['mp4', 'mov', 'webm']
+  const allowedMimeTypes = ['video/mp4', 'video/quicktime', 'video/webm']
+
+  if (!allowedMimeTypes.includes(file.type) && !allowedExtensions.includes(extension)) {
+    throw new Error(
+      `Formato não aceito (${file.type || extension || 'desconhecido'}). Use MP4, MOV ou WebM.`,
+    )
+  }
+
+  if (file.size > MAX_VIDEO_BYTES) {
+    throw new Error(
+      `O vídeo tem ${(file.size / 1024 / 1024).toFixed(1)} MB. O limite atual é 500 MB.`,
+    )
+  }
+
+  const fallbackMime =
+    extension === 'mov'
+      ? 'video/quicktime'
+      : extension === 'webm'
+        ? 'video/webm'
+        : 'video/mp4'
+
+  return {
+    extension,
+    contentType: file.type || fallbackMime,
+  }
+}
+
 async function invokeR2(body: Record<string, unknown>) {
   const { data, error } = await supabase.functions.invoke('r2-video', { body })
 
@@ -109,6 +140,8 @@ export default function AdminContentManager() {
   const [newExerciseSets, setNewExerciseSets] = useState('3')
   const [newExerciseRepetitions, setNewExerciseRepetitions] = useState('12')
   const [newExerciseRest, setNewExerciseRest] = useState('45')
+  const [newExerciseVideo, setNewExerciseVideo] = useState<File | null>(null)
+  const newExerciseVideoInputRef = useRef<HTMLInputElement | null>(null)
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -492,13 +525,30 @@ export default function AdminContentManager() {
   }
 
   async function addExercise() {
-    if (!selectedLessonId || !newExerciseTitle.trim()) {
+    if (!selectedProgramId || !selectedLessonId || !newExerciseTitle.trim()) {
       setFeedback({ type: 'error', text: 'Digite o nome do exercício.' })
       return
     }
 
+    let videoMeta: ReturnType<typeof getVideoMeta> | null = null
+
+    if (newExerciseVideo) {
+      try {
+        videoMeta = getVideoMeta(newExerciseVideo)
+      } catch (error) {
+        setFeedback({
+          type: 'error',
+          text: error instanceof Error ? error.message : 'Vídeo inválido.',
+        })
+        return
+      }
+    }
+
     const nextSort = Math.max(0, ...exercises.map((exercise) => exercise.sort_order)) + 1
     const rest = Number(newExerciseRest)
+
+    setSaving(true)
+    setFeedback(null)
 
     const { data, error } = await supabase
       .from('exercises')
@@ -511,12 +561,83 @@ export default function AdminContentManager() {
         rest_seconds: Number.isFinite(rest) ? rest : null,
         sort_order: nextSort,
       })
-      .select('id')
+      .select('id,title,lesson_id,video_path')
       .single()
 
     if (error || !data) {
-      setFeedback({ type: 'error', text: `Erro ao adicionar exercício: ${error?.message ?? 'erro desconhecido'}` })
+      setFeedback({
+        type: 'error',
+        text: `Erro ao adicionar exercício: ${error?.message ?? 'erro desconhecido'}`,
+      })
+      setSaving(false)
       return
+    }
+
+    let videoUploaded = false
+    let videoErrorMessage = ''
+
+    if (newExerciseVideo && videoMeta) {
+      setUploadingExerciseId(data.id)
+      setFeedback({
+        type: 'success',
+        text: `Exercício criado. Enviando "${newExerciseVideo.name}" para o Cloudflare R2...`,
+      })
+
+      try {
+        const signed = await invokeR2({
+          action: 'upload',
+          exercise_id: data.id,
+          program_id: selectedProgramId,
+          lesson_id: selectedLessonId,
+          file_name: newExerciseVideo.name,
+          content_type: videoMeta.contentType,
+        })
+
+        const uploadUrl = String(signed?.upload_url || '')
+        const key = String(signed?.key || '')
+
+        if (!uploadUrl || !key) {
+          throw new Error('O backend não retornou a autorização de upload.')
+        }
+
+        const uploadResponse = await fetch(uploadUrl, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': videoMeta.contentType,
+          },
+          body: newExerciseVideo,
+        })
+
+        if (!uploadResponse.ok) {
+          const body = await uploadResponse.text().catch(() => '')
+          console.error('R2 upload response:', uploadResponse.status, body)
+          throw new Error(
+            uploadResponse.status === 403
+              ? 'Cloudflare recusou o upload. Confira o CORS e as credenciais do R2.'
+              : `Cloudflare retornou erro ${uploadResponse.status} no upload.`,
+          )
+        }
+
+        const { error: updateError } = await supabase
+          .from('exercises')
+          .update({ video_path: key, video_url: null })
+          .eq('id', data.id)
+
+        if (updateError) {
+          await invokeR2({ action: 'delete', key }).catch(() => null)
+          throw new Error(
+            `O vídeo subiu, mas não foi possível vinculá-lo ao exercício: ${updateError.message}`,
+          )
+        }
+
+        videoUploaded = true
+      } catch (error) {
+        console.error('RV R2 new exercise upload error:', error)
+        videoErrorMessage =
+          error instanceof Error ? error.message : 'Erro inesperado ao enviar o vídeo.'
+      } finally {
+        setUploadingExerciseId(null)
+      }
     }
 
     setNewExerciseTitle('')
@@ -524,7 +645,27 @@ export default function AdminContentManager() {
     setNewExerciseSets('3')
     setNewExerciseRepetitions('12')
     setNewExerciseRest('45')
-    setFeedback({ type: 'success', text: 'Exercício adicionado.' })
+    setNewExerciseVideo(null)
+
+    if (newExerciseVideoInputRef.current) {
+      newExerciseVideoInputRef.current.value = ''
+    }
+
+    if (videoErrorMessage) {
+      setFeedback({
+        type: 'error',
+        text: `Exercício criado, mas o vídeo não foi enviado: ${videoErrorMessage}`,
+      })
+    } else if (videoUploaded) {
+      setFeedback({
+        type: 'success',
+        text: 'Exercício e vídeo adicionados com sucesso.',
+      })
+    } else {
+      setFeedback({ type: 'success', text: 'Exercício adicionado.' })
+    }
+
+    setSaving(false)
     await loadExercises(selectedLessonId)
   }
 
@@ -608,36 +749,18 @@ export default function AdminContentManager() {
       return
     }
 
-    const extension = file.name.split('.').pop()?.toLowerCase() ?? ''
-    const allowedExtensions = ['mp4', 'mov', 'webm']
-    const allowedMimeTypes = ['video/mp4', 'video/quicktime', 'video/webm']
+    let contentType = ''
 
-    if (!allowedMimeTypes.includes(file.type) && !allowedExtensions.includes(extension)) {
+    try {
+      contentType = getVideoMeta(file).contentType
+    } catch (error) {
       setFeedback({
         type: 'error',
-        text: `Formato não aceito (${file.type || extension || 'desconhecido'}). Use MP4, MOV ou WebM.`,
+        text: error instanceof Error ? error.message : 'Vídeo inválido.',
       })
       input.value = ''
       return
     }
-
-    if (file.size > MAX_VIDEO_BYTES) {
-      setFeedback({
-        type: 'error',
-        text: `O vídeo tem ${(file.size / 1024 / 1024).toFixed(1)} MB. O limite atual é 500 MB.`,
-      })
-      input.value = ''
-      return
-    }
-
-    const fallbackMime =
-      extension === 'mov'
-        ? 'video/quicktime'
-        : extension === 'webm'
-          ? 'video/webm'
-          : 'video/mp4'
-
-    const contentType = file.type || fallbackMime
 
     setUploadingExerciseId(exercise.id)
     setFeedback({
@@ -1067,10 +1190,76 @@ export default function AdminContentManager() {
                             placeholder="Orientações de execução"
                           />
                         </label>
+
+                        <div className="newExerciseVideoField fullField">
+                          <div className="newExerciseVideoLabel">
+                            <span>Vídeo do exercício</span>
+                            <small>Opcional · MP4, MOV ou WebM · até 500 MB</small>
+                          </div>
+
+                          <label className="uploadVideoButton newExerciseUploadButton">
+                            <Upload size={16} />
+                            {newExerciseVideo ? 'Trocar vídeo selecionado' : 'Selecionar vídeo'}
+                            <input
+                              ref={newExerciseVideoInputRef}
+                              type="file"
+                              accept=".mp4,.mov,.webm,video/mp4,video/quicktime,video/webm"
+                              onChange={(event) => {
+                                const file = event.currentTarget.files?.[0] ?? null
+
+                                if (!file) {
+                                  setNewExerciseVideo(null)
+                                  return
+                                }
+
+                                try {
+                                  getVideoMeta(file)
+                                  setNewExerciseVideo(file)
+                                  setFeedback(null)
+                                } catch (error) {
+                                  setNewExerciseVideo(null)
+                                  event.currentTarget.value = ''
+                                  setFeedback({
+                                    type: 'error',
+                                    text:
+                                      error instanceof Error
+                                        ? error.message
+                                        : 'Vídeo inválido.',
+                                  })
+                                }
+                              }}
+                            />
+                          </label>
+
+                          {newExerciseVideo && (
+                            <div className="newExerciseVideoSelected">
+                              <FileVideo size={18} />
+                              <div>
+                                <strong>{newExerciseVideo.name}</strong>
+                                <span>
+                                  {(newExerciseVideo.size / 1024 / 1024).toFixed(1)} MB
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setNewExerciseVideo(null)
+                                  if (newExerciseVideoInputRef.current) {
+                                    newExerciseVideoInputRef.current.value = ''
+                                  }
+                                }}
+                                aria-label="Remover vídeo selecionado"
+                                title="Remover vídeo selecionado"
+                              >
+                                <X size={15} />
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
-                      <button className="solidAction addExerciseButton" onClick={addExercise}>
-                        <Plus size={16} /> Adicionar exercício
+                      <button className="solidAction addExerciseButton" onClick={addExercise} disabled={saving || uploadingExerciseId !== null}>
+                        <Plus size={16} /> {saving ? 'Adicionando...' : newExerciseVideo ? 'Adicionar exercício + vídeo' : 'Adicionar exercício'}
                       </button>
                     </div>
                   </>
