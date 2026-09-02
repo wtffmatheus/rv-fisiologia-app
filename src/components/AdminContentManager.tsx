@@ -45,6 +45,8 @@ type Exercise = {
   instructions: string | null
   video_url: string | null
   video_path: string | null
+  video_ratio: '9:16' | '4:5' | '1:1' | '16:9'
+  video_fit: 'cover' | 'contain'
   sets: string | null
   repetitions: string | null
   rest_seconds: number | null
@@ -140,6 +142,8 @@ export default function AdminContentManager() {
   const [newExerciseSets, setNewExerciseSets] = useState('3')
   const [newExerciseRepetitions, setNewExerciseRepetitions] = useState('12')
   const [newExerciseRest, setNewExerciseRest] = useState('45')
+  const [newExerciseVideoRatio, setNewExerciseVideoRatio] = useState<'9:16' | '4:5' | '1:1' | '16:9'>('9:16')
+  const [newExerciseVideoFit, setNewExerciseVideoFit] = useState<'cover' | 'contain'>('cover')
   const [newExerciseVideo, setNewExerciseVideo] = useState<File | null>(null)
   const newExerciseVideoInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -262,7 +266,7 @@ export default function AdminContentManager() {
   async function loadExercises(lessonId: number) {
     const { data, error } = await supabase
       .from('exercises')
-      .select('id,lesson_id,title,instructions,video_url,video_path,sets,repetitions,rest_seconds,sort_order')
+      .select('id,lesson_id,title,instructions,video_url,video_path,video_ratio,video_fit,sets,repetitions,rest_seconds,sort_order')
       .eq('lesson_id', lessonId)
       .order('sort_order')
       .order('id')
@@ -559,6 +563,8 @@ export default function AdminContentManager() {
         sets: newExerciseSets.trim() || null,
         repetitions: newExerciseRepetitions.trim() || null,
         rest_seconds: Number.isFinite(rest) ? rest : null,
+        video_ratio: newExerciseVideoRatio,
+        video_fit: newExerciseVideoFit,
         sort_order: nextSort,
       })
       .select('id,title,lesson_id,video_path')
@@ -645,6 +651,8 @@ export default function AdminContentManager() {
     setNewExerciseSets('3')
     setNewExerciseRepetitions('12')
     setNewExerciseRest('45')
+    setNewExerciseVideoRatio('9:16')
+    setNewExerciseVideoFit('cover')
     setNewExerciseVideo(null)
 
     if (newExerciseVideoInputRef.current) {
@@ -684,6 +692,8 @@ export default function AdminContentManager() {
         sets: exercise.sets?.trim() || null,
         repetitions: exercise.repetitions?.trim() || null,
         rest_seconds: exercise.rest_seconds,
+        video_ratio: exercise.video_ratio,
+        video_fit: exercise.video_fit,
       })
       .eq('id', exercise.id)
 
@@ -1091,6 +1101,36 @@ export default function AdminContentManager() {
                                   }
                                 />
                               </label>
+                              <label>
+                                Formato do vídeo
+                                <select
+                                  value={exercise.video_ratio || '9:16'}
+                                  onChange={(event) =>
+                                    updateExerciseLocal(exercise.id, {
+                                      video_ratio: event.target.value as Exercise['video_ratio'],
+                                    })
+                                  }
+                                >
+                                  <option value="9:16">9:16 · Vertical</option>
+                                  <option value="4:5">4:5 · Retrato</option>
+                                  <option value="1:1">1:1 · Quadrado</option>
+                                  <option value="16:9">16:9 · Horizontal</option>
+                                </select>
+                              </label>
+                              <label>
+                                Ajuste do vídeo
+                                <select
+                                  value={exercise.video_fit || 'cover'}
+                                  onChange={(event) =>
+                                    updateExerciseLocal(exercise.id, {
+                                      video_fit: event.target.value as Exercise['video_fit'],
+                                    })
+                                  }
+                                >
+                                  <option value="cover">Preencher · sem bordas</option>
+                                  <option value="contain">Mostrar inteiro</option>
+                                </select>
+                              </label>
                               <label className="fullField">
                                 Instruções
                                 <textarea
@@ -1103,7 +1143,13 @@ export default function AdminContentManager() {
 
                             <div className="videoAdminArea">
                               {videoPreviews[exercise.id] ? (
-                                <video controls playsInline preload="metadata" src={videoPreviews[exercise.id]} />
+                                <video
+                                  className={`adminExerciseVideoPreview ratio-${(exercise.video_ratio || '9:16').replace(':', '')} fit-${exercise.video_fit || 'cover'}`}
+                                  controls
+                                  playsInline
+                                  preload="metadata"
+                                  src={videoPreviews[exercise.id]}
+                                />
                               ) : (
                                 <div className="videoEmptyAdmin">
                                   <FileVideo size={24} />
@@ -1149,7 +1195,7 @@ export default function AdminContentManager() {
                         <Plus size={18} />
                         <div>
                           <strong>Novo exercício</strong>
-                          <span>Depois de criar, você poderá enviar o vídeo.</span>
+                          <span>Configure o exercício, o formato e o vídeo antes de adicionar.</span>
                         </div>
                       </div>
 
@@ -1181,6 +1227,34 @@ export default function AdminContentManager() {
                             value={newExerciseRest}
                             onChange={(event) => setNewExerciseRest(event.target.value)}
                           />
+                        </label>
+                        <label>
+                          Formato do vídeo
+                          <select
+                            value={newExerciseVideoRatio}
+                            onChange={(event) =>
+                              setNewExerciseVideoRatio(
+                                event.target.value as '9:16' | '4:5' | '1:1' | '16:9',
+                              )
+                            }
+                          >
+                            <option value="9:16">9:16 · Vertical</option>
+                            <option value="4:5">4:5 · Retrato</option>
+                            <option value="1:1">1:1 · Quadrado</option>
+                            <option value="16:9">16:9 · Horizontal</option>
+                          </select>
+                        </label>
+                        <label>
+                          Ajuste do vídeo
+                          <select
+                            value={newExerciseVideoFit}
+                            onChange={(event) =>
+                              setNewExerciseVideoFit(event.target.value as 'cover' | 'contain')
+                            }
+                          >
+                            <option value="cover">Preencher · sem bordas</option>
+                            <option value="contain">Mostrar inteiro</option>
+                          </select>
                         </label>
                         <label className="fullField">
                           Instruções

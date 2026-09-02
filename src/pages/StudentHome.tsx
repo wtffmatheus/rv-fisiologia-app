@@ -20,6 +20,8 @@ type Exercise = {
   instructions: string | null
   video_url: string | null
   video_path: string | null
+  video_ratio: '9:16' | '4:5' | '1:1' | '16:9'
+  video_fit: 'cover' | 'contain'
   sets: string | null
   repetitions: string | null
   rest_seconds: number | null
@@ -97,6 +99,8 @@ export default function StudentHome({ profile }: { profile: Profile }) {
                 instructions,
                 video_url,
                 video_path,
+                video_ratio,
+                video_fit,
                 sets,
                 repetitions,
                 rest_seconds,
@@ -369,7 +373,9 @@ export default function StudentHome({ profile }: { profile: Profile }) {
               </div>
 
               {(videoUrls[exercise.id] || exercise.video_url) ? (
-                <div className="videoFrame">
+                <div
+                  className={`videoFrame standardizedVideo ratio-${(exercise.video_ratio || '9:16').replace(':', '')} fit-${exercise.video_fit || 'cover'}`}
+                >
                   <video
                     controls
                     playsInline
