@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { FormEvent, useEffect, useMemo, useState } from 'react'
 import {
   BookOpen,
   CheckCircle2,
@@ -70,6 +70,10 @@ export default function StudentHome({ profile }: { profile: Profile }) {
   const [activeNav, setActiveNav] = useState<StudentNav>('home')
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
+  const [accountEmail, setAccountEmail] = useState(profile.email || '')
+  const [newEmail, setNewEmail] = useState('')
+  const [emailMessage, setEmailMessage] = useState('')
+  const [emailLoading, setEmailLoading] = useState(false)
 
 
   async function loadStudentData() {
@@ -158,6 +162,12 @@ export default function StudentHome({ profile }: { profile: Profile }) {
   useEffect(() => {
     loadStudentData()
   }, [])
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setAccountEmail(data.user?.email || profile.email || '')
+    })
+  }, [profile.email])
 
   const program = assignment?.programs ?? null
 
@@ -587,6 +597,39 @@ export default function StudentHome({ profile }: { profile: Profile }) {
     )
   }
 
+  async function requestEmailChange(event: FormEvent) {
+    event.preventDefault()
+    setEmailMessage('')
+
+    const nextEmail = newEmail.trim().toLowerCase()
+
+    if (!nextEmail) {
+      setEmailMessage('Digite o novo e-mail.')
+      return
+    }
+
+    if (nextEmail === accountEmail.toLowerCase()) {
+      setEmailMessage('Esse já é o e-mail atual da sua conta.')
+      return
+    }
+
+    setEmailLoading(true)
+
+    const { error } = await supabase.auth.updateUser({ email: nextEmail })
+
+    if (error) {
+      setEmailMessage(error.message)
+      setEmailLoading(false)
+      return
+    }
+
+    setNewEmail('')
+    setEmailMessage(
+      'Solicitação enviada. Confira seu e-mail para confirmar a alteração. Por segurança, o Supabase também pode pedir confirmação no endereço atual.',
+    )
+    setEmailLoading(false)
+  }
+
   function renderProfile() {
     return (
       <section className="studentProfileScreen">
@@ -604,7 +647,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
         <div className="studentProfileGrid profileScreenGrid">
           <div>
             <span>E-mail</span>
-            <strong>{profile.email}</strong>
+            <strong>{accountEmail || profile.email}</strong>
           </div>
           <div>
             <span>Metodologia</span>
@@ -627,6 +670,42 @@ export default function StudentHome({ profile }: { profile: Profile }) {
             <strong>Acesso ativo</strong>
           </div>
         </div>
+
+        <section className="accountSettingsCard">
+          <div className="accountSettingsHeader">
+            <div>
+              <span className="miniLabel">CONTA</span>
+              <h2>Alterar e-mail</h2>
+              <p className="muted">
+                O novo endereço só passa a valer depois da confirmação por e-mail.
+              </p>
+            </div>
+          </div>
+
+          <form className="accountEmailForm" onSubmit={requestEmailChange}>
+            <label>
+              Novo e-mail
+              <input
+                type="email"
+                value={newEmail}
+                onChange={(event) => setNewEmail(event.target.value)}
+                placeholder="novoemail@exemplo.com"
+                autoComplete="email"
+                required
+              />
+            </label>
+
+            <button className="secondary" disabled={emailLoading}>
+              {emailLoading ? 'Enviando...' : 'Solicitar alteração'}
+            </button>
+          </form>
+
+          {emailMessage && (
+            <div className="accountInlineMessage" role="status">
+              {emailMessage}
+            </div>
+          )}
+        </section>
 
         <div className="profileActions">
           <button className="secondary" onClick={() => changeTab('program')}>

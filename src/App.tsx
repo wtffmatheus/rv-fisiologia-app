@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import type { Profile } from './types'
 import AuthPage from './pages/AuthPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 import PendingPage from './pages/PendingPage'
 import StudentHome from './pages/StudentHome'
 import AdminHome from './pages/AdminHome'
@@ -11,6 +12,9 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [recoveryMode, setRecoveryMode] = useState(
+    () => new URLSearchParams(window.location.search).get('recovery') === '1',
+  )
 
   async function loadProfile(userId: string) {
     const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
@@ -24,7 +28,11 @@ export default function App() {
       setLoading(false)
     })
 
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, next) => {
+    const { data: listener } = supabase.auth.onAuthStateChange(async (event, next) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setRecoveryMode(true)
+      }
+
       setSession(next)
       if (next) await loadProfile(next.user.id)
       else setProfile(null)
@@ -34,6 +42,18 @@ export default function App() {
   }, [])
 
   if (loading) return <div className="center">Carregando...</div>
+
+  if (recoveryMode && session) {
+    return (
+      <ResetPasswordPage
+        onDone={() => {
+          window.history.replaceState({}, document.title, window.location.pathname)
+          setRecoveryMode(false)
+        }}
+      />
+    )
+  }
+
   if (!session) return <AuthPage />
   if (!profile) return <div className="center">Preparando seu acesso...</div>
   if (profile.status !== 'active') return <PendingPage profile={profile} />

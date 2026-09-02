@@ -530,3 +530,82 @@
 .newExerciseUploadStatus {
   margin: 4px 0 12px;
 }
+
+/* RV_ACCOUNT_RECOVERY_V1 */
+
+.authForgotRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -0.35rem;
+}
+
+.authForgotLink {
+  width: auto !important;
+  padding: 0.2rem 0 !important;
+  font-size: 0.9rem;
+}
+
+.resetPasswordCard .accountSuccessMessage {
+  margin: 1.1rem 0;
+}
+
+.accountSettingsCard {
+  margin-top: 1.25rem;
+  padding: 1.35rem;
+  border: 1px solid rgba(13, 202, 199, 0.2);
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(13, 202, 199, 0.06), rgba(13, 202, 199, 0.015)),
+    #fff;
+  box-shadow: 0 14px 32px rgba(6, 28, 48, 0.06);
+}
+
+.accountSettingsHeader h2 {
+  margin: 0.25rem 0 0.4rem;
+}
+
+.accountSettingsHeader p {
+  margin: 0;
+}
+
+.accountEmailForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.85rem;
+  align-items: end;
+  margin-top: 1rem;
+}
+
+.accountEmailForm label {
+  margin: 0;
+}
+
+.accountEmailForm button {
+  min-height: 48px;
+  white-space: nowrap;
+}
+
+.accountInlineMessage {
+  margin-top: 0.9rem;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  background: rgba(13, 202, 199, 0.08);
+  border: 1px solid rgba(13, 202, 199, 0.18);
+  color: #16384a;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 680px) {
+  .accountEmailForm {
+    grid-template-columns: 1fr;
+  }
+
+  .accountEmailForm button {
+    width: 100%;
+  }
+
+  .accountSettingsCard {
+    padding: 1.1rem;
+  }
+}

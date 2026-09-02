@@ -1,7 +1,7 @@
 import { FormEvent, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
-type Mode = 'login' | 'register'
+type Mode = 'login' | 'register' | 'forgot'
 
 export default function AuthPage() {
   const [mode, setMode] = useState<Mode>('login')
@@ -15,6 +15,25 @@ export default function AuthPage() {
     event.preventDefault()
     setMessage('')
     setLoading(true)
+
+    if (mode === 'forgot') {
+      const normalizedEmail = email.trim().toLowerCase()
+
+      const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+        redirectTo: `${window.location.origin}/?recovery=1`,
+      })
+
+      if (error) {
+        setMessage(error.message)
+      } else {
+        setMessage(
+          'Enviamos um link para o seu e-mail. Abra a mensagem da RV Fisiologia para criar uma nova senha.',
+        )
+      }
+
+      setLoading(false)
+      return
+    }
 
     if (mode === 'register') {
       const { error } = await supabase.auth.signUp({
@@ -76,12 +95,20 @@ export default function AuthPage() {
           <img className="mobileLogo" src="/logo-rv.png" alt="RV Fisiologia" />
 
           <p className="eyebrow">ÁREA DO ALUNO</p>
-          <h2>{mode === 'login' ? 'Acesse sua conta' : 'Crie sua conta'}</h2>
+          <h2>
+            {mode === 'login'
+              ? 'Acesse sua conta'
+              : mode === 'register'
+                ? 'Crie sua conta'
+                : 'Recupere sua senha'}
+          </h2>
 
           <p className="muted">
             {mode === 'login'
               ? 'Entre com seu e-mail e senha.'
-              : 'Após o cadastro, a equipe RV irá analisar e liberar o seu acesso.'}
+              : mode === 'register'
+                ? 'Após o cadastro, a equipe RV irá analisar e liberar o seu acesso.'
+                : 'Informe o e-mail da sua conta para receber o link de recuperação.'}
           </p>
 
           <form onSubmit={handleSubmit}>
@@ -108,36 +135,63 @@ export default function AuthPage() {
               />
             </label>
 
-            <label>
-              Senha
-              <input
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="Digite sua senha"
-                minLength={6}
-                required
-              />
-            </label>
+            {mode !== 'forgot' && (
+              <label>
+                Senha
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Digite sua senha"
+                  minLength={6}
+                  required
+                />
+              </label>
+            )}
 
             <button className="primary" disabled={loading}>
-              {loading ? 'Aguarde...' : mode === 'login' ? 'Entrar' : 'Criar cadastro'}
+              {loading
+                ? 'Aguarde...'
+                : mode === 'login'
+                  ? 'Entrar'
+                  : mode === 'register'
+                    ? 'Criar cadastro'
+                    : 'Enviar link de recuperação'}
             </button>
           </form>
 
           {message && <p className="message">{message}</p>}
 
+          {mode === 'login' && (
+            <div className="authForgotRow">
+              <button
+                className="link authForgotLink"
+                type="button"
+                onClick={() => {
+                  setMode('forgot')
+                  setMessage('')
+                  setPassword('')
+                }}
+              >
+                Esqueci minha senha
+              </button>
+            </div>
+          )}
+
           <button
             className="link"
             type="button"
             onClick={() => {
-              setMode(mode === 'login' ? 'register' : 'login')
+              setMode(mode === 'forgot' ? 'login' : mode === 'login' ? 'register' : 'login')
               setMessage('')
+              setPassword('')
             }}
           >
             {mode === 'login'
               ? 'Ainda não tem conta? Cadastre-se'
-              : 'Já possui cadastro? Entrar'}
+              : mode === 'register'
+                ? 'Já possui cadastro? Entrar'
+                : 'Voltar para entrar'}
           </button>
         </div>
       </section>
