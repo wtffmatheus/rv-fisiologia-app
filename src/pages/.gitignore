@@ -1,0 +1,10 @@
+node_modules
+dist
+.env
+.env.local
+.vscode
+.DS_Storegit add .
+git commit -m "adiciona gitignore"
+git pushgit add .
+git commit -m "adiciona gitignore"
+git push
