@@ -1,0 +1,187 @@
+/* RV Fisiologia — correções de interface (carregado por último) */
+
+/* Login: mantém o conteúdo da esquerda centralizado e equilibrado */
+.brand {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  justify-content: initial;
+}
+
+.brand > div:last-child {
+  align-self: center;
+  max-width: 720px;
+  transform: translateY(-18px);
+}
+
+.brand h1 {
+  font-size: clamp(46px, 4.2vw, 64px);
+  max-width: 720px;
+  line-height: .99;
+  letter-spacing: -2px;
+  margin: 12px 0 20px;
+  text-wrap: balance;
+}
+
+.brand p {
+  max-width: 570px;
+  line-height: 1.6;
+}
+
+.brandFeatures {
+  margin-top: 24px;
+  display: grid;
+  gap: 7px;
+  color: #d8e3f0;
+  font-size: 14px;
+}
+
+/* Área do aluno */
+.studentPage {
+  padding-bottom: 132px;
+}
+
+.studentScrollTarget {
+  scroll-margin-top: 105px;
+}
+
+.studentProfileSection {
+  margin-top: 18px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(10, 39, 81, .94), rgba(7, 29, 63, .96));
+  box-shadow: 0 18px 48px rgba(0, 8, 24, .16);
+}
+
+.studentProfileHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.studentProfileHeading h2 {
+  margin: 5px 0 0;
+  font-size: 24px;
+}
+
+.studentProfileAvatar {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  border: 1px solid rgba(35, 200, 191, .22);
+  background: rgba(35, 200, 191, .08);
+  color: var(--accent);
+  font-weight: 900;
+  font-size: 18px;
+}
+
+.studentProfileGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.studentProfileGrid > div {
+  min-width: 0;
+  padding: 13px;
+  display: grid;
+  gap: 5px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: #061837;
+}
+
+.studentProfileGrid span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.studentProfileGrid strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+
+.studentProfileLogout {
+  margin-top: 14px;
+  padding: 10px 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgba(255, 133, 146, .24);
+  border-radius: 10px;
+  background: transparent;
+  color: #ff9da6;
+  font-weight: 750;
+}
+
+/* Hotbar: eram 4 colunas para 3 botões. Agora são exatamente 3. */
+.bottomNav {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: min(430px, calc(100% - 24px));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  padding: 6px;
+  border-radius: 15px;
+}
+
+.bottomNav button {
+  width: 100%;
+  min-width: 0;
+  min-height: 54px;
+  padding: 7px 8px;
+  transition:
+    color .16s ease,
+    background .16s ease,
+    transform .16s ease;
+}
+
+.bottomNav button:active {
+  transform: scale(.98);
+}
+
+.bottomNav button.active {
+  color: var(--accent);
+  background: rgba(35, 200, 191, .08);
+}
+
+.bottomNav button span {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+@media (max-width: 980px) {
+  .brand {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .studentPage {
+    width: min(100% - 22px, 760px);
+    padding-bottom: 122px;
+  }
+
+  .studentProfileSection {
+    padding: 19px;
+    border-radius: 15px;
+  }
+
+  .studentProfileGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .bottomNav {
+    width: calc(100% - 16px);
+    bottom: max(8px, env(safe-area-inset-bottom));
+    border-radius: 14px;
+  }
+
+  .bottomNav button {
+    min-height: 52px;
+  }
+}

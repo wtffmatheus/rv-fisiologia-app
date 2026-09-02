@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   BookOpen,
   CheckCircle2,
@@ -13,6 +13,8 @@ import type { Profile } from '../types'
 import { supabase } from '../lib/supabase'
 
 const VIDEO_BUCKET = 'exercise-videos'
+
+type StudentNav = 'home' | 'program' | 'profile'
 
 type Exercise = {
   id: number
@@ -65,8 +67,12 @@ export default function StudentHome({ profile }: { profile: Profile }) {
   const [assignment, setAssignment] = useState<Assignment | null>(null)
   const [progress, setProgress] = useState<Progress[]>([])
   const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null)
+  const [activeNav, setActiveNav] = useState<StudentNav>('home')
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
+
+  const programSectionRef = useRef<HTMLElement | null>(null)
+  const profileSectionRef = useRef<HTMLElement | null>(null)
 
   async function resolveExerciseVideos(program: Program) {
     const nextWeeks = await Promise.all(
@@ -165,7 +171,9 @@ export default function StudentHome({ profile }: { profile: Profile }) {
               .sort((a, b) => a.lesson_number - b.lesson_number)
               .map((lesson) => ({
                 ...lesson,
-                exercises: [...(lesson.exercises ?? [])].sort((a, b) => a.sort_order - b.sort_order),
+                exercises: [...(lesson.exercises ?? [])].sort(
+                  (a, b) => a.sort_order - b.sort_order,
+                ),
               })),
           })),
       }
@@ -202,7 +210,8 @@ export default function StudentHome({ profile }: { profile: Profile }) {
 
   const completedCount = lessons.filter((lesson) => completedLessonIds.has(lesson.id)).length
   const percentage = lessons.length ? Math.round((completedCount / lessons.length) * 100) : 0
-  const nextLesson = lessons.find((lesson) => !completedLessonIds.has(lesson.id)) ?? lessons[0] ?? null
+  const nextLesson =
+    lessons.find((lesson) => !completedLessonIds.has(lesson.id)) ?? lessons[0] ?? null
 
   const selectedIndex = selectedLesson
     ? lessons.findIndex((lesson) => lesson.id === selectedLesson.id)
@@ -241,6 +250,27 @@ export default function StudentHome({ profile }: { profile: Profile }) {
     }
   }
 
+  function goHome() {
+    setActiveNav('home')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function goProgram() {
+    setActiveNav('program')
+    programSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  function goProfile() {
+    setActiveNav('profile')
+    profileSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  function openLesson(lessonId: number) {
+    setActiveNav('program')
+    setSelectedLessonId(lessonId)
+    window.scrollTo({ top: 0 })
+  }
+
   if (loading) return <div className="center">Carregando seu programa...</div>
 
   if (!program) {
@@ -259,7 +289,9 @@ export default function StudentHome({ profile }: { profile: Profile }) {
         <section className="noProgramCard">
           <p className="eyebrow">ACESSO ATIVO</p>
           <h1>Seu programa ainda não foi vinculado.</h1>
-          <p className="muted">Entre em contato com a equipe RV para verificar sua metodologia.</p>
+          <p className="muted">
+            Entre em contato com a equipe RV para verificar sua metodologia.
+          </p>
         </section>
       </main>
     )
@@ -269,7 +301,13 @@ export default function StudentHome({ profile }: { profile: Profile }) {
     return (
       <main className="studentPage lessonPage">
         <header className="studentHeader">
-          <button className="lessonBack" onClick={() => setSelectedLessonId(null)}>
+          <button
+            className="lessonBack"
+            onClick={() => {
+              setSelectedLessonId(null)
+              setActiveNav('program')
+            }}
+          >
             <ChevronLeft size={18} /> Programa
           </button>
           <img src="/logo-rv.png" className="headerLogo" alt="RV Fisiologia" />
@@ -280,7 +318,9 @@ export default function StudentHome({ profile }: { profile: Profile }) {
             {program.title} · Aula {String(selectedLesson.lesson_number).padStart(2, '0')}
           </span>
           <h1>{selectedLesson.title}</h1>
-          {selectedLesson.description && <p className="muted">{selectedLesson.description}</p>}
+          {selectedLesson.description && (
+            <p className="muted">{selectedLesson.description}</p>
+          )}
         </section>
 
         {message && <div className="studentMessage">{message}</div>}
@@ -293,7 +333,11 @@ export default function StudentHome({ profile }: { profile: Profile }) {
           >
             <ChevronLeft size={17} /> Aula anterior
           </button>
-          <span>{selectedLesson.lesson_number} de {lessons.length}</span>
+
+          <span>
+            {selectedLesson.lesson_number} de {lessons.length}
+          </span>
+
           <button
             className="secondary"
             onClick={() => followingLesson && setSelectedLessonId(followingLesson.id)}
@@ -323,7 +367,12 @@ export default function StudentHome({ profile }: { profile: Profile }) {
 
               {exercise.resolved_video_url ? (
                 <div className="videoFrame">
-                  <video controls playsInline preload="metadata" src={exercise.resolved_video_url} />
+                  <video
+                    controls
+                    playsInline
+                    preload="metadata"
+                    src={exercise.resolved_video_url}
+                  />
                 </div>
               ) : (
                 <div className="videoPlaceholder">
@@ -333,9 +382,20 @@ export default function StudentHome({ profile }: { profile: Profile }) {
               )}
 
               <div className="exerciseMeta">
-                <div><span>Séries</span><strong>{exercise.sets || '—'}</strong></div>
-                <div><span>Repetições / tempo</span><strong>{exercise.repetitions || '—'}</strong></div>
-                <div><span>Descanso</span><strong>{exercise.rest_seconds ? `${exercise.rest_seconds}s` : '—'}</strong></div>
+                <div>
+                  <span>Séries</span>
+                  <strong>{exercise.sets || '—'}</strong>
+                </div>
+                <div>
+                  <span>Repetições / tempo</span>
+                  <strong>{exercise.repetitions || '—'}</strong>
+                </div>
+                <div>
+                  <span>Descanso</span>
+                  <strong>
+                    {exercise.rest_seconds ? `${exercise.rest_seconds}s` : '—'}
+                  </strong>
+                </div>
               </div>
 
               {exercise.instructions && (
@@ -355,11 +415,16 @@ export default function StudentHome({ profile }: { profile: Profile }) {
             disabled={completedLessonIds.has(selectedLesson.id)}
           >
             <CheckCircle2 size={18} />
-            {completedLessonIds.has(selectedLesson.id) ? 'Aula concluída' : 'Concluir e avançar'}
+            {completedLessonIds.has(selectedLesson.id)
+              ? 'Aula concluída'
+              : 'Concluir e avançar'}
           </button>
 
           {followingLesson && (
-            <button className="secondary" onClick={() => setSelectedLessonId(followingLesson.id)}>
+            <button
+              className="secondary"
+              onClick={() => setSelectedLessonId(followingLesson.id)}
+            >
               Pular para próxima aula <ChevronRight size={17} />
             </button>
           )}
@@ -367,6 +432,12 @@ export default function StudentHome({ profile }: { profile: Profile }) {
       </main>
     )
   }
+
+  const startDate = assignment?.starts_at
+    ? new Intl.DateTimeFormat('pt-BR').format(
+        new Date(`${assignment.starts_at}T12:00:00`),
+      )
+    : '—'
 
   return (
     <main className="studentPage">
@@ -399,10 +470,17 @@ export default function StudentHome({ profile }: { profile: Profile }) {
             </div>
             <strong>{percentage}%</strong>
           </div>
-          <div className="progressBar"><span style={{ width: `${percentage}%` }} /></div>
-          <p className="muted smallText">{completedCount} de {lessons.length} aulas concluídas</p>
+
+          <div className="progressBar">
+            <span style={{ width: `${percentage}%` }} />
+          </div>
+
+          <p className="muted smallText">
+            {completedCount} de {lessons.length} aulas concluídas
+          </p>
+
           {nextLesson && (
-            <button className="primary programAction" onClick={() => setSelectedLessonId(nextLesson.id)}>
+            <button className="primary programAction" onClick={() => openLesson(nextLesson.id)}>
               Continuar na aula {String(nextLesson.lesson_number).padStart(2, '0')}
               <ChevronRight size={18} />
             </button>
@@ -418,62 +496,132 @@ export default function StudentHome({ profile }: { profile: Profile }) {
                   <h2>{nextLesson.title}</h2>
                   <p className="muted">{nextLesson.exercises.length} exercício(s)</p>
                 </div>
-                <span className="lessonNumber">{String(nextLesson.lesson_number).padStart(2, '0')}</span>
+                <span className="lessonNumber">
+                  {String(nextLesson.lesson_number).padStart(2, '0')}
+                </span>
               </div>
-              <button className="secondary wideButton" onClick={() => setSelectedLessonId(nextLesson.id)}>
+
+              <button className="secondary wideButton" onClick={() => openLesson(nextLesson.id)}>
                 Abrir aula
               </button>
             </>
-          ) : <p className="muted">Programa concluído.</p>}
+          ) : (
+            <p className="muted">Programa concluído.</p>
+          )}
         </article>
       </section>
 
-      {program.weeks.map((week) => (
-        <section className="lessonsSection" key={week.id}>
-          <div className="sectionHeading">
-            <div>
-              <span className="miniLabel">SEMANA {week.week_number}</span>
-              <h2>{week.title || `Semana ${week.week_number}`}</h2>
+      <div ref={programSectionRef}>
+        {program.weeks.map((week) => (
+          <section className="lessonsSection studentScrollTarget" key={week.id}>
+            <div className="sectionHeading">
+              <div>
+                <span className="miniLabel">SEMANA {week.week_number}</span>
+                <h2>{week.title || `Semana ${week.week_number}`}</h2>
+              </div>
             </div>
-          </div>
 
-          <div className="lessonList">
-            {week.lessons.map((lesson) => {
-              const completed = completedLessonIds.has(lesson.id)
-              return (
-                <button
-                  key={lesson.id}
-                  className={`lessonItem ${completed ? 'done' : ''}`}
-                  onClick={() => setSelectedLessonId(lesson.id)}
-                >
-                  <div className="lessonIndex">{String(lesson.lesson_number).padStart(2, '0')}</div>
-                  <div className="lessonCopy">
-                    <strong>{lesson.title}</strong>
-                    <span>
-                      {completed
-                        ? 'Concluída'
-                        : lesson.exercises.length > 0
-                          ? `${lesson.exercises.length} exercício(s)`
-                          : 'Conteúdo em preparação'}
-                    </span>
-                  </div>
-                  {completed ? <CheckCircle2 size={17} /> : <ChevronRight size={17} />}
-                </button>
-              )
-            })}
+            <div className="lessonList">
+              {week.lessons.map((lesson) => {
+                const completed = completedLessonIds.has(lesson.id)
+
+                return (
+                  <button
+                    key={lesson.id}
+                    className={`lessonItem ${completed ? 'done' : ''}`}
+                    onClick={() => openLesson(lesson.id)}
+                  >
+                    <div className="lessonIndex">
+                      {String(lesson.lesson_number).padStart(2, '0')}
+                    </div>
+                    <div className="lessonCopy">
+                      <strong>{lesson.title}</strong>
+                      <span>
+                        {completed
+                          ? 'Concluída'
+                          : lesson.exercises.length > 0
+                            ? `${lesson.exercises.length} exercício(s)`
+                            : 'Conteúdo em preparação'}
+                      </span>
+                    </div>
+                    {completed ? (
+                      <CheckCircle2 size={17} />
+                    ) : (
+                      <ChevronRight size={17} />
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          </section>
+        ))}
+      </div>
+
+      <section
+        className="studentProfileSection studentScrollTarget"
+        ref={profileSectionRef}
+      >
+        <div className="studentProfileHeading">
+          <div>
+            <span className="miniLabel">SEU PERFIL</span>
+            <h2>{profile.name || 'Aluno RV'}</h2>
           </div>
-        </section>
-      ))}
+          <div className="studentProfileAvatar">
+            {(profile.name || 'A').charAt(0).toUpperCase()}
+          </div>
+        </div>
+
+        <div className="studentProfileGrid">
+          <div>
+            <span>E-mail</span>
+            <strong>{profile.email}</strong>
+          </div>
+          <div>
+            <span>Metodologia</span>
+            <strong>{program.title}</strong>
+          </div>
+          <div>
+            <span>Início</span>
+            <strong>{startDate}</strong>
+          </div>
+          <div>
+            <span>Progresso</span>
+            <strong>{percentage}% concluído</strong>
+          </div>
+        </div>
+
+        <button className="studentProfileLogout" onClick={() => supabase.auth.signOut()}>
+          <LogOut size={17} />
+          Sair da conta
+        </button>
+      </section>
 
       <nav className="bottomNav" aria-label="Navegação do aluno">
-        <button className="active" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          <Home size={18} /><span>Início</span>
+        <button
+          className={activeNav === 'home' ? 'active' : ''}
+          onClick={goHome}
+          aria-current={activeNav === 'home' ? 'page' : undefined}
+        >
+          <Home size={19} />
+          <span>Início</span>
         </button>
-        <button onClick={() => document.querySelector('.lessonsSection')?.scrollIntoView({ behavior: 'smooth' })}>
-          <BookOpen size={18} /><span>Programa</span>
+
+        <button
+          className={activeNav === 'program' ? 'active' : ''}
+          onClick={goProgram}
+          aria-current={activeNav === 'program' ? 'page' : undefined}
+        >
+          <BookOpen size={19} />
+          <span>Programa</span>
         </button>
-        <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          <UserRound size={18} /><span>Perfil</span>
+
+        <button
+          className={activeNav === 'profile' ? 'active' : ''}
+          onClick={goProfile}
+          aria-current={activeNav === 'profile' ? 'page' : undefined}
+        >
+          <UserRound size={19} />
+          <span>Perfil</span>
         </button>
       </nav>
     </main>
