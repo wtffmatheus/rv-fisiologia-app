@@ -60,15 +60,6 @@ type Feedback = {
 
 const MAX_VIDEO_BYTES = 500 * 1024 * 1024
 
-function safeFileName(name: string) {
-  return name
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9.]+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '')
-}
 
 
 function getVideoMeta(file: File) {
@@ -114,6 +105,139 @@ async function invokeR2(body: Record<string, unknown>) {
   }
 
   return data
+}
+
+
+async function uploadFileViaEdgeMultipart(params: {
+  exerciseId: number
+  programId: number
+  lessonId: number
+  file: File
+  contentType: string
+  oldKey?: string | null
+  onProgress?: (percentage: number) => void
+}) {
+  const {
+    exerciseId,
+    programId,
+    lessonId,
+    file,
+    contentType,
+    oldKey,
+    onProgress,
+  } = params
+
+  const started = await invokeR2({
+    action: 'multipart_start',
+    exercise_id: exerciseId,
+    program_id: programId,
+    lesson_id: lessonId,
+    file_name: file.name,
+    content_type: contentType,
+  })
+
+  const uploadId = String(started?.upload_id || '')
+  const key = String(started?.key || '')
+  const partSize = Number(started?.part_size || 6 * 1024 * 1024)
+
+  if (!uploadId || !key || !partSize) {
+    throw new Error('O serviço de vídeos não iniciou o upload corretamente.')
+  }
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (!session?.access_token) {
+    await invokeR2({ action: 'multipart_abort', upload_id: uploadId, key }).catch(() => null)
+    throw new Error('Sua sessão expirou. Entre novamente no painel.')
+  }
+
+  const supabaseUrl = String(import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '')
+  const publishableKey = String(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '')
+
+  if (!supabaseUrl || !publishableKey) {
+    await invokeR2({ action: 'multipart_abort', upload_id: uploadId, key }).catch(() => null)
+    throw new Error('Configuração pública do Supabase não encontrada no build.')
+  }
+
+  const functionUrl = `${supabaseUrl}/functions/v1/r2-video`
+  const parts: Array<{ etag: string; part_number: number }> = []
+
+  try {
+    const totalParts = Math.ceil(file.size / partSize)
+
+    for (let index = 0; index < totalParts; index += 1) {
+      const partNumber = index + 1
+      const start = index * partSize
+      const end = Math.min(start + partSize, file.size)
+      const chunk = file.slice(start, end)
+
+      const query = new URLSearchParams({
+        action: 'multipart_part',
+        upload_id: uploadId,
+        key,
+        part_number: String(partNumber),
+      })
+
+      const response = await fetch(`${functionUrl}?${query.toString()}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: publishableKey,
+          'Content-Type': 'application/octet-stream',
+        },
+        body: chunk,
+      })
+
+      const raw = await response.text()
+      let payload: any = null
+
+      try {
+        payload = raw ? JSON.parse(raw) : null
+      } catch {
+        payload = null
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          payload?.error ||
+            `Falha ao enviar a parte ${partNumber} de ${totalParts} do vídeo.`,
+        )
+      }
+
+      const etag = String(payload?.etag || '')
+      if (!etag) {
+        throw new Error(`O R2 não confirmou a parte ${partNumber} do vídeo.`)
+      }
+
+      parts.push({ etag, part_number: partNumber })
+      onProgress?.(Math.round((partNumber / totalParts) * 100))
+    }
+
+    const completed = await invokeR2({
+      action: 'multipart_complete',
+      upload_id: uploadId,
+      key,
+      exercise_id: exerciseId,
+      old_key: oldKey || null,
+      parts,
+    })
+
+    if (!completed?.ok) {
+      throw new Error('O serviço não confirmou a conclusão do upload.')
+    }
+
+    return key
+  } catch (error) {
+    await invokeR2({
+      action: 'multipart_abort',
+      upload_id: uploadId,
+      key,
+    }).catch(() => null)
+
+    throw error
+  }
 }
 
 export default function AdminContentManager() {
@@ -590,51 +714,19 @@ export default function AdminContentManager() {
       })
 
       try {
-        const signed = await invokeR2({
-          action: 'upload',
-          exercise_id: data.id,
-          program_id: selectedProgramId,
-          lesson_id: selectedLessonId,
-          file_name: newExerciseVideo.name,
-          content_type: videoMeta.contentType,
-        })
-
-        const uploadUrl = String(signed?.upload_url || '')
-        const key = String(signed?.key || '')
-
-        if (!uploadUrl || !key) {
-          throw new Error('O backend não retornou a autorização de upload.')
-        }
-
-        const uploadResponse = await fetch(uploadUrl, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': videoMeta.contentType,
+        await uploadFileViaEdgeMultipart({
+          exerciseId: data.id,
+          programId: selectedProgramId,
+          lessonId: selectedLessonId,
+          file: newExerciseVideo,
+          contentType: videoMeta.contentType,
+          onProgress: (percentage) => {
+            setFeedback({
+              type: 'success',
+              text: `Enviando "${newExerciseVideo.name}"... ${percentage}%`,
+            })
           },
-          body: newExerciseVideo,
         })
-
-        if (!uploadResponse.ok) {
-          const body = await uploadResponse.text().catch(() => '')
-          console.error('R2 upload response:', uploadResponse.status, body)
-          throw new Error(
-            uploadResponse.status === 403
-              ? 'Cloudflare recusou o upload. Confira o CORS e as credenciais do R2.'
-              : `Cloudflare retornou erro ${uploadResponse.status} no upload.`,
-          )
-        }
-
-        const { error: updateError } = await supabase
-          .from('exercises')
-          .update({ video_path: key, video_url: null })
-          .eq('id', data.id)
-
-        if (updateError) {
-          await invokeR2({ action: 'delete', key }).catch(() => null)
-          throw new Error(
-            `O vídeo subiu, mas não foi possível vinculá-lo ao exercício: ${updateError.message}`,
-          )
-        }
 
         videoUploaded = true
       } catch (error) {
@@ -779,60 +871,20 @@ export default function AdminContentManager() {
     })
 
     try {
-      const signed = await invokeR2({
-        action: 'upload',
-        exercise_id: exercise.id,
-        program_id: selectedProgramId,
-        lesson_id: selectedLessonId,
-        file_name: file.name,
-        content_type: contentType,
-      })
-
-      const uploadUrl = String(signed?.upload_url || '')
-      const key = String(signed?.key || '')
-
-      if (!uploadUrl || !key) {
-        throw new Error('O backend não retornou a autorização de upload.')
-      }
-
-      setFeedback({
-        type: 'success',
-        text: `Enviando "${file.name}" (${(file.size / 1024 / 1024).toFixed(1)} MB) para o R2...`,
-      })
-
-      const uploadResponse = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': contentType,
+      await uploadFileViaEdgeMultipart({
+        exerciseId: exercise.id,
+        programId: selectedProgramId,
+        lessonId: selectedLessonId,
+        file,
+        contentType,
+        oldKey: exercise.video_path,
+        onProgress: (percentage) => {
+          setFeedback({
+            type: 'success',
+            text: `Enviando "${file.name}"... ${percentage}%`,
+          })
         },
-        body: file,
       })
-
-      if (!uploadResponse.ok) {
-        const body = await uploadResponse.text().catch(() => '')
-        console.error('R2 upload response:', uploadResponse.status, body)
-        throw new Error(
-          uploadResponse.status === 403
-            ? 'Cloudflare recusou o upload. Confira o CORS e as credenciais do R2.'
-            : `Cloudflare retornou erro ${uploadResponse.status} no upload.`,
-        )
-      }
-
-      const { error: updateError } = await supabase
-        .from('exercises')
-        .update({ video_path: key, video_url: null })
-        .eq('id', exercise.id)
-
-      if (updateError) {
-        await invokeR2({ action: 'delete', key }).catch(() => null)
-        throw new Error(`O vídeo subiu, mas não foi possível vinculá-lo ao exercício: ${updateError.message}`)
-      }
-
-      if (exercise.video_path && exercise.video_path !== key) {
-        await invokeR2({ action: 'delete', key: exercise.video_path }).catch((error) =>
-          console.warn('Não foi possível remover o vídeo antigo do R2:', error),
-        )
-      }
 
       setFeedback({
         type: 'success',
