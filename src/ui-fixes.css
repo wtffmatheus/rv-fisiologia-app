@@ -766,3 +766,109 @@
     max-width: 124px !important;
   }
 }
+
+
+/* RV_ADMIN_EDITOR_P1_LOTE1 */
+
+.weekGroupHeaderEditable {
+  gap: 8px;
+}
+
+.weekTitleInput {
+  min-width: 0;
+  width: 100%;
+  height: 34px;
+  padding: 0 9px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 800;
+  outline: none;
+}
+
+.weekTitleInput:hover {
+  border-color: var(--border);
+  background: rgba(6, 24, 55, .5);
+}
+
+.weekTitleInput:focus {
+  border-color: rgba(35, 200, 191, .45);
+  background: #061837;
+  box-shadow: 0 0 0 3px rgba(35, 200, 191, .06);
+}
+
+.weekHeaderActions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 3px;
+}
+
+.weekHeaderActions button {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #8fa5c3;
+}
+
+.weekHeaderActions button:hover {
+  background: rgba(35, 200, 191, .07);
+  color: var(--accent);
+}
+
+.weekHeaderActions .weekDeleteButton:hover {
+  background: rgba(255, 133, 146, .07);
+  color: #ff9da6;
+}
+
+.lessonTopActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.compactAction {
+  min-height: 34px;
+  padding: 7px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.duplicateExerciseAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.programDeleteAction {
+  margin-right: auto;
+}
+
+@media (max-width: 720px) {
+  .lessonTopActions {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .lessonTopActions button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .programEditorActions .programDeleteAction {
+    margin-right: 0;
+  }
+
+  .weekGroupHeaderEditable {
+    align-items: center;
+  }
+}

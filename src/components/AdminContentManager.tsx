@@ -3,6 +3,7 @@ import {
   ArrowDown,
   ArrowUp,
   Check,
+  Copy,
   ChevronRight,
   FileVideo,
   FolderPlus,
@@ -518,44 +519,293 @@ export default function AdminContentManager() {
       return
     }
 
-    const { data: createdWeeks, error: weeksError } = await supabase
-      .from('weeks')
-      .insert([
-        { program_id: createdProgram.id, week_number: 1, title: 'Semana 1' },
-        { program_id: createdProgram.id, week_number: 2, title: 'Semana 2' },
-      ])
-      .select('id,week_number')
-
-    if (weeksError || !createdWeeks) {
-      setFeedback({ type: 'error', text: 'Metodologia criada, mas não foi possível criar as semanas.' })
-      setSaving(false)
-      await loadPrograms(createdProgram.id)
-      return
-    }
-
-    const week1 = createdWeeks.find((week) => week.week_number === 1)
-    const week2 = createdWeeks.find((week) => week.week_number === 2)
-
-    if (week1 && week2) {
-      const initialLessons = Array.from({ length: 14 }, (_, index) => {
-        const number = index + 1
-        return {
-          week_id: number <= 7 ? week1.id : week2.id,
-          lesson_number: number,
-          title: `Aula ${String(number).padStart(2, '0')}`,
-          description: null,
-        }
-      })
-
-      await supabase.from('lessons').insert(initialLessons)
-    }
-
     setNewProgramTitle('')
     setNewProgramDescription('')
     setShowNewProgram(false)
-    setFeedback({ type: 'success', text: 'Metodologia criada com 2 semanas e 14 aulas.' })
+    setFeedback({
+      type: 'success',
+      text: 'Metodologia criada. Agora adicione as semanas e aulas que realmente precisar.',
+    })
     setSaving(false)
     await loadPrograms(createdProgram.id)
+  }
+
+  async function loadVideoPathsForLessonIds(lessonIds: number[]) {
+    if (lessonIds.length === 0) return []
+
+    const { data, error } = await supabase
+      .from('exercises')
+      .select('video_path')
+      .in('lesson_id', lessonIds)
+
+    if (error) {
+      throw new Error(`Não foi possível localizar os vídeos do conteúdo: ${error.message}`)
+    }
+
+    return ((data ?? []) as Array<{ video_path: string | null }>)
+      .map((item) => item.video_path)
+      .filter(Boolean) as string[]
+  }
+
+  async function removeR2Videos(paths: string[]) {
+    if (paths.length === 0) return
+
+    await Promise.all(
+      [...new Set(paths)].map((key) =>
+        invokeR2({ action: 'delete', key }).catch((error) =>
+          console.warn(`Não foi possível remover o vídeo ${key} do R2:`, error),
+        ),
+      ),
+    )
+  }
+
+  async function deleteProgram() {
+    if (!selectedProgramId || !selectedProgram) return
+
+    setFeedback(null)
+
+    const { count, error: assignmentError } = await supabase
+      .from('student_programs')
+      .select('id', { count: 'exact', head: true })
+      .eq('program_id', selectedProgramId)
+      .eq('active', true)
+
+    if (assignmentError) {
+      setFeedback({
+        type: 'error',
+        text: `Não foi possível verificar os alunos vinculados: ${assignmentError.message}`,
+      })
+      return
+    }
+
+    if ((count ?? 0) > 0) {
+      setFeedback({
+        type: 'error',
+        text: `Esta metodologia possui ${count} aluno(s) ativo(s). Troque a metodologia desses alunos antes de excluir.`,
+      })
+      return
+    }
+
+    const accepted = window.confirm(
+      `Excluir a metodologia "${selectedProgram.title}"? Semanas, aulas, exercícios e progresso relacionado serão removidos.`,
+    )
+    if (!accepted) return
+
+    setSaving(true)
+
+    try {
+      const { data: programWeeks, error: weeksError } = await supabase
+        .from('weeks')
+        .select('id')
+        .eq('program_id', selectedProgramId)
+
+      if (weeksError) throw weeksError
+
+      const weekIds = (programWeeks ?? []).map((week) => week.id)
+      let lessonIds: number[] = []
+
+      if (weekIds.length > 0) {
+        const { data: programLessons, error: lessonsError } = await supabase
+          .from('lessons')
+          .select('id')
+          .in('week_id', weekIds)
+
+        if (lessonsError) throw lessonsError
+        lessonIds = (programLessons ?? []).map((lesson) => lesson.id)
+      }
+
+      const paths = await loadVideoPathsForLessonIds(lessonIds)
+      await removeR2Videos(paths)
+
+      const { error } = await supabase
+        .from('programs')
+        .delete()
+        .eq('id', selectedProgramId)
+
+      if (error) throw error
+
+      setSelectedProgramId(null)
+      setSelectedLessonId(null)
+      setFeedback({ type: 'success', text: 'Metodologia excluída.' })
+      await loadPrograms(null)
+    } catch (error) {
+      setFeedback({
+        type: 'error',
+        text: `Erro ao excluir metodologia: ${error instanceof Error ? error.message : 'erro desconhecido'}`,
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function updateWeekLocal(weekId: number, title: string) {
+    setWeeks((current) =>
+      current.map((week) => (week.id === weekId ? { ...week, title } : week)),
+    )
+  }
+
+  async function saveWeek(week: Week) {
+    const title = (week.title ?? '').trim() || `Semana ${week.week_number}`
+
+    const { error } = await supabase
+      .from('weeks')
+      .update({ title })
+      .eq('id', week.id)
+
+    if (error) {
+      setFeedback({ type: 'error', text: `Erro ao salvar semana: ${error.message}` })
+      return
+    }
+
+    setFeedback({ type: 'success', text: `${title} atualizada.` })
+    if (selectedProgramId) await loadProgramStructure(selectedProgramId, selectedLessonId)
+  }
+
+  async function deleteWeek(week: Week) {
+    if (!selectedProgramId) return
+
+    const weekLessons = lessons.filter((lesson) => lesson.week_id === week.id)
+    const accepted = window.confirm(
+      `Excluir "${week.title || `Semana ${week.week_number}`}" e suas ${weekLessons.length} aula(s)? O progresso dessas aulas também será removido.`,
+    )
+    if (!accepted) return
+
+    setSaving(true)
+
+    try {
+      const lessonIds = weekLessons.map((lesson) => lesson.id)
+      const paths = await loadVideoPathsForLessonIds(lessonIds)
+      await removeR2Videos(paths)
+
+      const { error } = await supabase.from('weeks').delete().eq('id', week.id)
+      if (error) throw error
+
+      if (
+        selectedLessonId &&
+        weekLessons.some((lesson) => lesson.id === selectedLessonId)
+      ) {
+        setSelectedLessonId(null)
+      }
+
+      setFeedback({ type: 'success', text: 'Semana excluída.' })
+      await loadProgramStructure(selectedProgramId, null)
+    } catch (error) {
+      setFeedback({
+        type: 'error',
+        text: `Erro ao excluir semana: ${error instanceof Error ? error.message : 'erro desconhecido'}`,
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function duplicateLesson(lesson: Lesson) {
+    if (!selectedProgramId) return
+
+    setSaving(true)
+    setFeedback(null)
+
+    try {
+      const nextLessonNumber =
+        Math.max(0, ...lessons.map((item) => item.lesson_number)) + 1
+
+      const { data: createdLesson, error: lessonError } = await supabase
+        .from('lessons')
+        .insert({
+          week_id: lesson.week_id,
+          lesson_number: nextLessonNumber,
+          title: `${lesson.title} · cópia`,
+          description: lesson.description,
+        })
+        .select('id')
+        .single()
+
+      if (lessonError || !createdLesson) {
+        throw new Error(lessonError?.message ?? 'Não foi possível duplicar a aula.')
+      }
+
+      const { data: sourceExercises, error: exercisesError } = await supabase
+        .from('exercises')
+        .select(
+          'title,instructions,sets,repetitions,rest_seconds,sort_order,video_ratio,video_fit,video_path',
+        )
+        .eq('lesson_id', lesson.id)
+        .order('sort_order')
+        .order('id')
+
+      if (exercisesError) throw exercisesError
+
+      if ((sourceExercises ?? []).length > 0) {
+        const copies = (sourceExercises ?? []).map((exercise) => ({
+          lesson_id: createdLesson.id,
+          title: exercise.title,
+          instructions: exercise.instructions,
+          sets: exercise.sets,
+          repetitions: exercise.repetitions,
+          rest_seconds: exercise.rest_seconds,
+          sort_order: exercise.sort_order,
+          video_ratio: exercise.video_ratio || '9:16',
+          video_fit: exercise.video_fit || 'cover',
+          video_path: null,
+          video_url: null,
+        }))
+
+        const { error: copyError } = await supabase.from('exercises').insert(copies)
+        if (copyError) throw copyError
+      }
+
+      const hadVideos = (sourceExercises ?? []).some((exercise) => exercise.video_path)
+
+      setFeedback({
+        type: 'success',
+        text: hadVideos
+          ? 'Aula duplicada. Os exercícios foram copiados sem os vídeos para evitar arquivos R2 compartilhados.'
+          : 'Aula e exercícios duplicados.',
+      })
+
+      await loadProgramStructure(selectedProgramId, createdLesson.id)
+    } catch (error) {
+      setFeedback({
+        type: 'error',
+        text: `Erro ao duplicar aula: ${error instanceof Error ? error.message : 'erro desconhecido'}`,
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function duplicateExercise(exercise: Exercise) {
+    if (!selectedLessonId) return
+
+    const nextSort = Math.max(0, ...exercises.map((item) => item.sort_order)) + 1
+
+    const { error } = await supabase.from('exercises').insert({
+      lesson_id: selectedLessonId,
+      title: `${exercise.title} · cópia`,
+      instructions: exercise.instructions,
+      sets: exercise.sets,
+      repetitions: exercise.repetitions,
+      rest_seconds: exercise.rest_seconds,
+      video_ratio: exercise.video_ratio || '9:16',
+      video_fit: exercise.video_fit || 'cover',
+      sort_order: nextSort,
+      video_path: null,
+      video_url: null,
+    })
+
+    if (error) {
+      setFeedback({ type: 'error', text: `Erro ao duplicar exercício: ${error.message}` })
+      return
+    }
+
+    setFeedback({
+      type: 'success',
+      text: exercise.video_path || exercise.video_url
+        ? 'Exercício duplicado sem o vídeo. Adicione o vídeo específico na cópia.'
+        : 'Exercício duplicado.',
+    })
+
+    await loadExercises(selectedLessonId)
   }
 
   async function saveProgram() {
@@ -1109,6 +1359,13 @@ export default function AdminContentManager() {
                   />
                   <span>{programActive ? 'Metodologia ativa' : 'Metodologia inativa'}</span>
                 </label>
+                <button
+                  className="dangerTextAction programDeleteAction"
+                  onClick={deleteProgram}
+                  disabled={saving}
+                >
+                  <Trash2 size={15} /> Excluir metodologia
+                </button>
                 <button className="outlineAction" onClick={saveProgram} disabled={saving}>
                   <Save size={16} /> Salvar metodologia
                 </button>
@@ -1129,11 +1386,36 @@ export default function AdminContentManager() {
 
                 {weeksWithLessons.map((week) => (
                   <div className="weekGroup" key={week.id}>
-                    <div className="weekGroupHeader">
-                      <strong>{week.title || `Semana ${week.week_number}`}</strong>
-                      <button onClick={() => addLesson(week.id)} title="Adicionar aula">
-                        <Plus size={15} />
-                      </button>
+                    <div className="weekGroupHeader weekGroupHeaderEditable">
+                      <input
+                        className="weekTitleInput"
+                        value={week.title ?? `Semana ${week.week_number}`}
+                        onChange={(event) => updateWeekLocal(week.id, event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') {
+                            event.preventDefault()
+                            saveWeek(week)
+                          }
+                        }}
+                        aria-label={`Nome da semana ${week.week_number}`}
+                      />
+
+                      <div className="weekHeaderActions">
+                        <button onClick={() => saveWeek(week)} title="Salvar nome da semana">
+                          <Save size={14} />
+                        </button>
+                        <button onClick={() => addLesson(week.id)} title="Adicionar aula">
+                          <Plus size={15} />
+                        </button>
+                        <button
+                          className="weekDeleteButton"
+                          onClick={() => deleteWeek(week)}
+                          title="Excluir semana"
+                          disabled={saving}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
 
                     <div className="adminLessonList">
@@ -1166,9 +1448,18 @@ export default function AdminContentManager() {
                         <span className="editorEyebrow">AULA {String(selectedLesson.lesson_number).padStart(2, '0')}</span>
                         <h2>Editar aula</h2>
                       </div>
-                      <button className="dangerTextAction" onClick={deleteLesson} disabled={saving}>
-                        <Trash2 size={15} /> Excluir aula
-                      </button>
+                      <div className="lessonTopActions">
+                        <button
+                          className="outlineAction compactAction"
+                          onClick={() => duplicateLesson(selectedLesson)}
+                          disabled={saving}
+                        >
+                          <Copy size={15} /> Duplicar aula
+                        </button>
+                        <button className="dangerTextAction" onClick={deleteLesson} disabled={saving}>
+                          <Trash2 size={15} /> Excluir aula
+                        </button>
+                      </div>
                     </div>
 
                     <div className="lessonFormGrid">
@@ -1360,6 +1651,12 @@ export default function AdminContentManager() {
                             <div className="exerciseAdminActions">
                               <button className="outlineAction" onClick={() => saveExercise(exercise)}>
                                 <Save size={15} /> Salvar exercício
+                              </button>
+                              <button
+                                className="outlineAction duplicateExerciseAction"
+                                onClick={() => duplicateExercise(exercise)}
+                              >
+                                <Copy size={15} /> Duplicar
                               </button>
                               <button className="dangerTextAction" onClick={() => deleteExercise(exercise)}>
                                 <Trash2 size={15} /> Excluir
