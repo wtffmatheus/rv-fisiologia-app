@@ -103,7 +103,27 @@ async function invokeR2(body: Record<string, unknown>) {
 
   if (error) {
     console.error('r2-video invoke error:', error)
-    throw new Error(error.message || 'Falha ao acessar o serviço de vídeos.')
+
+    let detail = error.message || 'Falha ao acessar o serviço de vídeos.'
+    const context = (error as any)?.context
+
+    if (context instanceof Response) {
+      try {
+        const payload = await context.clone().json()
+        if (payload?.error) {
+          detail = String(payload.error)
+        }
+      } catch {
+        try {
+          const raw = await context.clone().text()
+          if (raw) detail = raw
+        } catch {
+          // Mantém a mensagem original.
+        }
+      }
+    }
+
+    throw new Error(detail)
   }
 
   if (data?.error) {
@@ -206,9 +226,12 @@ async function uploadFileViaEdgeMultipart(params: {
       }
 
       if (!response.ok) {
-        throw new Error(
+        const backendMessage =
           payload?.error ||
-            `Falha ao enviar a parte ${partNumber} de ${totalParts} do vídeo.`,
+          `Falha ao enviar a parte ${partNumber} de ${totalParts} do vídeo.`
+
+        throw new Error(
+          `${backendMessage}${payload?.stage ? ` [etapa: ${payload.stage}]` : ''}`,
         )
       }
 
