@@ -1160,3 +1160,477 @@
     width: 100%;
   }
 }
+
+
+/* RV_ADMIN_STUDENTS_P1_LOTE3 */
+
+.studentManagementToolbar {
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.studentStatusFilters {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: rgba(5, 21, 48, .58);
+}
+
+.studentStatusFilters button {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #8fa5c3;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.studentStatusFilters button span {
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: rgba(130, 158, 193, .1);
+  font-size: 9px;
+}
+
+.studentStatusFilters button.active {
+  background: rgba(35, 200, 191, .09);
+  color: var(--accent);
+}
+
+.studentStatusFilters button.active span {
+  background: rgba(35, 200, 191, .13);
+}
+
+.advancedStudentHeader,
+.advancedStudentRow {
+  grid-template-columns:
+    minmax(205px, 1.22fr)
+    minmax(92px, .48fr)
+    minmax(235px, 1.2fr)
+    minmax(170px, .92fr)
+    minmax(185px, .9fr) !important;
+}
+
+.studentPlanCell {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.studentPlanCell > select {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #061837;
+  color: var(--text);
+  font-size: 11px;
+  outline: none;
+}
+
+.studentPlanCell > select:focus,
+.studentStartDate input:focus {
+  border-color: rgba(35, 200, 191, .48);
+}
+
+.studentPlanCell > small {
+  color: #7891b1;
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.studentStartDate {
+  min-height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: rgba(4, 20, 47, .6);
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  color: #7891b1;
+}
+
+.studentStartDate > span {
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.studentStartDate input {
+  min-width: 0;
+  width: 100%;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #d8e6f5;
+  font-size: 10px;
+  outline: none;
+  color-scheme: dark;
+}
+
+.studentProgressCell {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 7px;
+}
+
+.studentProgressTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.studentProgressTop strong {
+  color: var(--accent);
+  font-size: 16px;
+}
+
+.studentProgressTop span {
+  color: #8fa5c3;
+  font-size: 9px;
+}
+
+.studentProgressTrack,
+.studentDetailBigTrack {
+  overflow: hidden;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(121, 151, 188, .15);
+}
+
+.studentProgressTrack > span,
+.studentDetailBigTrack > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #20c5bd, #40ded4);
+}
+
+.studentProgressCell small {
+  color: #7188a8;
+  font-size: 8.5px;
+  line-height: 1.35;
+}
+
+.noProgressYet {
+  color: #7188a8;
+  font-size: 10px;
+}
+
+.advancedRowActions {
+  align-content: center;
+  align-items: stretch;
+}
+
+.advancedRowActions button {
+  justify-content: center;
+}
+
+.savePlanButton,
+.studentDetailsButton {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: transparent;
+  color: #d7e5f5;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.savePlanButton:not(:disabled):hover,
+.studentDetailsButton:hover {
+  border-color: rgba(35, 200, 191, .35);
+  background: rgba(35, 200, 191, .06);
+  color: var(--accent);
+}
+
+.savePlanButton:disabled {
+  opacity: .34;
+  cursor: not-allowed;
+}
+
+.studentDetailBackdrop {
+  position: fixed;
+  z-index: 21000;
+  inset: 0;
+  padding: 24px;
+  display: grid;
+  place-items: center;
+  background: rgba(1, 8, 20, .8);
+  backdrop-filter: blur(10px);
+}
+
+.studentDetailModal {
+  width: min(680px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  border: 1px solid rgba(120, 158, 205, .24);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 80% 0%, rgba(35, 200, 191, .07), transparent 29%),
+    #061837;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, .5);
+}
+
+.studentDetailHeader {
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.studentDetailIdentity {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.studentDetailAvatar {
+  width: 48px !important;
+  height: 48px !important;
+  flex: 0 0 48px;
+  font-size: 16px !important;
+}
+
+.studentDetailIdentity > div:last-child {
+  min-width: 0;
+}
+
+.studentDetailIdentity span,
+.studentDetailPlan span,
+.studentDetailProgressHead span {
+  color: var(--accent);
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: .11em;
+}
+
+.studentDetailIdentity h2 {
+  margin: 3px 0 2px;
+  font-size: 22px;
+}
+
+.studentDetailIdentity p {
+  overflow: hidden;
+  margin: 0;
+  color: #8fa5c3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.studentDetailHeader > button {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: #d9e7f5;
+}
+
+.studentDetailBody {
+  padding: 22px;
+  display: grid;
+  gap: 18px;
+}
+
+.studentDetailStatusRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.studentDetailStatusRow > span:last-child {
+  color: #7891b1;
+  font-size: 10px;
+}
+
+.studentDetailPlan {
+  display: grid;
+  grid-template-columns: 1.35fr .8fr .8fr;
+  gap: 9px;
+}
+
+.studentDetailPlan > div {
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: rgba(4, 20, 47, .55);
+  display: grid;
+  gap: 6px;
+}
+
+.studentDetailPlan strong {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+
+.studentDetailProgress {
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(4, 20, 47, .5);
+}
+
+.studentDetailProgressHead {
+  margin-bottom: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.studentDetailProgressHead > div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--accent);
+}
+
+.studentDetailProgressHead > strong {
+  color: var(--accent);
+  font-size: 24px;
+}
+
+.studentDetailBigTrack {
+  height: 9px;
+}
+
+.studentDetailMetrics {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: .72fr 1.28fr;
+  gap: 9px;
+}
+
+.studentDetailMetrics > div {
+  min-width: 0;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(126, 154, 190, .06);
+  display: grid;
+  gap: 4px;
+}
+
+.studentDetailMetrics span {
+  color: #7f95b2;
+  font-size: 9px;
+}
+
+.studentDetailMetrics strong {
+  overflow-wrap: anywhere;
+  font-size: 11px;
+}
+
+@media (max-width: 1180px) {
+  .advancedStudentHeader {
+    display: none !important;
+  }
+
+  .advancedStudentRow {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 16px !important;
+  }
+
+  .advancedStudentRow .studentIdentity {
+    grid-column: 1 / -1;
+  }
+
+  .advancedRowActions {
+    grid-column: 1 / -1;
+    display: flex !important;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 720px) {
+  .studentManagementToolbar {
+    display: grid !important;
+    grid-template-columns: 1fr;
+  }
+
+  .studentStatusFilters {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .studentStatusFilters button {
+    flex: 0 0 auto;
+  }
+
+  .studentManagementToolbar .adminRefresh {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .advancedStudentRow {
+    grid-template-columns: 1fr !important;
+  }
+
+  .studentPlanCell,
+  .studentProgressCell,
+  .advancedRowActions {
+    grid-column: 1 !important;
+  }
+
+  .advancedRowActions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .advancedRowActions button {
+    width: 100%;
+  }
+
+  .studentDetailBackdrop {
+    padding: 0;
+  }
+
+  .studentDetailModal {
+    width: 100%;
+    height: 100dvh;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .studentDetailPlan,
+  .studentDetailMetrics {
+    grid-template-columns: 1fr;
+  }
+
+  .studentDetailStatusRow {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
+  BarChart3,
   BookOpen,
+  CalendarDays,
   Check,
+  Eye,
   LayoutDashboard,
   LogOut,
   RefreshCw,
@@ -9,6 +12,7 @@ import {
   Settings,
   ShieldX,
   UsersRound,
+  X,
 } from 'lucide-react'
 import type { Profile } from '../types'
 import { supabase } from '../lib/supabase'
@@ -24,10 +28,53 @@ type Program = {
 }
 
 type Assignment = {
+  id: number
   student_id: string
   program_id: number
+  starts_at: string
+  ends_at: string | null
   active: boolean
   programs: { title: string } | null
+}
+
+type ProgressRow = {
+  student_id: string
+  lesson_id: number
+  completed: boolean
+  completed_at: string | null
+}
+
+type WeekIndexRow = {
+  id: number
+  program_id: number
+}
+
+type LessonIndexRow = {
+  id: number
+  week_id: number
+}
+
+type StudentFilter = 'all' | 'pending' | 'active' | 'blocked'
+
+function todayInputValue() {
+  const now = new Date()
+  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60_000)
+  return local.toISOString().slice(0, 10)
+}
+
+function formatDateOnly(value?: string | null) {
+  if (!value) return '—'
+  const [year, month, day] = value.split('-')
+  if (!year || !month || !day) return value
+  return `${day}/${month}/${year}`
+}
+
+function formatDateTime(value?: string | null) {
+  if (!value) return 'Nenhuma aula concluída'
+  return new Intl.DateTimeFormat('pt-BR', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(new Date(value))
 }
 
 export default function AdminHome({ profile }: { profile: Profile }) {
@@ -35,7 +82,13 @@ export default function AdminHome({ profile }: { profile: Profile }) {
   const [students, setStudents] = useState<Profile[]>([])
   const [programs, setPrograms] = useState<Program[]>([])
   const [assignments, setAssignments] = useState<Assignment[]>([])
+  const [progressRows, setProgressRows] = useState<ProgressRow[]>([])
+  const [weeksIndex, setWeeksIndex] = useState<WeekIndexRow[]>([])
+  const [lessonsIndex, setLessonsIndex] = useState<LessonIndexRow[]>([])
   const [selectedPrograms, setSelectedPrograms] = useState<Record<string, number>>({})
+  const [selectedStartDates, setSelectedStartDates] = useState<Record<string, string>>({})
+  const [studentFilter, setStudentFilter] = useState<StudentFilter>('all')
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [savingStudentId, setSavingStudentId] = useState<string | null>(null)
@@ -44,7 +97,14 @@ export default function AdminHome({ profile }: { profile: Profile }) {
   async function loadData() {
     setLoading(true)
 
-    const [studentsResult, programsResult, assignmentsResult] = await Promise.all([
+    const [
+      studentsResult,
+      programsResult,
+      assignmentsResult,
+      progressResult,
+      weeksResult,
+      lessonsResult,
+    ] = await Promise.all([
       supabase
         .from('profiles')
         .select('*')
@@ -56,17 +116,56 @@ export default function AdminHome({ profile }: { profile: Profile }) {
         .order('title'),
       supabase
         .from('student_programs')
-        .select('student_id,program_id,active,programs(title)')
+        .select('id,student_id,program_id,starts_at,ends_at,active,programs(title)')
         .eq('active', true),
+      supabase
+        .from('lesson_progress')
+        .select('student_id,lesson_id,completed,completed_at'),
+      supabase
+        .from('weeks')
+        .select('id,program_id'),
+      supabase
+        .from('lessons')
+        .select('id,week_id'),
     ])
 
-    if (studentsResult.error || programsResult.error || assignmentsResult.error) {
+    if (
+      studentsResult.error ||
+      programsResult.error ||
+      assignmentsResult.error ||
+      progressResult.error ||
+      weeksResult.error ||
+      lessonsResult.error
+    ) {
       setMessage('Não foi possível atualizar todos os dados do painel.')
     }
 
+    const nextAssignments =
+      (assignmentsResult.data as unknown as Assignment[]) ?? []
+
     setStudents((studentsResult.data as Profile[]) ?? [])
     setPrograms((programsResult.data as Program[]) ?? [])
-    setAssignments((assignmentsResult.data as unknown as Assignment[]) ?? [])
+    setAssignments(nextAssignments)
+    setProgressRows((progressResult.data as ProgressRow[]) ?? [])
+    setWeeksIndex((weeksResult.data as WeekIndexRow[]) ?? [])
+    setLessonsIndex((lessonsResult.data as LessonIndexRow[]) ?? [])
+
+    setSelectedPrograms((current) => {
+      const next = { ...current }
+      nextAssignments.forEach((assignment) => {
+        next[assignment.student_id] = assignment.program_id
+      })
+      return next
+    })
+
+    setSelectedStartDates((current) => {
+      const next = { ...current }
+      nextAssignments.forEach((assignment) => {
+        next[assignment.student_id] = assignment.starts_at
+      })
+      return next
+    })
+
     setLoading(false)
   }
 
@@ -76,17 +175,46 @@ export default function AdminHome({ profile }: { profile: Profile }) {
 
   const filteredStudents = useMemo(() => {
     const normalized = query.trim().toLowerCase()
-    if (!normalized) return students
 
-    return students.filter((student) =>
-      `${student.name} ${student.email}`.toLowerCase().includes(normalized),
-    )
-  }, [query, students])
+    return students.filter((student) => {
+      const matchesStatus =
+        studentFilter === 'all' || student.status === studentFilter
+
+      const matchesQuery =
+        !normalized ||
+        `${student.name} ${student.email}`.toLowerCase().includes(normalized)
+
+      return matchesStatus && matchesQuery
+    })
+  }, [query, studentFilter, students])
 
   const pendingCount = students.filter((student) => student.status === 'pending').length
   const activeCount = students.filter((student) => student.status === 'active').length
   const blockedCount = students.filter((student) => student.status === 'blocked').length
   const activeProgramCount = programs.filter((program) => program.is_active).length
+
+  const lessonProgramById = useMemo(() => {
+    const weekProgram = new Map<number, number>()
+    weeksIndex.forEach((week) => weekProgram.set(week.id, week.program_id))
+
+    const lessonProgram = new Map<number, number>()
+    lessonsIndex.forEach((lesson) => {
+      const programId = weekProgram.get(lesson.week_id)
+      if (programId) lessonProgram.set(lesson.id, programId)
+    })
+
+    return lessonProgram
+  }, [lessonsIndex, weeksIndex])
+
+  const lessonCountByProgram = useMemo(() => {
+    const counts = new Map<number, number>()
+
+    lessonProgramById.forEach((programId) => {
+      counts.set(programId, (counts.get(programId) ?? 0) + 1)
+    })
+
+    return counts
+  }, [lessonProgramById])
 
   function getAssignment(studentId: string) {
     return assignments.find((item) => item.student_id === studentId) ?? null
@@ -96,8 +224,58 @@ export default function AdminHome({ profile }: { profile: Profile }) {
     return getAssignment(studentId)?.programs?.title ?? 'Sem metodologia'
   }
 
+  function getStudentProgress(studentId: string) {
+    const assignment = getAssignment(studentId)
+
+    if (!assignment) {
+      return {
+        completed: 0,
+        total: 0,
+        percentage: 0,
+        lastCompletedAt: null as string | null,
+      }
+    }
+
+    const total = lessonCountByProgram.get(assignment.program_id) ?? 0
+
+    const completedRows = progressRows.filter(
+      (item) =>
+        item.student_id === studentId &&
+        item.completed &&
+        lessonProgramById.get(item.lesson_id) === assignment.program_id,
+    )
+
+    const lastCompletedAt =
+      completedRows
+        .map((item) => item.completed_at)
+        .filter(Boolean)
+        .sort()
+        .at(-1) ?? null
+
+    return {
+      completed: completedRows.length,
+      total,
+      percentage: total ? Math.round((completedRows.length / total) * 100) : 0,
+      lastCompletedAt,
+    }
+  }
+
+  function getSelectedProgramId(studentId: string) {
+    return selectedPrograms[studentId] ?? getAssignment(studentId)?.program_id ?? 0
+  }
+
+  function getSelectedStartDate(studentId: string) {
+    return (
+      selectedStartDates[studentId] ??
+      getAssignment(studentId)?.starts_at ??
+      todayInputValue()
+    )
+  }
+
   async function approveStudent(studentId: string) {
-    const programId = selectedPrograms[studentId]
+    const programId = getSelectedProgramId(studentId)
+    const startDate = getSelectedStartDate(studentId)
+
     if (!programId) {
       setMessage('Escolha a metodologia antes de liberar o aluno.')
       return
@@ -109,33 +287,59 @@ export default function AdminHome({ profile }: { profile: Profile }) {
     const { error } = await supabase.rpc('assign_program_to_student', {
       p_student_id: studentId,
       p_program_id: programId,
-      p_starts_at: new Date().toISOString().slice(0, 10),
+      p_starts_at: startDate,
     })
 
     if (error) {
       setMessage(`Erro ao liberar aluno: ${error.message}`)
     } else {
-      setMessage('Aluno liberado com a metodologia selecionada.')
+      setMessage('Aluno liberado com a metodologia e data selecionadas.')
       await loadData()
     }
 
     setSavingStudentId(null)
   }
 
-  async function changeStudentProgram(studentId: string, programId: number) {
+  async function saveStudentPlan(studentId: string) {
+    const assignment = getAssignment(studentId)
+    const programId = getSelectedProgramId(studentId)
+    const startDate = getSelectedStartDate(studentId)
+
+    if (!programId) {
+      setMessage('Escolha uma metodologia.')
+      return
+    }
+
+    if (assignment && programId !== assignment.program_id) {
+      const student = students.find((item) => item.id === studentId)
+      const nextProgram = programs.find((item) => item.id === programId)
+
+      const accepted = window.confirm(
+        `Trocar ${student?.name || 'este aluno'} de "${assignment.programs?.title || 'metodologia atual'}" para "${nextProgram?.title || 'nova metodologia'}"?`,
+      )
+
+      if (!accepted) {
+        setSelectedPrograms((current) => ({
+          ...current,
+          [studentId]: assignment.program_id,
+        }))
+        return
+      }
+    }
+
     setSavingStudentId(studentId)
     setMessage('')
 
     const { error } = await supabase.rpc('assign_program_to_student', {
       p_student_id: studentId,
       p_program_id: programId,
-      p_starts_at: new Date().toISOString().slice(0, 10),
+      p_starts_at: startDate,
     })
 
     if (error) {
-      setMessage(`Erro ao trocar metodologia: ${error.message}`)
+      setMessage(`Erro ao atualizar o plano: ${error.message}`)
     } else {
-      setMessage('Metodologia do aluno atualizada.')
+      setMessage('Plano do aluno atualizado.')
       await loadData()
     }
 
@@ -162,30 +366,28 @@ export default function AdminHome({ profile }: { profile: Profile }) {
   }
 
   async function reactivateStudent(studentId: string) {
-    const assignment = assignments.find((item) => item.student_id === studentId)
+    const programId = getSelectedProgramId(studentId)
+    const startDate = getSelectedStartDate(studentId)
 
-    if (!assignment) {
-      setMessage('Selecione uma metodologia para liberar esse aluno novamente.')
+    if (!programId) {
+      setMessage('Escolha uma metodologia para reativar esse aluno.')
       return
     }
 
     setSavingStudentId(studentId)
+    setMessage('')
 
-    const { error } = await supabase
-      .from('profiles')
-      .update({ status: 'active' })
-      .eq('id', studentId)
+    const { error } = await supabase.rpc('assign_program_to_student', {
+      p_student_id: studentId,
+      p_program_id: programId,
+      p_starts_at: startDate,
+    })
 
-    if (!error) {
-      await supabase
-        .from('student_programs')
-        .update({ active: true })
-        .eq('student_id', studentId)
-        .eq('program_id', assignment.program_id)
-      setMessage('Aluno reativado.')
-      await loadData()
-    } else {
+    if (error) {
       setMessage(`Erro ao reativar aluno: ${error.message}`)
+    } else {
+      setMessage('Aluno reativado com o plano selecionado.')
+      await loadData()
     }
 
     setSavingStudentId(null)
@@ -247,9 +449,20 @@ export default function AdminHome({ profile }: { profile: Profile }) {
   }
 
   function renderStudents() {
+    const selectedStudent =
+      students.find((student) => student.id === selectedStudentId) ?? null
+
+    const selectedStudentAssignment = selectedStudent
+      ? getAssignment(selectedStudent.id)
+      : null
+
+    const selectedStudentProgress = selectedStudent
+      ? getStudentProgress(selectedStudent.id)
+      : null
+
     return (
       <div className="adminStudentsPage">
-        <div className="adminToolbar strongToolbar">
+        <div className="adminToolbar strongToolbar studentManagementToolbar">
           <div className="searchBox">
             <Search size={17} />
             <input
@@ -258,101 +471,355 @@ export default function AdminHome({ profile }: { profile: Profile }) {
               placeholder="Buscar por nome ou e-mail"
             />
           </div>
+
+          <div className="studentStatusFilters" aria-label="Filtrar alunos">
+            {(
+              [
+                ['all', 'Todos'],
+                ['pending', 'Aguardando'],
+                ['active', 'Ativos'],
+                ['blocked', 'Bloqueados'],
+              ] as Array<[StudentFilter, string]>
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                className={studentFilter === value ? 'active' : ''}
+                onClick={() => setStudentFilter(value)}
+              >
+                {label}
+                <span>
+                  {value === 'all'
+                    ? students.length
+                    : value === 'pending'
+                      ? pendingCount
+                      : value === 'active'
+                        ? activeCount
+                        : blockedCount}
+                </span>
+              </button>
+            ))}
+          </div>
+
           <button className="adminRefresh" onClick={loadData}>
             <RefreshCw size={16} /> Atualizar
           </button>
         </div>
 
-        <div className="studentTable enhancedStudentTable">
-          <div className="tableHeader enhancedStudentHeader">
+        <div className="studentTable enhancedStudentTable advancedStudentTable">
+          <div className="tableHeader enhancedStudentHeader advancedStudentHeader">
             <span>Aluno</span>
             <span>Status</span>
-            <span>Metodologia</span>
+            <span>Plano e início</span>
+            <span>Progresso</span>
             <span>Ações</span>
           </div>
 
           {loading && <div className="emptyState">Carregando alunos...</div>}
 
-          {!loading && filteredStudents.map((student) => {
-            const assignment = getAssignment(student.id)
-            const currentProgramId = assignment?.program_id ?? 0
-            const needsProgram = student.status === 'pending' || !assignment
+          {!loading && filteredStudents.length === 0 && (
+            <div className="emptyState">Nenhum aluno encontrado nesse filtro.</div>
+          )}
 
-            return (
-              <article className="studentRow enhancedStudentRow" key={student.id}>
-                <div className="studentIdentity">
-                  <div className="studentAvatar">{student.name?.charAt(0)?.toUpperCase() || 'A'}</div>
+          {!loading &&
+            filteredStudents.map((student) => {
+              const assignment = getAssignment(student.id)
+              const currentProgramId = assignment?.program_id ?? 0
+              const selectedProgramId = getSelectedProgramId(student.id)
+              const startDate = getSelectedStartDate(student.id)
+              const progress = getStudentProgress(student.id)
+              const needsProgram = student.status === 'pending' || !assignment
+
+              const planDirty =
+                Boolean(assignment) &&
+                (selectedProgramId !== currentProgramId ||
+                  startDate !== assignment?.starts_at)
+
+              return (
+                <article
+                  className="studentRow enhancedStudentRow advancedStudentRow"
+                  key={student.id}
+                >
+                  <div className="studentIdentity">
+                    <div className="studentAvatar">
+                      {student.name?.charAt(0)?.toUpperCase() || 'A'}
+                    </div>
+                    <div>
+                      <strong>{student.name || 'Sem nome'}</strong>
+                      <span>{student.email}</span>
+                      <small>
+                        Cadastro em{' '}
+                        {new Intl.DateTimeFormat('pt-BR', {
+                          dateStyle: 'short',
+                        }).format(new Date(student.created_at))}
+                      </small>
+                    </div>
+                  </div>
+
                   <div>
-                    <strong>{student.name || 'Sem nome'}</strong>
-                    <span>{student.email}</span>
-                    <small>
-                      Cadastro em {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' }).format(new Date(student.created_at))}
-                    </small>
+                    <span className={`statusPill ${student.status}`}>
+                      {student.status === 'pending'
+                        ? 'Aguardando'
+                        : student.status === 'active'
+                          ? 'Ativo'
+                          : 'Bloqueado'}
+                    </span>
+                  </div>
+
+                  <div className="studentPlanCell">
+                    <select
+                      value={selectedProgramId || ''}
+                      onChange={(event) =>
+                        setSelectedPrograms((current) => ({
+                          ...current,
+                          [student.id]: Number(event.target.value),
+                        }))
+                      }
+                      disabled={savingStudentId === student.id}
+                    >
+                      <option value="">Escolher metodologia</option>
+                      {programs
+                        .filter(
+                          (program) =>
+                            program.is_active || program.id === currentProgramId,
+                        )
+                        .map((program) => (
+                          <option key={program.id} value={program.id}>
+                            {program.title}
+                            {!program.is_active ? ' · inativa' : ''}
+                          </option>
+                        ))}
+                    </select>
+
+                    <label className="studentStartDate">
+                      <CalendarDays size={14} />
+                      <span>Início</span>
+                      <input
+                        type="date"
+                        value={startDate}
+                        onChange={(event) =>
+                          setSelectedStartDates((current) => ({
+                            ...current,
+                            [student.id]: event.target.value,
+                          }))
+                        }
+                        disabled={savingStudentId === student.id}
+                      />
+                    </label>
+
+                    {assignment && (
+                      <small>
+                        Atual: {getProgramName(student.id)} · início{' '}
+                        {formatDateOnly(assignment.starts_at)}
+                      </small>
+                    )}
+                  </div>
+
+                  <div className="studentProgressCell">
+                    {assignment ? (
+                      <>
+                        <div className="studentProgressTop">
+                          <strong>{progress.percentage}%</strong>
+                          <span>
+                            {progress.completed}/{progress.total} aulas
+                          </span>
+                        </div>
+                        <div className="studentProgressTrack">
+                          <span style={{ width: `${progress.percentage}%` }} />
+                        </div>
+                        <small>
+                          {progress.lastCompletedAt
+                            ? `Última conclusão: ${formatDateTime(progress.lastCompletedAt)}`
+                            : 'Nenhuma aula concluída'}
+                        </small>
+                      </>
+                    ) : (
+                      <span className="noProgressYet">Sem plano ativo</span>
+                    )}
+                  </div>
+
+                  <div className="rowActions advancedRowActions">
+                    {student.status === 'pending' && (
+                      <button
+                        className="approveButton"
+                        onClick={() => approveStudent(student.id)}
+                        disabled={
+                          savingStudentId === student.id || !selectedProgramId
+                        }
+                      >
+                        <Check size={16} /> Liberar
+                      </button>
+                    )}
+
+                    {student.status === 'active' && (
+                      <button
+                        className="savePlanButton"
+                        onClick={() => saveStudentPlan(student.id)}
+                        disabled={
+                          savingStudentId === student.id ||
+                          !selectedProgramId ||
+                          !planDirty
+                        }
+                        title={
+                          planDirty
+                            ? 'Salvar metodologia/data'
+                            : 'O plano já está salvo'
+                        }
+                      >
+                        <Check size={15} /> Salvar plano
+                      </button>
+                    )}
+
+                    {student.status === 'blocked' && (
+                      <button
+                        className="approveButton"
+                        onClick={() => reactivateStudent(student.id)}
+                        disabled={
+                          savingStudentId === student.id || !selectedProgramId
+                        }
+                      >
+                        <Check size={16} /> Reativar
+                      </button>
+                    )}
+
+                    <button
+                      className="studentDetailsButton"
+                      type="button"
+                      onClick={() => setSelectedStudentId(student.id)}
+                    >
+                      <Eye size={15} /> Detalhes
+                    </button>
+
+                    {student.status !== 'blocked' && (
+                      <button
+                        className="blockButton"
+                        onClick={() => blockStudent(student.id)}
+                        disabled={savingStudentId === student.id}
+                      >
+                        <ShieldX size={16} /> Bloquear
+                      </button>
+                    )}
+                  </div>
+                </article>
+              )
+            })}
+        </div>
+
+        {selectedStudent && selectedStudentProgress && (
+          <div
+            className="studentDetailBackdrop"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Detalhes de ${selectedStudent.name || 'aluno'}`}
+            onMouseDown={(event) => {
+              if (event.currentTarget === event.target) {
+                setSelectedStudentId(null)
+              }
+            }}
+          >
+            <section className="studentDetailModal">
+              <header className="studentDetailHeader">
+                <div className="studentDetailIdentity">
+                  <div className="studentAvatar studentDetailAvatar">
+                    {selectedStudent.name?.charAt(0)?.toUpperCase() || 'A'}
+                  </div>
+                  <div>
+                    <span>ALUNO</span>
+                    <h2>{selectedStudent.name || 'Sem nome'}</h2>
+                    <p>{selectedStudent.email}</p>
                   </div>
                 </div>
 
-                <div>
-                  <span className={`statusPill ${student.status}`}>
-                    {student.status === 'pending' ? 'Aguardando' : student.status === 'active' ? 'Ativo' : 'Bloqueado'}
+                <button
+                  type="button"
+                  onClick={() => setSelectedStudentId(null)}
+                  aria-label="Fechar detalhes"
+                >
+                  <X size={18} />
+                </button>
+              </header>
+
+              <div className="studentDetailBody">
+                <div className="studentDetailStatusRow">
+                  <span className={`statusPill ${selectedStudent.status}`}>
+                    {selectedStudent.status === 'pending'
+                      ? 'Aguardando aprovação'
+                      : selectedStudent.status === 'active'
+                        ? 'Acesso ativo'
+                        : 'Acesso bloqueado'}
+                  </span>
+
+                  <span>
+                    Cadastro:{' '}
+                    {new Intl.DateTimeFormat('pt-BR', {
+                      dateStyle: 'medium',
+                    }).format(new Date(selectedStudent.created_at))}
                   </span>
                 </div>
 
-                <div className="programCell">
-                  <select
-                    value={needsProgram ? selectedPrograms[student.id] ?? '' : currentProgramId}
-                    onChange={(event) => {
-                      const nextProgramId = Number(event.target.value)
-                      if (needsProgram) {
-                        setSelectedPrograms((current) => ({ ...current, [student.id]: nextProgramId }))
-                      } else if (nextProgramId && nextProgramId !== currentProgramId) {
-                        changeStudentProgram(student.id, nextProgramId)
-                      }
-                    }}
-                    disabled={savingStudentId === student.id}
-                  >
-                    <option value="">Escolher metodologia</option>
-                    {programs.filter((program) => program.is_active).map((program) => (
-                      <option key={program.id} value={program.id}>{program.title}</option>
-                    ))}
-                  </select>
-                  {!needsProgram && <small>Atual: {getProgramName(student.id)}</small>}
+                <div className="studentDetailPlan">
+                  <div>
+                    <span>METODOLOGIA ATUAL</span>
+                    <strong>
+                      {selectedStudentAssignment?.programs?.title ||
+                        'Nenhuma metodologia vinculada'}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>INÍCIO DO PROGRAMA</span>
+                    <strong>
+                      {formatDateOnly(selectedStudentAssignment?.starts_at)}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>FIM PROGRAMADO</span>
+                    <strong>
+                      {formatDateOnly(selectedStudentAssignment?.ends_at)}
+                    </strong>
+                  </div>
                 </div>
 
-                <div className="rowActions">
-                  {student.status === 'pending' && (
-                    <button
-                      className="approveButton"
-                      onClick={() => approveStudent(student.id)}
-                      disabled={savingStudentId === student.id || !selectedPrograms[student.id]}
-                    >
-                      <Check size={16} /> Liberar
-                    </button>
-                  )}
+                <section className="studentDetailProgress">
+                  <div className="studentDetailProgressHead">
+                    <div>
+                      <BarChart3 size={18} />
+                      <span>PROGRESSO NA METODOLOGIA ATUAL</span>
+                    </div>
+                    <strong>{selectedStudentProgress.percentage}%</strong>
+                  </div>
 
-                  {student.status === 'blocked' && assignment && (
-                    <button
-                      className="approveButton"
-                      onClick={() => reactivateStudent(student.id)}
-                      disabled={savingStudentId === student.id}
-                    >
-                      <Check size={16} /> Reativar
-                    </button>
-                  )}
+                  <div className="studentDetailBigTrack">
+                    <span
+                      style={{
+                        width: `${selectedStudentProgress.percentage}%`,
+                      }}
+                    />
+                  </div>
 
-                  {student.status !== 'blocked' && (
-                    <button
-                      className="blockButton"
-                      onClick={() => blockStudent(student.id)}
-                      disabled={savingStudentId === student.id}
-                    >
-                      <ShieldX size={16} /> Bloquear
-                    </button>
-                  )}
-                </div>
-              </article>
-            )
-          })}
-        </div>
+                  <div className="studentDetailMetrics">
+                    <div>
+                      <span>Aulas concluídas</span>
+                      <strong>
+                        {selectedStudentProgress.completed} de{' '}
+                        {selectedStudentProgress.total}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>Última atividade</span>
+                      <strong>
+                        {formatDateTime(
+                          selectedStudentProgress.lastCompletedAt,
+                        )}
+                      </strong>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </section>
+          </div>
+        )}
       </div>
     )
   }
@@ -366,7 +833,7 @@ export default function AdminHome({ profile }: { profile: Profile }) {
     students: {
       eyebrow: 'GESTÃO DE ALUNOS',
       title: 'Alunos',
-      subtitle: 'Aprove cadastros, escolha metodologias e altere acessos.',
+      subtitle: 'Aprove cadastros, defina planos, datas, acessos e acompanhe o progresso.',
     },
     content: {
       eyebrow: 'EDITOR DA PLATAFORMA',
