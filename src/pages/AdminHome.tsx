@@ -20,6 +20,42 @@ import AdminContentManager from '../components/AdminContentManager'
 
 type AdminTab = 'dashboard' | 'students' | 'content' | 'settings'
 
+function readAdminTab(): AdminTab {
+  const value = new URLSearchParams(window.location.search).get('admin')
+
+  if (
+    value === 'students' ||
+    value === 'content' ||
+    value === 'settings'
+  ) {
+    return value
+  }
+
+  return 'dashboard'
+}
+
+function writeAdminTab(tab: AdminTab, mode: 'push' | 'replace' = 'replace') {
+  const url = new URL(window.location.href)
+
+  // Remove parâmetros usados apenas na navegação do aluno.
+  url.searchParams.delete('view')
+  url.searchParams.delete('lesson')
+
+  if (tab === 'dashboard') {
+    url.searchParams.delete('admin')
+  } else {
+    url.searchParams.set('admin', tab)
+  }
+
+  const next = `${url.pathname}${url.search}${url.hash}`
+
+  if (mode === 'push') {
+    window.history.pushState({}, document.title, next)
+  } else {
+    window.history.replaceState({}, document.title, next)
+  }
+}
+
 type Program = {
   id: number
   title: string
@@ -78,7 +114,7 @@ function formatDateTime(value?: string | null) {
 }
 
 export default function AdminHome({ profile }: { profile: Profile }) {
-  const [activeTab, setActiveTab] = useState<AdminTab>('dashboard')
+  const [activeTab, setActiveTab] = useState<AdminTab>(() => readAdminTab())
   const [students, setStudents] = useState<Profile[]>([])
   const [programs, setPrograms] = useState<Program[]>([])
   const [assignments, setAssignments] = useState<Assignment[]>([])
@@ -171,6 +207,23 @@ export default function AdminHome({ profile }: { profile: Profile }) {
 
   useEffect(() => {
     loadData()
+  }, [])
+
+  useEffect(() => {
+    writeAdminTab(activeTab, 'replace')
+  }, [activeTab])
+
+  useEffect(() => {
+    function handlePopState() {
+      setActiveTab(readAdminTab())
+      window.scrollTo({ top: 0, behavior: 'auto' })
+    }
+
+    window.addEventListener('popstate', handlePopState)
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+    }
   }, [])
 
   const filteredStudents = useMemo(() => {

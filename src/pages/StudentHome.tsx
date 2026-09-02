@@ -15,6 +15,59 @@ import { supabase } from '../lib/supabase'
 
 type StudentNav = 'home' | 'program' | 'profile'
 
+function readStudentRoute(): {
+  tab: StudentNav
+  lessonId: number | null
+} {
+  const params = new URLSearchParams(window.location.search)
+  const rawView = params.get('view')
+  const rawLesson = params.get('lesson')
+
+  const lessonId =
+    rawLesson && Number.isFinite(Number(rawLesson)) && Number(rawLesson) > 0
+      ? Number(rawLesson)
+      : null
+
+  if (lessonId) {
+    return { tab: 'program', lessonId }
+  }
+
+  if (rawView === 'program' || rawView === 'profile') {
+    return { tab: rawView, lessonId: null }
+  }
+
+  return { tab: 'home', lessonId: null }
+}
+
+function writeStudentRoute(
+  tab: StudentNav,
+  lessonId: number | null,
+  mode: 'push' | 'replace' = 'push',
+) {
+  const url = new URL(window.location.href)
+
+  if (tab === 'home') {
+    url.searchParams.delete('view')
+  } else {
+    url.searchParams.set('view', tab)
+  }
+
+  if (lessonId) {
+    url.searchParams.set('lesson', String(lessonId))
+    url.searchParams.set('view', 'program')
+  } else {
+    url.searchParams.delete('lesson')
+  }
+
+  const next = `${url.pathname}${url.search}${url.hash}`
+
+  if (mode === 'replace') {
+    window.history.replaceState({}, document.title, next)
+  } else {
+    window.history.pushState({}, document.title, next)
+  }
+}
+
 type Exercise = {
   id: number
   title: string
@@ -66,9 +119,13 @@ export default function StudentHome({ profile }: { profile: Profile }) {
   const firstName = profile.name?.trim().split(' ')[0] || 'Aluno'
   const [assignment, setAssignment] = useState<Assignment | null>(null)
   const [progress, setProgress] = useState<Progress[]>([])
-  const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null)
+  const [selectedLessonId, setSelectedLessonId] = useState<number | null>(
+    () => readStudentRoute().lessonId,
+  )
   const [videoUrls, setVideoUrls] = useState<Record<number, string>>({})
-  const [activeNav, setActiveNav] = useState<StudentNav>('home')
+  const [activeNav, setActiveNav] = useState<StudentNav>(
+    () => readStudentRoute().tab,
+  )
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
   const [accountEmail, setAccountEmail] = useState(profile.email || '')
@@ -171,6 +228,21 @@ export default function StudentHome({ profile }: { profile: Profile }) {
   }, [])
 
   useEffect(() => {
+    function handlePopState() {
+      const route = readStudentRoute()
+      setActiveNav(route.tab)
+      setSelectedLessonId(route.lessonId)
+      window.scrollTo({ top: 0, behavior: 'auto' })
+    }
+
+    window.addEventListener('popstate', handlePopState)
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [])
+
+  useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setAccountEmail(data.user?.email || profile.email || '')
     })
@@ -187,6 +259,19 @@ export default function StudentHome({ profile }: { profile: Profile }) {
     () => lessons.find((lesson) => lesson.id === selectedLessonId) ?? null,
     [lessons, selectedLessonId],
   )
+
+  useEffect(() => {
+    if (
+      !loading &&
+      selectedLessonId &&
+      lessons.length > 0 &&
+      !lessons.some((lesson) => lesson.id === selectedLessonId)
+    ) {
+      setSelectedLessonId(null)
+      setActiveNav('program')
+      writeStudentRoute('program', null, 'replace')
+    }
+  }, [loading, lessons, selectedLessonId])
 
 
   useEffect(() => {
@@ -275,21 +360,26 @@ export default function StudentHome({ profile }: { profile: Profile }) {
     await loadStudentData()
 
     if (followingLesson) {
-      setSelectedLessonId(followingLesson.id)
+      openLesson(followingLesson.id, 'replace')
     } else {
       setMessage('Aula concluída.')
     }
   }
 
-  function changeTab(tab: StudentNav) {
+  function changeTab(tab: StudentNav, mode: 'push' | 'replace' = 'push') {
     setSelectedLessonId(null)
     setActiveNav(tab)
+    writeStudentRoute(tab, null, mode)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  function openLesson(lessonId: number) {
+  function openLesson(
+    lessonId: number,
+    mode: 'push' | 'replace' = 'push',
+  ) {
     setActiveNav('program')
     setSelectedLessonId(lessonId)
+    writeStudentRoute('program', lessonId, mode)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -351,7 +441,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
         <div className="lessonNavigator">
           <button
             className="secondary"
-            onClick={() => previousLesson && setSelectedLessonId(previousLesson.id)}
+            onClick={() => previousLesson && openLesson(previousLesson.id)}
             disabled={!previousLesson}
           >
             <ChevronLeft size={17} /> Aula anterior
@@ -363,7 +453,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
 
           <button
             className="secondary"
-            onClick={() => followingLesson && setSelectedLessonId(followingLesson.id)}
+            onClick={() => followingLesson && openLesson(followingLesson.id)}
             disabled={!followingLesson}
           >
             Próxima aula <ChevronRight size={17} />
@@ -457,7 +547,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
           {followingLesson && (
             <button
               className="secondary"
-              onClick={() => setSelectedLessonId(followingLesson.id)}
+              onClick={() => openLesson(followingLesson.id)}
             >
               Pular para próxima aula <ChevronRight size={17} />
             </button>
