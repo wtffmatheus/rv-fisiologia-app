@@ -1,0 +1,485 @@
+.adminMessage,
+.studentMessage {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(35, 200, 191, .24);
+  border-radius: 10px;
+  background: rgba(35, 200, 191, .07);
+  color: #d9efed;
+  font-size: 13px;
+}
+
+.adminPanelSection {
+  display: block;
+}
+
+.dashboardCards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.dashboardCards article {
+  min-height: 120px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #071b3c;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.dashboardCards span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.dashboardCards strong {
+  font-size: 34px;
+}
+
+.adminSimpleCard {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #071b3c;
+  padding: 22px;
+}
+
+.adminSimpleCard h2 {
+  margin: 4px 0 10px;
+}
+
+.adminSimpleCard p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.adminRefresh {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #071b3c;
+  color: #dce7f4;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 13px;
+}
+
+.planTableHeader,
+.planStudentRow {
+  grid-template-columns: minmax(280px, 1.35fr) 120px minmax(210px, .8fr) minmax(220px, .8fr) !important;
+}
+
+.studentIdentity small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.programCell select {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #061837;
+  color: #e8f0fa;
+  padding: 0 11px;
+  outline: none;
+}
+
+.programCell select:focus {
+  border-color: rgba(35, 200, 191, .55);
+}
+
+.assignedProgram {
+  display: inline-flex;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(35, 200, 191, .2);
+  background: rgba(35, 200, 191, .07);
+  color: var(--accent-soft) !important;
+  font-size: 11px !important;
+  font-weight: 700;
+}
+
+.programManager {
+  display: grid;
+  grid-template-columns: minmax(300px, .7fr) minmax(0, 1.3fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.createProgramCard {
+  display: grid;
+  gap: 14px;
+}
+
+.createProgramCard label {
+  display: grid;
+  gap: 7px;
+  color: #dbe6f4;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.createProgramCard input,
+.createProgramCard textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #061837;
+  color: #eef4fb;
+  padding: 12px;
+  outline: none;
+}
+
+.createProgramCard textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.createProgramButton {
+  width: fit-content;
+}
+
+.programCards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.programState {
+  display: inline-flex;
+  border-radius: 99px;
+  padding: 5px 8px;
+  font-size: 10px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.programState.active {
+  color: var(--accent);
+  background: rgba(35, 200, 191, .08);
+}
+
+.programState.inactive {
+  color: var(--muted);
+  background: rgba(255, 255, 255, .05);
+}
+
+.adminProgramTree {
+  display: grid;
+  gap: 16px;
+}
+
+.programTreeCard > h2 {
+  margin-bottom: 22px;
+}
+
+.adminWeek + .adminWeek {
+  margin-top: 22px;
+}
+
+.adminWeek > strong {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--accent-soft);
+}
+
+.adminLessonGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.adminLessonGrid span {
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #061837;
+  padding: 10px;
+  color: #cbd9e9;
+  font-size: 11px;
+}
+
+.noProgramCard {
+  margin: 100px auto;
+  max-width: 600px;
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: #071b3c;
+}
+
+.noProgramCard h1 {
+  margin: 5px 0 10px;
+  font-size: 34px;
+}
+
+.lessonPage {
+  max-width: 900px;
+}
+
+.lessonBack {
+  border: 0;
+  background: transparent;
+  color: #d9e4f2;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.lessonHero {
+  padding: 38px 0 18px;
+}
+
+.lessonHero h1 {
+  margin: 6px 0 8px;
+  font-size: clamp(34px, 5vw, 52px);
+  letter-spacing: -1.4px;
+}
+
+.lessonNavigator {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 18px;
+}
+
+.lessonNavigator > span {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.lessonNavigator > button:last-child {
+  justify-self: end;
+}
+
+.lessonNavigator .secondary,
+.lessonActions .secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.exerciseList {
+  display: grid;
+  gap: 18px;
+}
+
+.exerciseCard {
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(10, 39, 81, .94), rgba(7, 29, 63, .96));
+  border-radius: 18px;
+  padding: 18px;
+}
+
+.exerciseHeader {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.exerciseHeader > span {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(35, 200, 191, .22);
+  background: rgba(35, 200, 191, .07);
+  border-radius: 10px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.exerciseHeader small {
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: .12em;
+}
+
+.exerciseHeader h2 {
+  margin: 2px 0 0;
+  font-size: 22px;
+}
+
+.videoFrame {
+  overflow: hidden;
+  border-radius: 14px;
+  background: #020812;
+  border: 1px solid var(--border);
+}
+
+.videoFrame video {
+  display: block;
+  width: 100%;
+  max-height: 620px;
+  background: #020812;
+}
+
+.videoPlaceholder {
+  min-height: 240px;
+  border-radius: 14px;
+  background: #031026;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+}
+
+.exerciseMeta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.exerciseMeta > div {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #061837;
+  display: grid;
+  gap: 4px;
+}
+
+.exerciseMeta span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.exerciseMeta strong {
+  font-size: 14px;
+}
+
+.lessonActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 40px;
+}
+
+.finishLesson {
+  width: auto;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lessonItem.done {
+  border-color: rgba(35, 200, 191, .24);
+}
+
+.emptyExercise {
+  padding: 24px;
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  color: var(--muted);
+  display: grid;
+  gap: 7px;
+}
+
+.emptyExercise strong {
+  color: #dbe6f4;
+}
+
+.bottomNav button {
+  border: 0;
+  background: transparent;
+  color: #7f95b4;
+  text-decoration: none;
+  font-size: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 6px;
+  border-radius: 10px;
+}
+
+.bottomNav button.active {
+  color: var(--accent);
+  background: rgba(35, 200, 191, .06);
+}
+
+button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1000px) {
+  .dashboardCards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .programManager {
+    grid-template-columns: 1fr;
+  }
+
+  .adminLessonGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .planTableHeader {
+    display: none !important;
+  }
+
+  .planStudentRow {
+    grid-template-columns: 1fr !important;
+    gap: 14px;
+  }
+
+  .programCell,
+  .rowActions {
+    width: 100%;
+  }
+}
+
+@media (max-width: 620px) {
+  .dashboardCards,
+  .programCards,
+  .adminLessonGrid,
+  .exerciseMeta {
+    grid-template-columns: 1fr;
+  }
+
+  .lessonNavigator {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .lessonNavigator > span {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .lessonNavigator > button:last-child {
+    justify-self: stretch;
+  }
+
+  .lessonNavigator .secondary {
+    width: 100%;
+  }
+
+  .lessonActions {
+    display: grid;
+  }
+
+  .lessonActions button {
+    width: 100%;
+  }
+
+  .videoFrame video {
+    max-height: 520px;
+  }
+}
