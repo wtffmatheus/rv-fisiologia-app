@@ -741,3 +741,28 @@
     max-width: 126px !important;
   }
 }
+
+
+/* RV_HEADER_BRAND_CLEANUP_V1 */
+.headerBrand {
+  display: flex;
+  align-items: center;
+  gap: 0 !important;
+}
+
+.headerBrand span {
+  display: none !important;
+}
+
+.headerLogo[src="/logo-rv-app.png"] {
+  width: 138px !important;
+  max-width: 138px !important;
+  height: auto !important;
+}
+
+@media (max-width: 720px) {
+  .headerLogo[src="/logo-rv-app.png"] {
+    width: 124px !important;
+    max-width: 124px !important;
+  }
+}
