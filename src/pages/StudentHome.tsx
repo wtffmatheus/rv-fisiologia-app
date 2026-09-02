@@ -12,10 +12,15 @@ import {
 import type { Profile } from '../types'
 import { supabase } from '../lib/supabase'
 
+const VIDEO_BUCKET = 'exercise-videos'
+
 type Exercise = {
   id: number
   title: string
+  instructions: string | null
   video_url: string | null
+  video_path: string | null
+  resolved_video_url?: string | null
   sets: string | null
   repetitions: string | null
   rest_seconds: number | null
@@ -59,13 +64,43 @@ export default function StudentHome({ profile }: { profile: Profile }) {
   const firstName = profile.name?.trim().split(' ')[0] || 'Aluno'
   const [assignment, setAssignment] = useState<Assignment | null>(null)
   const [progress, setProgress] = useState<Progress[]>([])
-  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null)
+  const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
 
+  async function resolveExerciseVideos(program: Program) {
+    const nextWeeks = await Promise.all(
+      program.weeks.map(async (week) => ({
+        ...week,
+        lessons: await Promise.all(
+          week.lessons.map(async (lesson) => ({
+            ...lesson,
+            exercises: await Promise.all(
+              lesson.exercises.map(async (exercise) => {
+                if (!exercise.video_path) {
+                  return { ...exercise, resolved_video_url: exercise.video_url }
+                }
+
+                const { data } = await supabase.storage
+                  .from(VIDEO_BUCKET)
+                  .createSignedUrl(exercise.video_path, 60 * 60)
+
+                return {
+                  ...exercise,
+                  resolved_video_url: data?.signedUrl ?? null,
+                }
+              }),
+            ),
+          })),
+        ),
+      })),
+    )
+
+    return { ...program, weeks: nextWeeks }
+  }
+
   async function loadStudentData() {
     setLoading(true)
-    setMessage('')
 
     const { data: assignmentData, error: assignmentError } = await supabase
       .from('student_programs')
@@ -88,7 +123,9 @@ export default function StudentHome({ profile }: { profile: Profile }) {
               exercises (
                 id,
                 title,
+                instructions,
                 video_url,
+                video_path,
                 sets,
                 repetitions,
                 rest_seconds,
@@ -108,28 +145,33 @@ export default function StudentHome({ profile }: { profile: Profile }) {
       .eq('student_id', profile.id)
 
     if (assignmentError) {
-      console.error(assignmentError)
-      setMessage(`Erro ao carregar programa: ${assignmentError.message}`)
+      setMessage(`Não foi possível carregar seu programa: ${assignmentError.message}`)
     }
 
     if (progressError) {
       console.error(progressError)
     }
 
-    const normalized = assignmentData as unknown as Assignment | null
+    let normalized = assignmentData as unknown as Assignment | null
 
     if (normalized?.programs) {
-      normalized.programs.weeks = [...(normalized.programs.weeks ?? [])]
-        .sort((a, b) => a.week_number - b.week_number)
-        .map((week) => ({
-          ...week,
-          lessons: [...(week.lessons ?? [])]
-            .sort((a, b) => a.lesson_number - b.lesson_number)
-            .map((lesson) => ({
-              ...lesson,
-              exercises: [...(lesson.exercises ?? [])].sort((a, b) => a.sort_order - b.sort_order),
-            })),
-        }))
+      const sortedProgram: Program = {
+        ...normalized.programs,
+        weeks: [...(normalized.programs.weeks ?? [])]
+          .sort((a, b) => a.week_number - b.week_number)
+          .map((week) => ({
+            ...week,
+            lessons: [...(week.lessons ?? [])]
+              .sort((a, b) => a.lesson_number - b.lesson_number)
+              .map((lesson) => ({
+                ...lesson,
+                exercises: [...(lesson.exercises ?? [])].sort((a, b) => a.sort_order - b.sort_order),
+              })),
+          })),
+      }
+
+      const programWithUrls = await resolveExerciseVideos(sortedProgram)
+      normalized = { ...normalized, programs: programWithUrls }
     }
 
     setAssignment(normalized)
@@ -148,6 +190,11 @@ export default function StudentHome({ profile }: { profile: Profile }) {
     [program],
   )
 
+  const selectedLesson = useMemo(
+    () => lessons.find((lesson) => lesson.id === selectedLessonId) ?? null,
+    [lessons, selectedLessonId],
+  )
+
   const completedLessonIds = useMemo(
     () => new Set(progress.filter((item) => item.completed).map((item) => item.lesson_id)),
     [progress],
@@ -157,19 +204,17 @@ export default function StudentHome({ profile }: { profile: Profile }) {
   const percentage = lessons.length ? Math.round((completedCount / lessons.length) * 100) : 0
   const nextLesson = lessons.find((lesson) => !completedLessonIds.has(lesson.id)) ?? lessons[0] ?? null
 
-  const selectedLessonIndex = selectedLesson
+  const selectedIndex = selectedLesson
     ? lessons.findIndex((lesson) => lesson.id === selectedLesson.id)
     : -1
 
-  const previousLesson = selectedLessonIndex > 0 ? lessons[selectedLessonIndex - 1] : null
+  const previousLesson = selectedIndex > 0 ? lessons[selectedIndex - 1] : null
   const followingLesson =
-    selectedLessonIndex >= 0 && selectedLessonIndex < lessons.length - 1
-      ? lessons[selectedLessonIndex + 1]
+    selectedIndex >= 0 && selectedIndex < lessons.length - 1
+      ? lessons[selectedIndex + 1]
       : null
 
   async function completeLesson(lesson: Lesson) {
-    setMessage('')
-
     const { error } = await supabase
       .from('lesson_progress')
       .upsert(
@@ -183,22 +228,20 @@ export default function StudentHome({ profile }: { profile: Profile }) {
       )
 
     if (error) {
-      console.error(error)
-      setMessage(`Erro ao concluir aula: ${error.message}`)
+      setMessage(`Não foi possível concluir a aula: ${error.message}`)
       return
     }
 
-    setMessage('Aula concluída.')
     await loadStudentData()
 
     if (followingLesson) {
-      setSelectedLesson(followingLesson)
+      setSelectedLessonId(followingLesson.id)
+    } else {
+      setMessage('Aula concluída.')
     }
   }
 
-  if (loading) {
-    return <div className="center">Carregando seu programa...</div>
-  }
+  if (loading) return <div className="center">Carregando seu programa...</div>
 
   if (!program) {
     return (
@@ -226,9 +269,8 @@ export default function StudentHome({ profile }: { profile: Profile }) {
     return (
       <main className="studentPage lessonPage">
         <header className="studentHeader">
-          <button className="lessonBack" onClick={() => setSelectedLesson(null)}>
-            <ChevronLeft size={18} />
-            Programa
+          <button className="lessonBack" onClick={() => setSelectedLessonId(null)}>
+            <ChevronLeft size={18} /> Programa
           </button>
           <img src="/logo-rv.png" className="headerLogo" alt="RV Fisiologia" />
         </header>
@@ -246,32 +288,26 @@ export default function StudentHome({ profile }: { profile: Profile }) {
         <div className="lessonNavigator">
           <button
             className="secondary"
-            onClick={() => previousLesson && setSelectedLesson(previousLesson)}
+            onClick={() => previousLesson && setSelectedLessonId(previousLesson.id)}
             disabled={!previousLesson}
           >
-            <ChevronLeft size={17} />
-            Aula anterior
+            <ChevronLeft size={17} /> Aula anterior
           </button>
-
-          <span>
-            {selectedLesson.lesson_number} de {lessons.length}
-          </span>
-
+          <span>{selectedLesson.lesson_number} de {lessons.length}</span>
           <button
             className="secondary"
-            onClick={() => followingLesson && setSelectedLesson(followingLesson)}
+            onClick={() => followingLesson && setSelectedLessonId(followingLesson.id)}
             disabled={!followingLesson}
           >
-            Próxima aula
-            <ChevronRight size={17} />
+            Próxima aula <ChevronRight size={17} />
           </button>
         </div>
 
         <section className="exerciseList">
           {selectedLesson.exercises.length === 0 && (
             <div className="emptyExercise">
-              <strong>Esta aula ainda não possui exercícios cadastrados.</strong>
-              <span>Você pode navegar normalmente para as outras aulas.</span>
+              <strong>Conteúdo em preparação.</strong>
+              <span>Esta aula ainda não possui exercícios cadastrados.</span>
             </div>
           )}
 
@@ -285,12 +321,9 @@ export default function StudentHome({ profile }: { profile: Profile }) {
                 </div>
               </div>
 
-              {exercise.video_url ? (
+              {exercise.resolved_video_url ? (
                 <div className="videoFrame">
-                  <video controls playsInline preload="metadata">
-                    <source src={exercise.video_url} type="video/mp4" />
-                    Seu navegador não conseguiu reproduzir o vídeo.
-                  </video>
+                  <video controls playsInline preload="metadata" src={exercise.resolved_video_url} />
                 </div>
               ) : (
                 <div className="videoPlaceholder">
@@ -300,19 +333,17 @@ export default function StudentHome({ profile }: { profile: Profile }) {
               )}
 
               <div className="exerciseMeta">
-                <div>
-                  <span>Séries</span>
-                  <strong>{exercise.sets || '—'}</strong>
-                </div>
-                <div>
-                  <span>Repetições</span>
-                  <strong>{exercise.repetitions || '—'}</strong>
-                </div>
-                <div>
-                  <span>Descanso</span>
-                  <strong>{exercise.rest_seconds ? `${exercise.rest_seconds}s` : '—'}</strong>
-                </div>
+                <div><span>Séries</span><strong>{exercise.sets || '—'}</strong></div>
+                <div><span>Repetições / tempo</span><strong>{exercise.repetitions || '—'}</strong></div>
+                <div><span>Descanso</span><strong>{exercise.rest_seconds ? `${exercise.rest_seconds}s` : '—'}</strong></div>
               </div>
+
+              {exercise.instructions && (
+                <div className="exerciseInstructions">
+                  <span>Orientação</span>
+                  <p>{exercise.instructions}</p>
+                </div>
+              )}
             </article>
           ))}
         </section>
@@ -328,9 +359,8 @@ export default function StudentHome({ profile }: { profile: Profile }) {
           </button>
 
           {followingLesson && (
-            <button className="secondary" onClick={() => setSelectedLesson(followingLesson)}>
-              Pular para próxima aula
-              <ChevronRight size={17} />
+            <button className="secondary" onClick={() => setSelectedLessonId(followingLesson.id)}>
+              Pular para próxima aula <ChevronRight size={17} />
             </button>
           )}
         </div>
@@ -345,7 +375,6 @@ export default function StudentHome({ profile }: { profile: Profile }) {
           <img src="/logo-rv.png" className="headerLogo" alt="RV Fisiologia" />
           <span>RV Fisiologia</span>
         </div>
-
         <button className="iconButton" onClick={() => supabase.auth.signOut()} aria-label="Sair">
           <LogOut size={18} />
         </button>
@@ -355,7 +384,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
         <div>
           <p className="eyebrow">SEU ACOMPANHAMENTO</p>
           <h1>Olá, {firstName}.</h1>
-          <p className="muted">Abra qualquer aula abaixo. Nesta fase de teste, nenhuma aula fica bloqueada.</p>
+          <p className="muted">Acesse suas aulas e acompanhe seu progresso.</p>
         </div>
       </section>
 
@@ -370,17 +399,10 @@ export default function StudentHome({ profile }: { profile: Profile }) {
             </div>
             <strong>{percentage}%</strong>
           </div>
-
-          <div className="progressBar" aria-label={`${percentage}% concluído`}>
-            <span style={{ width: `${percentage}%` }} />
-          </div>
-
-          <p className="muted smallText">
-            {completedCount} de {lessons.length} aulas concluídas
-          </p>
-
+          <div className="progressBar"><span style={{ width: `${percentage}%` }} /></div>
+          <p className="muted smallText">{completedCount} de {lessons.length} aulas concluídas</p>
           {nextLesson && (
-            <button className="primary programAction" onClick={() => setSelectedLesson(nextLesson)}>
+            <button className="primary programAction" onClick={() => setSelectedLessonId(nextLesson.id)}>
               Continuar na aula {String(nextLesson.lesson_number).padStart(2, '0')}
               <ChevronRight size={18} />
             </button>
@@ -389,7 +411,6 @@ export default function StudentHome({ profile }: { profile: Profile }) {
 
         <article className="nextLessonCard">
           <span className="miniLabel">PRÓXIMA NÃO CONCLUÍDA</span>
-
           {nextLesson ? (
             <>
               <div className="nextLessonInfo">
@@ -397,18 +418,13 @@ export default function StudentHome({ profile }: { profile: Profile }) {
                   <h2>{nextLesson.title}</h2>
                   <p className="muted">{nextLesson.exercises.length} exercício(s)</p>
                 </div>
-                <span className="lessonNumber">
-                  {String(nextLesson.lesson_number).padStart(2, '0')}
-                </span>
+                <span className="lessonNumber">{String(nextLesson.lesson_number).padStart(2, '0')}</span>
               </div>
-
-              <button className="secondary wideButton" onClick={() => setSelectedLesson(nextLesson)}>
+              <button className="secondary wideButton" onClick={() => setSelectedLessonId(nextLesson.id)}>
                 Abrir aula
               </button>
             </>
-          ) : (
-            <p className="muted">Programa concluído.</p>
-          )}
+          ) : <p className="muted">Programa concluído.</p>}
         </article>
       </section>
 
@@ -424,17 +440,13 @@ export default function StudentHome({ profile }: { profile: Profile }) {
           <div className="lessonList">
             {week.lessons.map((lesson) => {
               const completed = completedLessonIds.has(lesson.id)
-
               return (
                 <button
                   key={lesson.id}
                   className={`lessonItem ${completed ? 'done' : ''}`}
-                  onClick={() => setSelectedLesson(lesson)}
+                  onClick={() => setSelectedLessonId(lesson.id)}
                 >
-                  <div className="lessonIndex">
-                    {String(lesson.lesson_number).padStart(2, '0')}
-                  </div>
-
+                  <div className="lessonIndex">{String(lesson.lesson_number).padStart(2, '0')}</div>
                   <div className="lessonCopy">
                     <strong>{lesson.title}</strong>
                     <span>
@@ -445,7 +457,6 @@ export default function StudentHome({ profile }: { profile: Profile }) {
                           : 'Conteúdo em preparação'}
                     </span>
                   </div>
-
                   {completed ? <CheckCircle2 size={17} /> : <ChevronRight size={17} />}
                 </button>
               )
