@@ -56,8 +56,7 @@ type Feedback = {
   text: string
 } | null
 
-const VIDEO_BUCKET = 'exercise-videos'
-const MAX_VIDEO_BYTES = 200 * 1024 * 1024
+const MAX_VIDEO_BYTES = 500 * 1024 * 1024
 
 function safeFileName(name: string) {
   return name
@@ -67,6 +66,21 @@ function safeFileName(name: string) {
     .replace(/[^a-z0-9.]+/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '')
+}
+
+async function invokeR2(body: Record<string, unknown>) {
+  const { data, error } = await supabase.functions.invoke('r2-video', { body })
+
+  if (error) {
+    console.error('r2-video invoke error:', error)
+    throw new Error(error.message || 'Falha ao acessar o serviço de vídeos.')
+  }
+
+  if (data?.error) {
+    throw new Error(String(data.error))
+  }
+
+  return data
 }
 
 export default function AdminContentManager() {
@@ -231,11 +245,16 @@ export default function AdminContentManager() {
     const previewEntries = await Promise.all(
       nextExercises.map(async (exercise) => {
         if (exercise.video_path) {
-          const { data: signedData } = await supabase.storage
-            .from(VIDEO_BUCKET)
-            .createSignedUrl(exercise.video_path, 60 * 60)
-
-          return [exercise.id, signedData?.signedUrl ?? ''] as const
+          try {
+            const data = await invokeR2({
+              action: 'play',
+              exercise_id: exercise.id,
+            })
+            return [exercise.id, data?.url ?? ''] as const
+          } catch (error) {
+            console.warn(`Não foi possível gerar preview do exercício ${exercise.id}`, error)
+            return [exercise.id, ''] as const
+          }
         }
 
         return [exercise.id, exercise.video_url ?? ''] as const
@@ -450,7 +469,13 @@ export default function AdminContentManager() {
 
     const paths = exercises.map((exercise) => exercise.video_path).filter(Boolean) as string[]
     if (paths.length > 0) {
-      await supabase.storage.from(VIDEO_BUCKET).remove(paths)
+      await Promise.all(
+        paths.map((key) =>
+          invokeR2({ action: 'delete', key }).catch((error) =>
+            console.warn('Não foi possível remover vídeo antigo do R2:', error),
+          ),
+        ),
+      )
     }
 
     const { error } = await supabase.from('lessons').delete().eq('id', selectedLessonId)
@@ -534,7 +559,9 @@ export default function AdminContentManager() {
     if (!accepted) return
 
     if (exercise.video_path) {
-      await supabase.storage.from(VIDEO_BUCKET).remove([exercise.video_path])
+      await invokeR2({ action: 'delete', key: exercise.video_path }).catch((error) =>
+        console.warn('Não foi possível remover vídeo do R2:', error),
+      )
     }
 
     const { error } = await supabase.from('exercises').delete().eq('id', exercise.id)
@@ -567,60 +594,129 @@ export default function AdminContentManager() {
   }
 
   async function uploadVideo(exercise: Exercise, event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0]
-    event.target.value = ''
+    const input = event.currentTarget
+    const file = input.files?.[0]
 
-    if (!file || !selectedProgramId || !selectedLessonId) return
+    if (!file) {
+      setFeedback({ type: 'error', text: 'Nenhum arquivo foi selecionado.' })
+      return
+    }
 
-    if (!['video/mp4', 'video/quicktime', 'video/webm'].includes(file.type)) {
-      setFeedback({ type: 'error', text: 'Use vídeo MP4, MOV ou WebM.' })
+    if (!selectedProgramId || !selectedLessonId) {
+      setFeedback({ type: 'error', text: 'Abra uma metodologia e uma aula antes de enviar o vídeo.' })
+      input.value = ''
+      return
+    }
+
+    const extension = file.name.split('.').pop()?.toLowerCase() ?? ''
+    const allowedExtensions = ['mp4', 'mov', 'webm']
+    const allowedMimeTypes = ['video/mp4', 'video/quicktime', 'video/webm']
+
+    if (!allowedMimeTypes.includes(file.type) && !allowedExtensions.includes(extension)) {
+      setFeedback({
+        type: 'error',
+        text: `Formato não aceito (${file.type || extension || 'desconhecido'}). Use MP4, MOV ou WebM.`,
+      })
+      input.value = ''
       return
     }
 
     if (file.size > MAX_VIDEO_BYTES) {
-      setFeedback({ type: 'error', text: 'O vídeo precisa ter até 200 MB.' })
+      setFeedback({
+        type: 'error',
+        text: `O vídeo tem ${(file.size / 1024 / 1024).toFixed(1)} MB. O limite atual é 500 MB.`,
+      })
+      input.value = ''
       return
     }
+
+    const fallbackMime =
+      extension === 'mov'
+        ? 'video/quicktime'
+        : extension === 'webm'
+          ? 'video/webm'
+          : 'video/mp4'
+
+    const contentType = file.type || fallbackMime
 
     setUploadingExerciseId(exercise.id)
-    setFeedback(null)
+    setFeedback({
+      type: 'success',
+      text: `Preparando upload de "${file.name}" para o Cloudflare R2...`,
+    })
 
-    const fileName = safeFileName(file.name || 'video.mp4') || 'video.mp4'
-    const path = `programs/${selectedProgramId}/lessons/${selectedLessonId}/${exercise.id}-${Date.now()}-${fileName}`
-
-    const { error: uploadError } = await supabase.storage
-      .from(VIDEO_BUCKET)
-      .upload(path, file, {
-        cacheControl: '3600',
-        upsert: false,
-        contentType: file.type,
+    try {
+      const signed = await invokeR2({
+        action: 'upload',
+        exercise_id: exercise.id,
+        program_id: selectedProgramId,
+        lesson_id: selectedLessonId,
+        file_name: file.name,
+        content_type: contentType,
       })
 
-    if (uploadError) {
-      setFeedback({ type: 'error', text: `Erro no upload: ${uploadError.message}` })
+      const uploadUrl = String(signed?.upload_url || '')
+      const key = String(signed?.key || '')
+
+      if (!uploadUrl || !key) {
+        throw new Error('O backend não retornou a autorização de upload.')
+      }
+
+      setFeedback({
+        type: 'success',
+        text: `Enviando "${file.name}" (${(file.size / 1024 / 1024).toFixed(1)} MB) para o R2...`,
+      })
+
+      const uploadResponse = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': contentType,
+        },
+        body: file,
+      })
+
+      if (!uploadResponse.ok) {
+        const body = await uploadResponse.text().catch(() => '')
+        console.error('R2 upload response:', uploadResponse.status, body)
+        throw new Error(
+          uploadResponse.status === 403
+            ? 'Cloudflare recusou o upload. Confira o CORS e as credenciais do R2.'
+            : `Cloudflare retornou erro ${uploadResponse.status} no upload.`,
+        )
+      }
+
+      const { error: updateError } = await supabase
+        .from('exercises')
+        .update({ video_path: key, video_url: null })
+        .eq('id', exercise.id)
+
+      if (updateError) {
+        await invokeR2({ action: 'delete', key }).catch(() => null)
+        throw new Error(`O vídeo subiu, mas não foi possível vinculá-lo ao exercício: ${updateError.message}`)
+      }
+
+      if (exercise.video_path && exercise.video_path !== key) {
+        await invokeR2({ action: 'delete', key: exercise.video_path }).catch((error) =>
+          console.warn('Não foi possível remover o vídeo antigo do R2:', error),
+        )
+      }
+
+      setFeedback({
+        type: 'success',
+        text: `Vídeo "${file.name}" adicionado ao exercício "${exercise.title}".`,
+      })
+
+      await loadExercises(selectedLessonId)
+    } catch (error) {
+      console.error('RV R2 upload error:', error)
+      setFeedback({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Erro inesperado ao enviar o vídeo.',
+      })
+    } finally {
       setUploadingExerciseId(null)
-      return
+      input.value = ''
     }
-
-    const { error: updateError } = await supabase
-      .from('exercises')
-      .update({ video_path: path, video_url: null })
-      .eq('id', exercise.id)
-
-    if (updateError) {
-      await supabase.storage.from(VIDEO_BUCKET).remove([path])
-      setFeedback({ type: 'error', text: `Vídeo enviado, mas não foi possível vincular: ${updateError.message}` })
-      setUploadingExerciseId(null)
-      return
-    }
-
-    if (exercise.video_path) {
-      await supabase.storage.from(VIDEO_BUCKET).remove([exercise.video_path])
-    }
-
-    setFeedback({ type: 'success', text: `Vídeo de "${exercise.title}" atualizado.` })
-    setUploadingExerciseId(null)
-    await loadExercises(selectedLessonId)
   }
 
   async function removeVideo(exercise: Exercise) {
@@ -628,7 +724,9 @@ export default function AdminContentManager() {
     if (!accepted) return
 
     if (exercise.video_path) {
-      await supabase.storage.from(VIDEO_BUCKET).remove([exercise.video_path])
+      await invokeR2({ action: 'delete', key: exercise.video_path }).catch((error) =>
+        console.warn('Não foi possível remover vídeo do R2:', error),
+      )
     }
 
     const { error } = await supabase
@@ -896,7 +994,7 @@ export default function AdminContentManager() {
                                   {uploadingExerciseId === exercise.id ? 'Enviando...' : videoPreviews[exercise.id] ? 'Trocar vídeo' : 'Adicionar vídeo'}
                                   <input
                                     type="file"
-                                    accept="video/mp4,video/quicktime,video/webm"
+                                    accept=".mp4,.mov,.webm,video/mp4,video/quicktime,video/webm"
                                     disabled={uploadingExerciseId === exercise.id}
                                     onChange={(event) => uploadVideo(exercise, event)}
                                   />

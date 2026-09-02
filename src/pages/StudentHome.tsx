@@ -12,8 +12,6 @@ import {
 import type { Profile } from '../types'
 import { supabase } from '../lib/supabase'
 
-const VIDEO_BUCKET = 'exercise-videos'
-
 type StudentNav = 'home' | 'program' | 'profile'
 
 type Exercise = {
@@ -22,7 +20,6 @@ type Exercise = {
   instructions: string | null
   video_url: string | null
   video_path: string | null
-  resolved_video_url?: string | null
   sets: string | null
   repetitions: string | null
   rest_seconds: number | null
@@ -67,41 +64,11 @@ export default function StudentHome({ profile }: { profile: Profile }) {
   const [assignment, setAssignment] = useState<Assignment | null>(null)
   const [progress, setProgress] = useState<Progress[]>([])
   const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null)
+  const [videoUrls, setVideoUrls] = useState<Record<number, string>>({})
   const [activeNav, setActiveNav] = useState<StudentNav>('home')
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
 
-
-  async function resolveExerciseVideos(program: Program) {
-    const nextWeeks = await Promise.all(
-      program.weeks.map(async (week) => ({
-        ...week,
-        lessons: await Promise.all(
-          week.lessons.map(async (lesson) => ({
-            ...lesson,
-            exercises: await Promise.all(
-              lesson.exercises.map(async (exercise) => {
-                if (!exercise.video_path) {
-                  return { ...exercise, resolved_video_url: exercise.video_url }
-                }
-
-                const { data } = await supabase.storage
-                  .from(VIDEO_BUCKET)
-                  .createSignedUrl(exercise.video_path, 60 * 60)
-
-                return {
-                  ...exercise,
-                  resolved_video_url: data?.signedUrl ?? null,
-                }
-              }),
-            ),
-          })),
-        ),
-      })),
-    )
-
-    return { ...program, weeks: nextWeeks }
-  }
 
   async function loadStudentData() {
     setLoading(true)
@@ -176,8 +143,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
           })),
       }
 
-      const programWithUrls = await resolveExerciseVideos(sortedProgram)
-      normalized = { ...normalized, programs: programWithUrls }
+      normalized = { ...normalized, programs: sortedProgram }
     }
 
     setAssignment(normalized)
@@ -200,6 +166,52 @@ export default function StudentHome({ profile }: { profile: Profile }) {
     () => lessons.find((lesson) => lesson.id === selectedLessonId) ?? null,
     [lessons, selectedLessonId],
   )
+
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadSelectedLessonVideos() {
+      setVideoUrls({})
+
+      if (!selectedLesson) return
+
+      const entries = await Promise.all(
+        selectedLesson.exercises.map(async (exercise) => {
+          if (!exercise.video_path) {
+            return [exercise.id, exercise.video_url ?? ''] as const
+          }
+
+          try {
+            const { data, error } = await supabase.functions.invoke('r2-video', {
+              body: {
+                action: 'play',
+                exercise_id: exercise.id,
+              },
+            })
+
+            if (error) throw error
+            if (data?.error) throw new Error(String(data.error))
+
+            return [exercise.id, String(data?.url ?? '')] as const
+          } catch (error) {
+            console.error(`Erro ao abrir vídeo do exercício ${exercise.id}:`, error)
+            return [exercise.id, ''] as const
+          }
+        }),
+      )
+
+      if (!cancelled) {
+        setVideoUrls(Object.fromEntries(entries.filter(([, url]) => Boolean(url))))
+      }
+    }
+
+    loadSelectedLessonVideos()
+
+    return () => {
+      cancelled = true
+    }
+  }, [selectedLessonId])
 
   const completedLessonIds = useMemo(
     () => new Set(progress.filter((item) => item.completed).map((item) => item.lesson_id)),
@@ -356,19 +368,23 @@ export default function StudentHome({ profile }: { profile: Profile }) {
                 </div>
               </div>
 
-              {exercise.resolved_video_url ? (
+              {(videoUrls[exercise.id] || exercise.video_url) ? (
                 <div className="videoFrame">
                   <video
                     controls
                     playsInline
                     preload="metadata"
-                    src={exercise.resolved_video_url}
+                    src={videoUrls[exercise.id] || exercise.video_url || undefined}
                   />
                 </div>
               ) : (
                 <div className="videoPlaceholder">
                   <Play size={28} />
-                  <span>Vídeo ainda não disponível</span>
+                  <span>
+                    {exercise.video_path
+                      ? 'Carregando vídeo...'
+                      : 'Vídeo ainda não disponível'}
+                  </span>
                 </div>
               )}
 
