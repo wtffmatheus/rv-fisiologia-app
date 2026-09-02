@@ -701,3 +701,43 @@
     margin-top: 12px;
   }
 }
+
+/* RV_APP_WORDMARK_LAYOUT_V2 */
+
+/* A marca "RV app" é mais horizontal que o monograma RV original. */
+.brandLogo[src="/logo-rv-app.png"] {
+  width: 176px !important;
+  max-width: 176px !important;
+  height: auto !important;
+}
+
+.mobileLogo[src="/logo-rv-app.png"] {
+  width: 150px !important;
+  max-width: 150px !important;
+  height: auto !important;
+  margin-bottom: 27px;
+}
+
+.headerLogo[src="/logo-rv-app.png"] {
+  width: 142px !important;
+  max-width: 142px !important;
+  height: auto !important;
+}
+
+.statusLogo[src="/logo-rv-app.png"] {
+  width: 154px !important;
+  max-width: 154px !important;
+  height: auto !important;
+}
+
+@media (max-width: 720px) {
+  .mobileLogo[src="/logo-rv-app.png"] {
+    width: 142px !important;
+    max-width: 142px !important;
+  }
+
+  .headerLogo[src="/logo-rv-app.png"] {
+    width: 126px !important;
+    max-width: 126px !important;
+  }
+}

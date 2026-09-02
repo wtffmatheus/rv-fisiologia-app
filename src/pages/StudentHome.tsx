@@ -293,7 +293,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
       <main className="studentPage">
         <header className="studentHeader">
           <div className="studentBrand">
-            <img src="/logo-rv.png" className="headerLogo" alt="RV Fisiologia" />
+            <img src="/logo-rv-app.png" className="headerLogo" alt="RV Fisiologia" />
             <span>RV Fisiologia</span>
           </div>
           <button className="iconButton" onClick={() => supabase.auth.signOut()} aria-label="Sair">
@@ -327,7 +327,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
           >
             <ChevronLeft size={18} /> Programa
           </button>
-          <img src="/logo-rv.png" className="headerLogo" alt="RV Fisiologia" />
+          <img src="/logo-rv-app.png" className="headerLogo" alt="RV Fisiologia" />
         </header>
 
         <section className="lessonHero">
@@ -723,7 +723,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
     <main className={`studentPage studentTabbedPage tab-${activeNav}`}>
       <header className="studentHeader studentHeaderMain">
         <div className="studentBrand">
-          <img src="/logo-rv.png" className="headerLogo" alt="RV Fisiologia" />
+          <img src="/logo-rv-app.png" className="headerLogo" alt="RV Fisiologia" />
           <span>RV Fisiologia</span>
         </div>
 

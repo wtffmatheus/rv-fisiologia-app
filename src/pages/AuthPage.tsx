@@ -72,7 +72,7 @@ export default function AuthPage() {
     <main className="auth">
       <section className="brand">
         <div>
-          <img className="brandLogo" src="/logo-rv.png" alt="RV Fisiologia" />
+          <img className="brandLogo" src="/logo-rv-app.png" alt="RV Fisiologia" />
         </div>
 
         <div>
@@ -92,7 +92,7 @@ export default function AuthPage() {
 
       <section className="loginWrap">
         <div className="card">
-          <img className="mobileLogo" src="/logo-rv.png" alt="RV Fisiologia" />
+          <img className="mobileLogo" src="/logo-rv-app.png" alt="RV Fisiologia" />
 
           <p className="eyebrow">ÁREA DO ALUNO</p>
           <h2>

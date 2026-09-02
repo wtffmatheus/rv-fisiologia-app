@@ -8,7 +8,7 @@ export default function PendingPage({ profile }: { profile: Profile }) {
   return (
     <main className="pendingPage">
       <section className="statusCard">
-        <img src="/logo-rv.png" className="statusLogo" alt="RV Fisiologia" />
+        <img src="/logo-rv-app.png" className="statusLogo" alt="RV Fisiologia" />
         <div className="statusDivider" />
         <p className="eyebrow">CADASTRO RECEBIDO</p>
         <h1>Seu acesso está em análise.</h1>

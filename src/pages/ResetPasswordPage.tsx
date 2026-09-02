@@ -41,7 +41,7 @@ export default function ResetPasswordPage({ onDone }: { onDone: () => void }) {
     <main className="auth resetPasswordPage">
       <section className="brand">
         <div>
-          <img className="brandLogo" src="/logo-rv.png" alt="RV Fisiologia" />
+          <img className="brandLogo" src="/logo-rv-app.png" alt="RV Fisiologia" />
         </div>
 
         <div>
@@ -53,7 +53,7 @@ export default function ResetPasswordPage({ onDone }: { onDone: () => void }) {
 
       <section className="loginWrap">
         <div className="card resetPasswordCard">
-          <img className="mobileLogo" src="/logo-rv.png" alt="RV Fisiologia" />
+          <img className="mobileLogo" src="/logo-rv-app.png" alt="RV Fisiologia" />
 
           <p className="eyebrow">SEGURANÇA DA CONTA</p>
           <h2>{success ? 'Senha alterada' : 'Crie uma nova senha'}</h2>
