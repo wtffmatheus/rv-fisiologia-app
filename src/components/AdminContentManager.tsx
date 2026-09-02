@@ -58,6 +58,12 @@ type Feedback = {
   text: string
 } | null
 
+type UploadStatus = {
+  status: 'uploading' | 'success' | 'error'
+  progress: number
+  message: string
+}
+
 const MAX_VIDEO_BYTES = 500 * 1024 * 1024
 
 
@@ -275,6 +281,8 @@ export default function AdminContentManager() {
   const [saving, setSaving] = useState(false)
   const [uploadingExerciseId, setUploadingExerciseId] = useState<number | null>(null)
   const [feedback, setFeedback] = useState<Feedback>(null)
+  const [uploadStatusByExercise, setUploadStatusByExercise] = useState<Record<number, UploadStatus>>({})
+  const [newExerciseUploadStatus, setNewExerciseUploadStatus] = useState<UploadStatus | null>(null)
 
   const selectedProgram = useMemo(
     () => programs.find((program) => program.id === selectedProgramId) ?? null,
@@ -708,6 +716,11 @@ export default function AdminContentManager() {
 
     if (newExerciseVideo && videoMeta) {
       setUploadingExerciseId(data.id)
+      setNewExerciseUploadStatus({
+        status: 'uploading',
+        progress: 0,
+        message: `Preparando "${newExerciseVideo.name}"...`,
+      })
       setFeedback({
         type: 'success',
         text: `Exercício criado. Enviando "${newExerciseVideo.name}" para o Cloudflare R2...`,
@@ -721,6 +734,11 @@ export default function AdminContentManager() {
           file: newExerciseVideo,
           contentType: videoMeta.contentType,
           onProgress: (percentage) => {
+            setNewExerciseUploadStatus({
+              status: 'uploading',
+              progress: percentage,
+              message: `Enviando "${newExerciseVideo.name}"... ${percentage}%`,
+            })
             setFeedback({
               type: 'success',
               text: `Enviando "${newExerciseVideo.name}"... ${percentage}%`,
@@ -733,6 +751,12 @@ export default function AdminContentManager() {
         console.error('RV R2 new exercise upload error:', error)
         videoErrorMessage =
           error instanceof Error ? error.message : 'Erro inesperado ao enviar o vídeo.'
+
+        setNewExerciseUploadStatus({
+          status: 'error',
+          progress: 0,
+          message: videoErrorMessage,
+        })
       } finally {
         setUploadingExerciseId(null)
       }
@@ -752,11 +776,21 @@ export default function AdminContentManager() {
     }
 
     if (videoErrorMessage) {
+      setNewExerciseUploadStatus({
+        status: 'error',
+        progress: 0,
+        message: `Exercício criado, mas o vídeo falhou: ${videoErrorMessage}`,
+      })
       setFeedback({
         type: 'error',
         text: `Exercício criado, mas o vídeo não foi enviado: ${videoErrorMessage}`,
       })
     } else if (videoUploaded) {
+      setNewExerciseUploadStatus({
+        status: 'success',
+        progress: 100,
+        message: 'Vídeo upado com sucesso.',
+      })
       setFeedback({
         type: 'success',
         text: 'Exercício e vídeo adicionados com sucesso.',
@@ -865,6 +899,14 @@ export default function AdminContentManager() {
     }
 
     setUploadingExerciseId(exercise.id)
+    setUploadStatusByExercise((current) => ({
+      ...current,
+      [exercise.id]: {
+        status: 'uploading',
+        progress: 0,
+        message: `Preparando "${file.name}"...`,
+      },
+    }))
     setFeedback({
       type: 'success',
       text: `Preparando upload de "${file.name}" para o Cloudflare R2...`,
@@ -879,6 +921,14 @@ export default function AdminContentManager() {
         contentType,
         oldKey: exercise.video_path,
         onProgress: (percentage) => {
+          setUploadStatusByExercise((current) => ({
+            ...current,
+            [exercise.id]: {
+              status: 'uploading',
+              progress: percentage,
+              message: `Enviando "${file.name}"... ${percentage}%`,
+            },
+          }))
           setFeedback({
             type: 'success',
             text: `Enviando "${file.name}"... ${percentage}%`,
@@ -886,17 +936,36 @@ export default function AdminContentManager() {
         },
       })
 
+      setUploadStatusByExercise((current) => ({
+        ...current,
+        [exercise.id]: {
+          status: 'success',
+          progress: 100,
+          message: 'Vídeo upado com sucesso.',
+        },
+      }))
       setFeedback({
         type: 'success',
-        text: `Vídeo "${file.name}" adicionado ao exercício "${exercise.title}".`,
+        text: `Vídeo "${file.name}" upado com sucesso no exercício "${exercise.title}".`,
       })
 
       await loadExercises(selectedLessonId)
     } catch (error) {
       console.error('RV R2 upload error:', error)
+      const errorMessage =
+        error instanceof Error ? error.message : 'Erro inesperado ao enviar o vídeo.'
+
+      setUploadStatusByExercise((current) => ({
+        ...current,
+        [exercise.id]: {
+          status: 'error',
+          progress: 0,
+          message: errorMessage,
+        },
+      }))
       setFeedback({
         type: 'error',
-        text: error instanceof Error ? error.message : 'Erro inesperado ao enviar o vídeo.',
+        text: errorMessage,
       })
     } finally {
       setUploadingExerciseId(null)
@@ -1227,6 +1296,42 @@ export default function AdminContentManager() {
                                   </button>
                                 )}
                               </div>
+
+                              {uploadStatusByExercise[exercise.id] && (
+                                <div
+                                  className={`videoUploadStatus ${uploadStatusByExercise[exercise.id].status}`}
+                                  role={uploadStatusByExercise[exercise.id].status === 'error' ? 'alert' : 'status'}
+                                >
+                                  <div className="videoUploadStatusTop">
+                                    <strong>
+                                      {uploadStatusByExercise[exercise.id].status === 'uploading'
+                                        ? 'Upload em andamento'
+                                        : uploadStatusByExercise[exercise.id].status === 'success'
+                                          ? 'Vídeo upado com sucesso'
+                                          : 'Erro no upload'}
+                                    </strong>
+                                    <span>
+                                      {uploadStatusByExercise[exercise.id].status === 'uploading'
+                                        ? `${uploadStatusByExercise[exercise.id].progress}%`
+                                        : uploadStatusByExercise[exercise.id].status === 'success'
+                                          ? '100%'
+                                          : 'Falhou'}
+                                    </span>
+                                  </div>
+
+                                  {uploadStatusByExercise[exercise.id].status !== 'error' && (
+                                    <div className="videoUploadProgressTrack">
+                                      <span
+                                        style={{
+                                          width: `${uploadStatusByExercise[exercise.id].progress}%`,
+                                        }}
+                                      />
+                                    </div>
+                                  )}
+
+                                  <p>{uploadStatusByExercise[exercise.id].message}</p>
+                                </div>
+                              )}
                             </div>
 
                             <div className="exerciseAdminActions">
@@ -1383,6 +1488,38 @@ export default function AdminContentManager() {
                           )}
                         </div>
                       </div>
+
+                      {newExerciseUploadStatus && (
+                        <div
+                          className={`videoUploadStatus ${newExerciseUploadStatus.status} newExerciseUploadStatus`}
+                          role={newExerciseUploadStatus.status === 'error' ? 'alert' : 'status'}
+                        >
+                          <div className="videoUploadStatusTop">
+                            <strong>
+                              {newExerciseUploadStatus.status === 'uploading'
+                                ? 'Upload em andamento'
+                                : newExerciseUploadStatus.status === 'success'
+                                  ? 'Vídeo upado com sucesso'
+                                  : 'Erro no upload'}
+                            </strong>
+                            <span>
+                              {newExerciseUploadStatus.status === 'uploading'
+                                ? `${newExerciseUploadStatus.progress}%`
+                                : newExerciseUploadStatus.status === 'success'
+                                  ? '100%'
+                                  : 'Falhou'}
+                            </span>
+                          </div>
+
+                          {newExerciseUploadStatus.status !== 'error' && (
+                            <div className="videoUploadProgressTrack">
+                              <span style={{ width: `${newExerciseUploadStatus.progress}%` }} />
+                            </div>
+                          )}
+
+                          <p>{newExerciseUploadStatus.message}</p>
+                        </div>
+                      )}
 
                       <button className="solidAction addExerciseButton" onClick={addExercise} disabled={saving || uploadingExerciseId !== null}>
                         <Plus size={16} /> {saving ? 'Adicionando...' : newExerciseVideo ? 'Adicionar exercício + vídeo' : 'Adicionar exercício'}

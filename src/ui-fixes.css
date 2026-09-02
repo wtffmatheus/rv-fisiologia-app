@@ -440,3 +440,93 @@
     border-radius: 13px;
   }
 }
+
+
+/* STATUS VISÍVEL DO UPLOAD DE VÍDEO */
+.videoUploadStatus {
+  margin-top: 10px;
+  padding: 12px 13px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: #061837;
+  display: grid;
+  gap: 8px;
+}
+
+.videoUploadStatusTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.videoUploadStatusTop strong {
+  font-size: 11px;
+}
+
+.videoUploadStatusTop span {
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.videoUploadStatus p {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.videoUploadProgressTrack {
+  width: 100%;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(127, 149, 180, .18);
+}
+
+.videoUploadProgressTrack > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width .18s ease;
+}
+
+.videoUploadStatus.uploading {
+  border-color: rgba(35, 200, 191, .22);
+}
+
+.videoUploadStatus.uploading strong,
+.videoUploadStatus.uploading span {
+  color: var(--accent);
+}
+
+.videoUploadStatus.success {
+  border-color: rgba(61, 212, 143, .28);
+  background: rgba(29, 128, 89, .08);
+}
+
+.videoUploadStatus.success strong,
+.videoUploadStatus.success span,
+.videoUploadStatus.success p {
+  color: #78e3b4;
+}
+
+.videoUploadStatus.success .videoUploadProgressTrack > span {
+  width: 100% !important;
+}
+
+.videoUploadStatus.error {
+  border-color: rgba(255, 99, 115, .34);
+  background: rgba(170, 42, 59, .09);
+}
+
+.videoUploadStatus.error strong,
+.videoUploadStatus.error span,
+.videoUploadStatus.error p {
+  color: #ff9da6;
+}
+
+.newExerciseUploadStatus {
+  margin: 4px 0 12px;
+}
