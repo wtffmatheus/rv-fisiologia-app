@@ -12,8 +12,8 @@ export default function ResetPasswordPage({ onDone }: { onDone: () => void }) {
     event.preventDefault()
     setMessage('')
 
-    if (password.length < 6) {
-      setMessage('A senha precisa ter pelo menos 6 caracteres.')
+    if (password.length < 8) {
+      setMessage('A senha precisa ter pelo menos 8 caracteres.')
       return
     }
 
@@ -81,7 +81,7 @@ export default function ResetPasswordPage({ onDone }: { onDone: () => void }) {
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                     placeholder="Digite a nova senha"
-                    minLength={6}
+                    minLength={8}
                     autoComplete="new-password"
                     required
                   />
@@ -94,7 +94,7 @@ export default function ResetPasswordPage({ onDone }: { onDone: () => void }) {
                     value={confirmPassword}
                     onChange={(event) => setConfirmPassword(event.target.value)}
                     placeholder="Digite novamente"
-                    minLength={6}
+                    minLength={8}
                     autoComplete="new-password"
                     required
                   />

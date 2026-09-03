@@ -40,11 +40,14 @@ export default function AuthPage() {
     }
 
     if (mode === 'register') {
+      const normalizedEmail = email.trim().toLowerCase()
+
       const { error } = await supabase.auth.signUp({
-        email,
+        email: normalizedEmail,
         password,
         options: {
-          data: { name },
+          data: { name: name.trim() },
+          emailRedirectTo: window.location.origin,
         },
       })
 
@@ -150,7 +153,7 @@ export default function AuthPage() {
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   placeholder="Digite sua senha"
-                  minLength={6}
+                  minLength={8}
                   required
                 />
               </label>
