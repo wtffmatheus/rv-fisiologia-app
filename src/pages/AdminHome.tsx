@@ -21,6 +21,7 @@ import {
 import type { Profile } from '../types'
 import { supabase } from '../lib/supabase'
 import { RvEmptyState, RvLoadingState } from '../components/PlatformState'
+import AdminPushControl from '../components/AdminPushControl'
 
 const AdminContentManager = lazy(
   () => import('../components/AdminContentManager'),
@@ -1627,8 +1628,11 @@ export default function AdminHome({ profile }: { profile: Profile }) {
             <div className="settingsRoadmap">
               <span>Integrações</span>
               <strong>Notificações em tempo real ativas</strong>
+              <strong>Push do dispositivo disponível</strong>
               <strong>Pagamento e liberação automática</strong>
             </div>
+
+            <AdminPushControl adminId={profile.id} />
           </div>
         )}
       </section>

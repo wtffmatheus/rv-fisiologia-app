@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rv-fisiologia-pwa-v5'
+const CACHE_NAME = 'rv-fisiologia-pwa-v6'
 
 const CORE_ASSETS = [
   '/',
@@ -76,8 +76,6 @@ async function reloadOpenWindows() {
       if (!('navigate' in client)) return Promise.resolve()
 
       const url = new URL(client.url)
-
-      // Preserva view/programa/aula/admin e só adiciona cache-busting.
       url.searchParams.set('rv_sw', String(Date.now()))
 
       return client.navigate(url.toString())
@@ -116,9 +114,6 @@ self.addEventListener('activate', (event) => {
       )
 
       await self.clients.claim()
-
-      // Importante para matar bundles antigos que ainda exibem
-      // "Nova versão disponível / Atualizar agora".
       await reloadOpenWindows()
     })(),
   )
@@ -128,6 +123,63 @@ self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting()
   }
+})
+
+self.addEventListener('push', (event) => {
+  let payload = {}
+
+  try {
+    payload = event.data?.json() || {}
+  } catch {
+    payload = {
+      title: 'RV App',
+      body: event.data?.text() || 'Você tem uma nova notificação.',
+    }
+  }
+
+  const title = payload.title || 'RV App'
+
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: payload.body || 'Você tem uma nova notificação.',
+      icon: payload.icon || '/icons/icon-rvapp-192.png',
+      badge: payload.badge || '/icons/icon-rvapp-192.png',
+      tag: payload.tag || 'rv-admin-notification',
+      data: payload.data || { url: '/' },
+      renotify: true,
+    }),
+  )
+})
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+
+  const target = new URL(
+    event.notification.data?.url || '/',
+    self.location.origin,
+  ).href
+
+  event.waitUntil(
+    (async () => {
+      const windows = await self.clients.matchAll({
+        type: 'window',
+        includeUncontrolled: true,
+      })
+
+      for (const client of windows) {
+        if (!('focus' in client)) continue
+
+        if ('navigate' in client) {
+          await client.navigate(target)
+        }
+
+        await client.focus()
+        return
+      }
+
+      await self.clients.openWindow(target)
+    })(),
+  )
 })
 
 self.addEventListener('fetch', (event) => {
