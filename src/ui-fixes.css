@@ -2265,3 +2265,420 @@ a:focus-visible {
 .rvPwaUpdate {
   display: none !important;
 }
+
+
+/* RV_P3_ADMIN_DASHBOARD_LOTE1 */
+
+.dashboardAdminV2 {
+  display: grid;
+  gap: 18px;
+}
+
+.dashboardOverviewHero {
+  padding: 22px 24px;
+  border: 1px solid var(--border);
+  border-radius: 17px;
+  background:
+    radial-gradient(circle at 82% 0%, rgba(35, 200, 191, .075), transparent 28%),
+    linear-gradient(180deg, rgba(10, 39, 81, .94), rgba(7, 29, 63, .97));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.dashboardOverviewHero h2 {
+  margin: 5px 0 7px;
+  font-size: 23px;
+  letter-spacing: -.55px;
+}
+
+.dashboardOverviewHero > div > p:last-child {
+  max-width: 650px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.dashboardAdminCardsV2 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.dashboardAdminCardsV2 > button,
+.dashboardMetricCard {
+  min-height: 137px;
+  padding: 17px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(8, 34, 72, .92), rgba(5, 25, 55, .96));
+  text-align: left;
+  display: grid;
+  align-content: space-between;
+  gap: 7px;
+}
+
+.dashboardAdminCardsV2 > button:hover {
+  border-color: rgba(35, 200, 191, .3);
+  background: linear-gradient(180deg, rgba(10, 43, 88, .96), rgba(6, 29, 62, .98));
+}
+
+.dashboardAdminCardsV2 > button.needsAttention {
+  border-color: rgba(232, 194, 120, .27);
+}
+
+.dashboardAdminCardsV2 span,
+.dashboardMetricCard > span {
+  color: #8fa5c3;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.dashboardAdminCardsV2 strong,
+.dashboardMetricCard > strong {
+  color: #f5f9ff;
+  font-size: 31px;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.dashboardAdminCardsV2 small,
+.dashboardMetricCard > small {
+  color: #7087a7;
+  font-size: 9px;
+}
+
+.dashboardMetricCard.accentMetric > strong {
+  color: var(--accent);
+}
+
+.dashboardMetricCard.warningMetric {
+  border-color: rgba(255, 133, 146, .26);
+}
+
+.dashboardMetricCard.warningMetric > strong {
+  color: #ff9da6;
+}
+
+.dashboardMetricTrack,
+.dashboardProgramTrack {
+  overflow: hidden;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(121, 151, 188, .14);
+}
+
+.dashboardMetricTrack i,
+.dashboardProgramTrack i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #20c5bd, #43ddd4);
+}
+
+.dashboardOperationsGrid,
+.dashboardSecondaryGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr);
+  gap: 18px;
+}
+
+.dashboardPanel {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(8, 34, 72, .91), rgba(5, 25, 55, .96));
+}
+
+.dashboardPanelHeader {
+  min-height: 44px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.dashboardPanelHeader h3 {
+  margin: 4px 0 0;
+  font-size: 16px;
+}
+
+.dashboardPanelHeader > svg {
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+
+.dashboardActivityList,
+.dashboardProgramList,
+.dashboardPendingList,
+.dashboardSummaryRows {
+  display: grid;
+  gap: 8px;
+}
+
+.dashboardActivityItem {
+  min-width: 0;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(159, 187, 225, .1);
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.dashboardActivityItem:last-child {
+  border-bottom: 0;
+}
+
+.dashboardActivityAvatar {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(35, 200, 191, .19);
+  border-radius: 11px;
+  background: rgba(35, 200, 191, .07);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.dashboardActivityCopy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.dashboardActivityCopy strong,
+.dashboardPendingList strong {
+  overflow: hidden;
+  color: #eef5fc;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.dashboardActivityCopy span,
+.dashboardPendingList span {
+  overflow: hidden;
+  color: #7f96b5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 9px;
+}
+
+.dashboardActivityItem time {
+  color: #6f86a5;
+  font-size: 8.5px;
+  white-space: nowrap;
+}
+
+.dashboardProgramItem {
+  padding: 10px 0;
+}
+
+.dashboardProgramTop {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dashboardProgramTop > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.dashboardProgramTop strong {
+  overflow: hidden;
+  color: #edf5fd;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.dashboardProgramTop span {
+  color: #758cab;
+  font-size: 9px;
+}
+
+.dashboardProgramTop b {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 7px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: rgba(35, 200, 191, .08);
+  color: var(--accent);
+  font-size: 10px;
+}
+
+.dashboardPanelAction {
+  width: 100%;
+  min-height: 38px;
+  margin-top: 15px;
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  background: transparent;
+  color: #dce8f5;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.dashboardPanelAction:hover {
+  border-color: rgba(35, 200, 191, .32);
+  background: rgba(35, 200, 191, .055);
+  color: var(--accent);
+}
+
+.dashboardPendingList > button {
+  width: 100%;
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: rgba(4, 20, 47, .35);
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+}
+
+.dashboardPendingList > button:hover {
+  border-color: var(--border);
+  background: rgba(7, 31, 68, .7);
+}
+
+.dashboardPendingList > button > div:nth-child(2) {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.dashboardPendingList small {
+  color: #6f86a5;
+  font-size: 8.5px;
+}
+
+.dashboardEverythingOk {
+  min-height: 116px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  color: var(--accent);
+}
+
+.dashboardEverythingOk > div {
+  display: grid;
+  gap: 4px;
+}
+
+.dashboardEverythingOk strong {
+  color: #edf5fd;
+  font-size: 12px;
+}
+
+.dashboardEverythingOk span {
+  color: #7890af;
+  font-size: 9px;
+}
+
+.dashboardSummaryRows {
+  grid-template-columns: 1fr 1fr;
+}
+
+.dashboardSummaryRows > div {
+  min-height: 72px;
+  padding: 12px;
+  border: 1px solid rgba(159, 187, 225, .1);
+  border-radius: 10px;
+  background: rgba(4, 20, 47, .34);
+  display: grid;
+  align-content: center;
+  gap: 4px;
+}
+
+.dashboardSummaryRows span {
+  color: #7890af;
+  font-size: 9px;
+}
+
+.dashboardSummaryRows strong {
+  color: #eef5fc;
+  font-size: 18px;
+}
+
+@media (max-width: 1180px) {
+  .dashboardAdminCardsV2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboardOperationsGrid,
+  .dashboardSecondaryGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .dashboardOverviewHero {
+    padding: 18px;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dashboardRefreshButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .dashboardAdminCardsV2 {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .dashboardAdminCardsV2 > button,
+  .dashboardMetricCard {
+    min-height: 122px;
+    padding: 14px;
+  }
+
+  .dashboardAdminCardsV2 strong,
+  .dashboardMetricCard > strong {
+    font-size: 27px;
+  }
+
+  .dashboardPanel {
+    padding: 16px;
+  }
+
+  .dashboardActivityItem {
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+
+  .dashboardActivityItem time {
+    grid-column: 2;
+  }
+
+  .dashboardPendingList > button {
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+
+  .dashboardPendingList small {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 430px) {
+  .dashboardAdminCardsV2,
+  .dashboardSummaryRows {
+    grid-template-columns: 1fr;
+  }
+}
