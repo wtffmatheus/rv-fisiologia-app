@@ -12,9 +12,10 @@ interface DeferredInstallPrompt extends Event {
 }
 
 const INSTALL_DISMISS_KEY = 'rv-pwa-install-dismissed-at'
-const UPDATE_DISMISS_KEY = 'rv-pwa-update-dismissed-signature'
+const AUTO_UPDATE_ATTEMPT_KEY = 'rv-pwa-auto-update-attempt'
 const INSTALL_DISMISS_DAYS = 3
 const UPDATE_CHECK_INTERVAL = 2 * 60 * 1000
+const SAME_VERSION_RETRY_DELAY = 10 * 60 * 1000
 
 function isStandaloneMode() {
   const iosStandalone = Boolean(
@@ -37,7 +38,8 @@ function isIosSafari() {
 
 function normalizeAssetUrl(value: string) {
   try {
-    return new URL(value, window.location.origin).pathname
+    const url = new URL(value, window.location.origin)
+    return `${url.pathname}${url.search}`
   } catch {
     return value
   }
@@ -45,11 +47,15 @@ function normalizeAssetUrl(value: string) {
 
 function getAssetSignature(documentToRead: Document) {
   const modules = Array.from(
-    documentToRead.querySelectorAll<HTMLScriptElement>('script[type="module"][src]'),
+    documentToRead.querySelectorAll<HTMLScriptElement>(
+      'script[type="module"][src]',
+    ),
   ).map((item) => normalizeAssetUrl(item.getAttribute('src') || ''))
 
   const styles = Array.from(
-    documentToRead.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"][href]'),
+    documentToRead.querySelectorAll<HTMLLinkElement>(
+      'link[rel="stylesheet"][href]',
+    ),
   ).map((item) => normalizeAssetUrl(item.getAttribute('href') || ''))
 
   return [...modules, ...styles].filter(Boolean).sort().join('|')
@@ -62,6 +68,7 @@ function installWasRecentlyDismissed() {
 
     const dismissedAt = Number(raw)
     const elapsed = Date.now() - dismissedAt
+
     return elapsed < INSTALL_DISMISS_DAYS * 24 * 60 * 60 * 1000
   } catch {
     return false
@@ -72,24 +79,65 @@ function rememberInstallDismissal() {
   try {
     localStorage.setItem(INSTALL_DISMISS_KEY, String(Date.now()))
   } catch {
-    // A experiência continua funcionando mesmo sem localStorage.
+    // O prompt continua funcionando mesmo sem localStorage.
   }
 }
 
-function getDismissedUpdateSignature() {
+function readLastUpdateAttempt(): {
+  signature: string
+  attemptedAt: number
+} | null {
   try {
-    return sessionStorage.getItem(UPDATE_DISMISS_KEY) || ''
+    const raw = sessionStorage.getItem(AUTO_UPDATE_ATTEMPT_KEY)
+    if (!raw) return null
+
+    const parsed = JSON.parse(raw) as {
+      signature?: string
+      attemptedAt?: number
+    }
+
+    if (!parsed.signature || !parsed.attemptedAt) return null
+
+    return {
+      signature: parsed.signature,
+      attemptedAt: parsed.attemptedAt,
+    }
   } catch {
-    return ''
+    return null
   }
 }
 
-function rememberDismissedUpdate(signature: string) {
+function rememberUpdateAttempt(signature: string) {
   try {
-    sessionStorage.setItem(UPDATE_DISMISS_KEY, signature)
+    sessionStorage.setItem(
+      AUTO_UPDATE_ATTEMPT_KEY,
+      JSON.stringify({
+        signature,
+        attemptedAt: Date.now(),
+      }),
+    )
   } catch {
-    // Sem impacto no funcionamento do update.
+    // Sem impacto crítico; apenas perde a proteção extra contra loop.
   }
+}
+
+function clearUpdateAttempt() {
+  try {
+    sessionStorage.removeItem(AUTO_UPDATE_ATTEMPT_KEY)
+  } catch {
+    // Sem impacto.
+  }
+}
+
+function isEditingForm() {
+  const element = document.activeElement
+  if (!element) return false
+
+  return Boolean(
+    element.closest(
+      'input, textarea, select, [contenteditable="true"]',
+    ),
+  )
 }
 
 export default function PWAExperience() {
@@ -97,26 +145,36 @@ export default function PWAExperience() {
     useState<DeferredInstallPrompt | null>(null)
   const [standalone, setStandalone] = useState(isStandaloneMode)
   const [showIosInstall, setShowIosInstall] = useState(false)
-  const [updateAvailable, setUpdateAvailable] = useState(false)
-  const [latestSignature, setLatestSignature] = useState('')
   const [updating, setUpdating] = useState(false)
   const [online, setOnline] = useState(navigator.onLine)
 
   const currentSignatureRef = useRef('')
   const checkingRef = useRef(false)
+  const updatingRef = useRef(false)
+  const pendingSignatureRef = useRef('')
   const lastCheckAtRef = useRef(0)
 
   useEffect(() => {
     currentSignatureRef.current = getAssetSignature(document)
 
     const currentUrl = new URL(window.location.href)
+
     if (currentUrl.searchParams.has('rv_update')) {
       currentUrl.searchParams.delete('rv_update')
+
       window.history.replaceState(
         {},
         document.title,
         `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`,
       )
+    }
+
+    const lastAttempt = readLastUpdateAttempt()
+    if (
+      lastAttempt &&
+      lastAttempt.signature === currentSignatureRef.current
+    ) {
+      clearUpdateAttempt()
     }
   }, [])
 
@@ -190,7 +248,12 @@ export default function PWAExperience() {
   useEffect(() => {
     function isFormControl(element: Element | null) {
       if (!element) return false
-      return Boolean(element.closest('input, textarea, select, [contenteditable="true"]'))
+
+      return Boolean(
+        element.closest(
+          'input, textarea, select, [contenteditable="true"]',
+        ),
+      )
     }
 
     function onFocusIn(event: FocusEvent) {
@@ -218,11 +281,79 @@ export default function PWAExperience() {
   }, [])
 
   useEffect(() => {
+    async function applyUpdate(signature: string) {
+      if (updatingRef.current) return
+
+      const lastAttempt = readLastUpdateAttempt()
+
+      if (
+        lastAttempt?.signature === signature &&
+        Date.now() - lastAttempt.attemptedAt < SAME_VERSION_RETRY_DELAY
+      ) {
+        return
+      }
+
+      if (isEditingForm()) {
+        pendingSignatureRef.current = signature
+        return
+      }
+
+      updatingRef.current = true
+      setUpdating(true)
+      rememberUpdateAttempt(signature)
+
+      try {
+        if ('serviceWorker' in navigator) {
+          const registration =
+            await navigator.serviceWorker.getRegistration()
+
+          await registration?.update().catch(() => undefined)
+
+          if (registration?.waiting) {
+            registration.waiting.postMessage({
+              type: 'SKIP_WAITING',
+            })
+          }
+        }
+
+        if ('caches' in window) {
+          const cacheNames = await caches.keys()
+
+          await Promise.all(
+            cacheNames
+              .filter((name) =>
+                name.startsWith('rv-fisiologia-pwa-'),
+              )
+              .map((name) => caches.delete(name)),
+          )
+        }
+      } catch {
+        // O cache-busting abaixo ainda força a navegação na versão nova.
+      }
+
+      const nextUrl = new URL(window.location.href)
+      nextUrl.searchParams.set('rv_update', String(Date.now()))
+
+      window.location.replace(nextUrl.toString())
+    }
+
     async function checkForNewVersion(force = false) {
-      if (!navigator.onLine || checkingRef.current) return
+      if (
+        !navigator.onLine ||
+        checkingRef.current ||
+        updatingRef.current
+      ) {
+        return
+      }
 
       const now = Date.now()
-      if (!force && now - lastCheckAtRef.current < 25_000) return
+
+      if (
+        !force &&
+        now - lastCheckAtRef.current < 25_000
+      ) {
+        return
+      }
 
       checkingRef.current = true
       lastCheckAtRef.current = now
@@ -234,7 +365,7 @@ export default function PWAExperience() {
             cache: 'no-store',
             credentials: 'same-origin',
             headers: {
-              'Cache-Control': 'no-cache',
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
               Pragma: 'no-cache',
             },
           },
@@ -243,24 +374,27 @@ export default function PWAExperience() {
         if (!response.ok) return
 
         const html = await response.text()
-        const latestDocument = new DOMParser().parseFromString(html, 'text/html')
+
+        const latestDocument = new DOMParser().parseFromString(
+          html,
+          'text/html',
+        )
+
         const nextSignature = getAssetSignature(latestDocument)
+
         const currentSignature =
-          currentSignatureRef.current || getAssetSignature(document)
+          currentSignatureRef.current ||
+          getAssetSignature(document)
 
         if (
           nextSignature &&
           currentSignature &&
           nextSignature !== currentSignature
         ) {
-          setLatestSignature(nextSignature)
-
-          if (getDismissedUpdateSignature() !== nextSignature) {
-            setUpdateAvailable(true)
-          }
+          await applyUpdate(nextSignature)
         }
       } catch {
-        // Falha silenciosa: uma perda de rede não deve atrapalhar o uso do app.
+        // Se estiver sem rede ou houver falha transitória, tenta depois.
       } finally {
         checkingRef.current = false
       }
@@ -268,7 +402,7 @@ export default function PWAExperience() {
 
     const initialTimer = window.setTimeout(() => {
       checkForNewVersion(true)
-    }, 5000)
+    }, 3500)
 
     const interval = window.setInterval(
       () => checkForNewVersion(),
@@ -277,21 +411,40 @@ export default function PWAExperience() {
 
     function onVisible() {
       if (document.visibilityState === 'visible') {
-        checkForNewVersion()
+        checkForNewVersion(true)
       }
     }
 
     function onFocus() {
-      checkForNewVersion()
+      checkForNewVersion(true)
+    }
+
+    function onFocusOut() {
+      window.setTimeout(() => {
+        const signature = pendingSignatureRef.current
+
+        if (
+          signature &&
+          !isEditingForm()
+        ) {
+          pendingSignatureRef.current = ''
+          applyUpdate(signature)
+        }
+      }, 120)
     }
 
     document.addEventListener('visibilitychange', onVisible)
+    document.addEventListener('focusout', onFocusOut)
     window.addEventListener('focus', onFocus)
 
     return () => {
       window.clearTimeout(initialTimer)
       window.clearInterval(interval)
-      document.removeEventListener('visibilitychange', onVisible)
+      document.removeEventListener(
+        'visibilitychange',
+        onVisible,
+      )
+      document.removeEventListener('focusout', onFocusOut)
       window.removeEventListener('focus', onFocus)
     }
   }, [])
@@ -317,89 +470,37 @@ export default function PWAExperience() {
     setShowIosInstall(false)
   }
 
-  async function applyUpdate() {
-    if (updating) return
-
-    setUpdating(true)
-
-    try {
-      if ('serviceWorker' in navigator) {
-        const registration = await navigator.serviceWorker.getRegistration()
-        await registration?.update().catch(() => undefined)
-        registration?.waiting?.postMessage({ type: 'SKIP_WAITING' })
-      }
-
-      if ('caches' in window) {
-        const cacheNames = await caches.keys()
-        await Promise.all(
-          cacheNames
-            .filter((name) => name.startsWith('rv-fisiologia-pwa-'))
-            .map((name) => caches.delete(name)),
-        )
-      }
-    } catch {
-      // Mesmo se a limpeza falhar, o cache-busting abaixo força uma navegação nova.
-    }
-
-    const nextUrl = new URL(window.location.href)
-    nextUrl.searchParams.set('rv_update', String(Date.now()))
-    window.location.replace(nextUrl.toString())
-  }
-
-  function dismissUpdate() {
-    if (latestSignature) {
-      rememberDismissedUpdate(latestSignature)
-    }
-
-    setUpdateAvailable(false)
-  }
-
   if (!online) {
     return (
       <aside className="rvPwaToast rvPwaOffline" role="status">
         <div className="rvPwaToastIcon">
           <WifiOff size={18} />
         </div>
+
         <div className="rvPwaToastCopy">
           <strong>Você está sem conexão</strong>
           <span>
-            O app continua aberto, mas dados, progresso e vídeos precisam de internet.
+            Dados, progresso e vídeos precisam de internet.
           </span>
         </div>
       </aside>
     )
   }
 
-  if (updateAvailable) {
+  if (updating) {
     return (
-      <aside className="rvPwaToast rvPwaUpdate" role="status">
+      <aside
+        className="rvPwaToast rvPwaUpdate"
+        role="status"
+        aria-live="polite"
+      >
         <div className="rvPwaToastIcon">
-          <RefreshCw size={18} />
+          <RefreshCw size={18} className="rvPwaSpin" />
         </div>
 
         <div className="rvPwaToastCopy">
-          <strong>Nova versão disponível</strong>
-          <span>Atualize para carregar as melhorias mais recentes do RV App.</span>
-        </div>
-
-        <div className="rvPwaToastActions">
-          <button
-            type="button"
-            className="rvPwaPrimaryAction"
-            onClick={applyUpdate}
-            disabled={updating}
-          >
-            {updating ? 'Atualizando...' : 'Atualizar agora'}
-          </button>
-          <button
-            type="button"
-            className="rvPwaCloseAction"
-            onClick={dismissUpdate}
-            aria-label="Atualizar depois"
-            title="Atualizar depois"
-          >
-            <X size={16} />
-          </button>
+          <strong>Atualizando RV App…</strong>
+          <span>A versão mais recente será aberta automaticamente.</span>
         </div>
       </aside>
     )
@@ -427,6 +528,7 @@ export default function PWAExperience() {
           >
             Instalar
           </button>
+
           <button
             type="button"
             className="rvPwaCloseAction"
@@ -443,7 +545,10 @@ export default function PWAExperience() {
 
   if (showIosInstall) {
     return (
-      <aside className="rvPwaToast rvPwaInstall rvPwaIosInstall" role="status">
+      <aside
+        className="rvPwaToast rvPwaInstall rvPwaIosInstall"
+        role="status"
+      >
         <div className="rvPwaToastIcon">
           <Share2 size={18} />
         </div>
@@ -451,7 +556,8 @@ export default function PWAExperience() {
         <div className="rvPwaToastCopy">
           <strong>Adicione o RV App à Tela de Início</strong>
           <span>
-            No Safari, toque em Compartilhar e depois em Adicionar à Tela de Início.
+            No Safari, toque em Compartilhar e depois em Adicionar à
+            Tela de Início.
           </span>
         </div>
 
