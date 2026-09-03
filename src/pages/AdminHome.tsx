@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import {
   BarChart3,
   BookOpen,
@@ -16,8 +16,11 @@ import {
 } from 'lucide-react'
 import type { Profile } from '../types'
 import { supabase } from '../lib/supabase'
-import AdminContentManager from '../components/AdminContentManager'
 import { RvEmptyState, RvLoadingState } from '../components/PlatformState'
+
+const AdminContentManager = lazy(
+  () => import('../components/AdminContentManager'),
+)
 
 type AdminTab = 'dashboard' | 'students' | 'content' | 'settings'
 
@@ -317,6 +320,140 @@ export default function AdminHome({ profile }: { profile: Profile }) {
     }
   }
 
+  const dashboardMetrics = useMemo(() => {
+    const activeStudents = students.filter((student) => student.status === 'active')
+
+    const activeRows = activeStudents.map((student) => {
+      const assignment =
+        assignments.find((item) => item.student_id === student.id) ?? null
+
+      const total = assignment
+        ? lessonCountByProgram.get(assignment.program_id) ?? 0
+        : 0
+
+      const completedRows = assignment
+        ? progressRows.filter(
+            (item) =>
+              item.student_id === student.id &&
+              item.completed &&
+              lessonProgramById.get(item.lesson_id) === assignment.program_id,
+          )
+        : []
+
+      const percentage = total
+        ? Math.round((completedRows.length / total) * 100)
+        : 0
+
+      return {
+        student,
+        assignment,
+        total,
+        completed: completedRows.length,
+        percentage,
+      }
+    })
+
+    const assignedRows = activeRows.filter((row) => Boolean(row.assignment))
+    const withoutProgram = activeRows.filter((row) => !row.assignment).length
+
+    const averageProgress = assignedRows.length
+      ? Math.round(
+          assignedRows.reduce((sum, row) => sum + row.percentage, 0) /
+            assignedRows.length,
+        )
+      : 0
+
+    const completedPrograms = assignedRows.filter(
+      (row) => row.total > 0 && row.completed >= row.total,
+    ).length
+
+    const inProgress = assignedRows.filter(
+      (row) => row.completed > 0 && row.percentage < 100,
+    ).length
+
+    const notStarted = assignedRows.filter((row) => row.completed === 0).length
+
+    const programDistribution = programs
+      .map((program) => {
+        const programRows = assignedRows.filter(
+          (row) => row.assignment?.program_id === program.id,
+        )
+
+        const average = programRows.length
+          ? Math.round(
+              programRows.reduce((sum, row) => sum + row.percentage, 0) /
+                programRows.length,
+            )
+          : 0
+
+        return {
+          id: program.id,
+          title: program.title,
+          students: programRows.length,
+          average,
+          active: program.is_active,
+        }
+      })
+      .filter((item) => item.students > 0 || item.active)
+      .sort((a, b) => b.students - a.students || a.title.localeCompare(b.title))
+
+    const recentActivity = progressRows
+      .filter((item) => item.completed && item.completed_at)
+      .slice()
+      .sort((a, b) =>
+        String(b.completed_at).localeCompare(String(a.completed_at)),
+      )
+      .slice(0, 6)
+      .map((item) => {
+        const student =
+          students.find((row) => row.id === item.student_id) ?? null
+        const programId = lessonProgramById.get(item.lesson_id) ?? null
+        const program = programId
+          ? programs.find((row) => row.id === programId) ?? null
+          : null
+
+        return {
+          ...item,
+          student,
+          program,
+        }
+      })
+
+    const recentPending = students
+      .filter((student) => student.status === 'pending')
+      .slice()
+      .sort((a, b) =>
+        String(b.created_at).localeCompare(String(a.created_at)),
+      )
+      .slice(0, 5)
+
+    return {
+      totalStudents: students.length,
+      activeStudents: activeRows.length,
+      withoutProgram,
+      averageProgress,
+      completedPrograms,
+      inProgress,
+      notStarted,
+      programDistribution,
+      recentActivity,
+      recentPending,
+    }
+  }, [
+    assignments,
+    lessonCountByProgram,
+    lessonProgramById,
+    programs,
+    progressRows,
+    students,
+  ])
+
+  function openStudentsWithFilter(filter: StudentFilter) {
+    setStudentFilter(filter)
+    setActiveTab('students')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   function getSelectedProgramId(studentId: string) {
     return selectedPrograms[studentId] ?? getAssignment(studentId)?.program_id ?? 0
   }
@@ -451,55 +588,291 @@ export default function AdminHome({ profile }: { profile: Profile }) {
   }
 
   function renderDashboard() {
+    const maxProgramStudents = Math.max(
+      1,
+      ...dashboardMetrics.programDistribution.map((item) => item.students),
+    )
+
     return (
-      <div className="dashboardAdminPage">
-        <div className="dashboardAdminCards">
-          <button onClick={() => setActiveTab('students')}>
+      <div className="dashboardAdminPage dashboardAdminV2">
+        <section className="dashboardOverviewHero">
+          <div>
+            <p className="eyebrow">VISÃO GERAL</p>
+            <h2>Operação da RV em um só lugar</h2>
+            <p>
+              Acompanhe acessos, andamento dos alunos e metodologias sem precisar
+              abrir cada cadastro individualmente.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            className="adminRefresh dashboardRefreshButton"
+            onClick={() => loadData(false)}
+            disabled={refreshing}
+          >
+            <RefreshCw size={16} className={refreshing ? 'rvUiSpin' : ''} />
+            {refreshing ? 'Atualizando...' : 'Atualizar dados'}
+          </button>
+        </section>
+
+        <div className="dashboardAdminCards dashboardAdminCardsV2">
+          <button onClick={() => openStudentsWithFilter('active')}>
             <span>Alunos ativos</span>
             <strong>{activeCount}</strong>
-            <small>Ver alunos</small>
+            <small>{dashboardMetrics.inProgress} em andamento</small>
           </button>
-          <button onClick={() => setActiveTab('students')}>
+
+          <button
+            className={pendingCount > 0 ? 'needsAttention' : ''}
+            onClick={() => openStudentsWithFilter('pending')}
+          >
             <span>Aguardando aprovação</span>
             <strong>{pendingCount}</strong>
-            <small>Revisar cadastros</small>
+            <small>{pendingCount ? 'Requer sua análise' : 'Nenhum pendente'}</small>
           </button>
+
           <button onClick={() => setActiveTab('content')}>
             <span>Metodologias ativas</span>
             <strong>{activeProgramCount}</strong>
-            <small>Gerenciar conteúdo</small>
+            <small>{programs.length} cadastrada(s)</small>
           </button>
-          <button onClick={() => setActiveTab('students')}>
+
+          <button onClick={() => openStudentsWithFilter('blocked')}>
             <span>Bloqueados</span>
             <strong>{blockedCount}</strong>
             <small>Gerenciar acessos</small>
           </button>
+
+          <article className="dashboardMetricCard accentMetric">
+            <span>Progresso médio</span>
+            <strong>{dashboardMetrics.averageProgress}%</strong>
+            <div className="dashboardMetricTrack">
+              <i style={{ width: dashboardMetrics.averageProgress + '%' }} />
+            </div>
+            <small>Entre alunos ativos com plano</small>
+          </article>
+
+          <article className="dashboardMetricCard">
+            <span>Programa concluído</span>
+            <strong>{dashboardMetrics.completedPrograms}</strong>
+            <small>Aluno(s) em 100%</small>
+          </article>
+
+          <article
+            className={
+              dashboardMetrics.withoutProgram > 0
+                ? 'dashboardMetricCard warningMetric'
+                : 'dashboardMetricCard'
+            }
+          >
+            <span>Ativos sem plano</span>
+            <strong>{dashboardMetrics.withoutProgram}</strong>
+            <small>
+              {dashboardMetrics.withoutProgram > 0
+                ? 'Precisa de correção'
+                : 'Tudo vinculado'}
+            </small>
+          </article>
+
+          <article className="dashboardMetricCard">
+            <span>Ainda não iniciaram</span>
+            <strong>{dashboardMetrics.notStarted}</strong>
+            <small>Com plano, 0 aulas concluídas</small>
+          </article>
         </div>
 
-        <div className="dashboardQuickGrid">
-          <article>
-            <p className="eyebrow">CONTEÚDO</p>
-            <h2>Monte as aulas sem mexer no código</h2>
-            <p>
-              Crie metodologias, renomeie aulas, adicione exercícios, defina séries e repetições
-              e envie os vídeos direto pelo painel.
-            </p>
-            <button className="dashboardPrimary" onClick={() => setActiveTab('content')}>
-              <BookOpen size={17} /> Abrir editor de conteúdo
-            </button>
-          </article>
+        <div className="dashboardOperationsGrid">
+          <section className="dashboardPanel">
+            <header className="dashboardPanelHeader">
+              <div>
+                <p className="eyebrow">ATIVIDADE</p>
+                <h3>Últimas conclusões</h3>
+              </div>
+              <BarChart3 size={19} />
+            </header>
 
-          <article>
-            <p className="eyebrow">ACESSOS</p>
-            <h2>Defina o plano de cada aluno</h2>
-            <p>
-              Todo cadastro novo continua aguardando sua aprovação. Você escolhe a metodologia
-              antes de liberar o acesso e pode trocar depois.
-            </p>
-            <button className="dashboardSecondary" onClick={() => setActiveTab('students')}>
-              <UsersRound size={17} /> Gerenciar alunos
+            {dashboardMetrics.recentActivity.length === 0 ? (
+              <RvEmptyState
+                compact
+                kind="program"
+                title="Nenhuma atividade ainda"
+                text="As aulas concluídas pelos alunos aparecerão aqui."
+              />
+            ) : (
+              <div className="dashboardActivityList">
+                {dashboardMetrics.recentActivity.map((activity, index) => (
+                  <div
+                    className="dashboardActivityItem"
+                    key={
+                      activity.student_id +
+                      '-' +
+                      activity.lesson_id +
+                      '-' +
+                      activity.completed_at +
+                      '-' +
+                      index
+                    }
+                  >
+                    <div className="dashboardActivityAvatar">
+                      {activity.student?.name?.charAt(0)?.toUpperCase() || 'A'}
+                    </div>
+
+                    <div className="dashboardActivityCopy">
+                      <strong>{activity.student?.name || 'Aluno'}</strong>
+                      <span>
+                        Concluiu uma aula
+                        {activity.program?.title
+                          ? ' · ' + activity.program.title
+                          : ''}
+                      </span>
+                    </div>
+
+                    <time>{formatDateTime(activity.completed_at)}</time>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="dashboardPanel">
+            <header className="dashboardPanelHeader">
+              <div>
+                <p className="eyebrow">METODOLOGIAS</p>
+                <h3>Distribuição dos alunos</h3>
+              </div>
+              <BookOpen size={19} />
+            </header>
+
+            {dashboardMetrics.programDistribution.length === 0 ? (
+              <RvEmptyState
+                compact
+                kind="program"
+                title="Nenhuma metodologia ativa"
+                text="Crie uma metodologia para começar."
+              />
+            ) : (
+              <div className="dashboardProgramList">
+                {dashboardMetrics.programDistribution.map((item) => (
+                  <div className="dashboardProgramItem" key={item.id}>
+                    <div className="dashboardProgramTop">
+                      <div>
+                        <strong>{item.title}</strong>
+                        <span>
+                          {item.students} aluno(s) · média {item.average}%
+                        </span>
+                      </div>
+                      <b>{item.students}</b>
+                    </div>
+
+                    <div className="dashboardProgramTrack">
+                      <i
+                        style={{
+                          width:
+                            Math.max(
+                              item.students > 0 ? 7 : 0,
+                              Math.round(
+                                (item.students / maxProgramStudents) * 100,
+                              ),
+                            ) + '%',
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <button
+              type="button"
+              className="dashboardPanelAction"
+              onClick={() => setActiveTab('content')}
+            >
+              Gerenciar metodologias
             </button>
-          </article>
+          </section>
+        </div>
+
+        <div className="dashboardSecondaryGrid">
+          <section className="dashboardPanel">
+            <header className="dashboardPanelHeader">
+              <div>
+                <p className="eyebrow">NOVOS CADASTROS</p>
+                <h3>Aguardando sua aprovação</h3>
+              </div>
+              <UsersRound size={19} />
+            </header>
+
+            {dashboardMetrics.recentPending.length === 0 ? (
+              <div className="dashboardEverythingOk">
+                <Check size={18} />
+                <div>
+                  <strong>Nenhum cadastro pendente</strong>
+                  <span>Todos os novos alunos já foram revisados.</span>
+                </div>
+              </div>
+            ) : (
+              <div className="dashboardPendingList">
+                {dashboardMetrics.recentPending.map((student) => (
+                  <button
+                    key={student.id}
+                    type="button"
+                    onClick={() => openStudentsWithFilter('pending')}
+                  >
+                    <div className="dashboardActivityAvatar">
+                      {student.name?.charAt(0)?.toUpperCase() || 'A'}
+                    </div>
+                    <div>
+                      <strong>{student.name || 'Sem nome'}</strong>
+                      <span>{student.email}</span>
+                    </div>
+                    <small>
+                      {new Intl.DateTimeFormat('pt-BR', {
+                        dateStyle: 'short',
+                      }).format(new Date(student.created_at))}
+                    </small>
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="dashboardPanel">
+            <header className="dashboardPanelHeader">
+              <div>
+                <p className="eyebrow">RESUMO</p>
+                <h3>Base de alunos</h3>
+              </div>
+              <UsersRound size={19} />
+            </header>
+
+            <div className="dashboardSummaryRows">
+              <div>
+                <span>Total cadastrados</span>
+                <strong>{dashboardMetrics.totalStudents}</strong>
+              </div>
+              <div>
+                <span>Ativos</span>
+                <strong>{dashboardMetrics.activeStudents}</strong>
+              </div>
+              <div>
+                <span>Em andamento</span>
+                <strong>{dashboardMetrics.inProgress}</strong>
+              </div>
+              <div>
+                <span>100% concluído</span>
+                <strong>{dashboardMetrics.completedPrograms}</strong>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="dashboardPanelAction"
+              onClick={() => openStudentsWithFilter('all')}
+            >
+              Abrir gestão de alunos
+            </button>
+          </section>
         </div>
       </div>
     )
@@ -993,7 +1366,18 @@ export default function AdminHome({ profile }: { profile: Profile }) {
           ) : renderDashboard()
         )}
         {activeTab === 'students' && renderStudents()}
-        {activeTab === 'content' && <AdminContentManager />}
+        {activeTab === 'content' && (
+          <Suspense
+            fallback={
+              <RvLoadingState
+                title="Abrindo editor de conteúdo"
+                text="Carregando ferramentas de metodologias, aulas e exercícios."
+              />
+            }
+          >
+            <AdminContentManager />
+          </Suspense>
+        )}
         {activeTab === 'settings' && (
           <div className="adminSettingsCard">
             <p className="eyebrow">CONTA</p>

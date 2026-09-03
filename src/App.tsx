@@ -1,13 +1,14 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import type { Profile } from './types'
-import AuthPage from './pages/AuthPage'
-import ResetPasswordPage from './pages/ResetPasswordPage'
-import PendingPage from './pages/PendingPage'
-import StudentHome from './pages/StudentHome'
-import AdminHome from './pages/AdminHome'
 import { RvLoadingState } from './components/PlatformState'
+
+const AuthPage = lazy(() => import('./pages/AuthPage'))
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
+const PendingPage = lazy(() => import('./pages/PendingPage'))
+const StudentHome = lazy(() => import('./pages/StudentHome'))
+const AdminHome = lazy(() => import('./pages/AdminHome'))
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null)
@@ -52,8 +53,10 @@ export default function App() {
     )
   }
 
+  let page
+
   if (recoveryMode && session) {
-    return (
+    page = (
       <ResetPasswordPage
         onDone={() => {
           window.history.replaceState({}, document.title, window.location.pathname)
@@ -61,10 +64,9 @@ export default function App() {
         }}
       />
     )
-  }
-
-  if (!session) return <AuthPage />
-  if (!profile) {
+  } else if (!session) {
+    page = <AuthPage />
+  } else if (!profile) {
     return (
       <RvLoadingState
         fullScreen
@@ -72,8 +74,25 @@ export default function App() {
         text="Carregando seu perfil e permissões."
       />
     )
+  } else if (profile.status !== 'active') {
+    page = <PendingPage profile={profile} />
+  } else if (profile.role === 'admin') {
+    page = <AdminHome profile={profile} />
+  } else {
+    page = <StudentHome profile={profile} />
   }
-  if (profile.status !== 'active') return <PendingPage profile={profile} />
-  if (profile.role === 'admin') return <AdminHome profile={profile} />
-  return <StudentHome profile={profile} />
+
+  return (
+    <Suspense
+      fallback={
+        <RvLoadingState
+          fullScreen
+          title="Carregando área"
+          text="Preparando os recursos desta tela."
+        />
+      }
+    >
+      {page}
+    </Suspense>
+  )
 }
