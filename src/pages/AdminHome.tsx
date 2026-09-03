@@ -1,9 +1,11 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import {
   BarChart3,
+  Bell,
   BookOpen,
   CalendarDays,
   Check,
+  CheckCheck,
   Eye,
   LayoutDashboard,
   LogOut,
@@ -11,6 +13,8 @@ import {
   Search,
   Settings,
   ShieldX,
+  Trophy,
+  UserPlus,
   UsersRound,
   X,
 } from 'lucide-react'
@@ -96,6 +100,18 @@ type LessonIndexRow = {
 
 type StudentFilter = 'all' | 'pending' | 'active' | 'blocked'
 
+type AdminNotification = {
+  id: number
+  kind: 'new_student' | 'program_completed'
+  title: string
+  message: string
+  student_id: string | null
+  program_id: number | null
+  metadata: Record<string, unknown>
+  created_at: string
+  read_at: string | null
+}
+
 function todayInputValue() {
   const now = new Date()
   const local = new Date(now.getTime() - now.getTimezoneOffset() * 60_000)
@@ -134,6 +150,27 @@ export default function AdminHome({ profile }: { profile: Profile }) {
   const [refreshing, setRefreshing] = useState(false)
   const [savingStudentId, setSavingStudentId] = useState<string | null>(null)
   const [message, setMessage] = useState('')
+  const [notifications, setNotifications] = useState<AdminNotification[]>([])
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [notificationsLoading, setNotificationsLoading] = useState(true)
+
+  async function loadNotifications() {
+    setNotificationsLoading(true)
+
+    const { data, error } = await supabase
+      .from('admin_notifications')
+      .select(
+        'id,kind,title,message,student_id,program_id,metadata,created_at,read_at',
+      )
+      .order('created_at', { ascending: false })
+      .limit(30)
+
+    if (!error) {
+      setNotifications((data as AdminNotification[]) ?? [])
+    }
+
+    setNotificationsLoading(false)
+  }
 
   async function loadData(showLoader = false) {
     if (showLoader) setLoading(true)
@@ -217,6 +254,38 @@ export default function AdminHome({ profile }: { profile: Profile }) {
   }, [])
 
   useEffect(() => {
+    loadNotifications()
+
+    const channel = supabase
+      .channel('rv-admin-notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'admin_notifications',
+        },
+        (payload) => {
+          const incoming = payload.new as AdminNotification
+
+          setNotifications((current) => [
+            incoming,
+            ...current.filter((item) => item.id !== incoming.id),
+          ].slice(0, 30))
+
+          if (incoming.kind === 'new_student') {
+            loadData(false)
+          }
+        },
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [])
+
+  useEffect(() => {
     writeAdminTab(activeTab, 'replace')
   }, [activeTab])
 
@@ -252,6 +321,9 @@ export default function AdminHome({ profile }: { profile: Profile }) {
   const activeCount = students.filter((student) => student.status === 'active').length
   const blockedCount = students.filter((student) => student.status === 'blocked').length
   const activeProgramCount = programs.filter((program) => program.is_active).length
+  const unreadNotificationCount = notifications.filter(
+    (notification) => !notification.read_at,
+  ).length
 
   const lessonProgramById = useMemo(() => {
     const weekProgram = new Map<number, number>()
@@ -275,6 +347,72 @@ export default function AdminHome({ profile }: { profile: Profile }) {
 
     return counts
   }, [lessonProgramById])
+
+  async function markNotificationRead(notificationId: number) {
+    const notification = notifications.find(
+      (item) => item.id === notificationId,
+    )
+
+    if (!notification || notification.read_at) return
+
+    const readAt = new Date().toISOString()
+
+    setNotifications((current) =>
+      current.map((item) =>
+        item.id === notificationId
+          ? { ...item, read_at: readAt }
+          : item,
+      ),
+    )
+
+    const { error } = await supabase
+      .from('admin_notifications')
+      .update({ read_at: readAt })
+      .eq('id', notificationId)
+      .is('read_at', null)
+
+    if (error) {
+      loadNotifications()
+    }
+  }
+
+  async function markAllNotificationsRead() {
+    if (unreadNotificationCount === 0) return
+
+    const readAt = new Date().toISOString()
+
+    setNotifications((current) =>
+      current.map((item) =>
+        item.read_at ? item : { ...item, read_at: readAt },
+      ),
+    )
+
+    const { error } = await supabase
+      .from('admin_notifications')
+      .update({ read_at: readAt })
+      .is('read_at', null)
+
+    if (error) {
+      loadNotifications()
+    }
+  }
+
+  function openNotification(notification: AdminNotification) {
+    void markNotificationRead(notification.id)
+    setNotificationsOpen(false)
+
+    if (notification.kind === 'new_student') {
+      setStudentFilter('pending')
+      setSelectedStudentId(notification.student_id)
+      setActiveTab('students')
+    } else {
+      setStudentFilter('active')
+      setSelectedStudentId(notification.student_id)
+      setActiveTab('students')
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   function getAssignment(studentId: string) {
     return assignments.find((item) => item.student_id === studentId) ?? null
@@ -1339,9 +1477,112 @@ export default function AdminHome({ profile }: { profile: Profile }) {
             <h1>{tabInfo[activeTab].title}</h1>
             <p>{tabInfo[activeTab].subtitle}</p>
           </div>
-          <div className="adminStats">
-            <span><strong>{pendingCount}</strong> aguardando</span>
-            <span><strong>{activeCount}</strong> ativos</span>
+          <div className="adminTopbarActions">
+            <div className="adminNotificationWrap">
+              <button
+                type="button"
+                className={
+                  unreadNotificationCount > 0
+                    ? 'adminNotificationButton hasUnread'
+                    : 'adminNotificationButton'
+                }
+                onClick={() => setNotificationsOpen((current) => !current)}
+                aria-label="Notificações"
+                aria-expanded={notificationsOpen}
+              >
+                <Bell size={18} />
+                {unreadNotificationCount > 0 && (
+                  <span className="adminNotificationBadge">
+                    {unreadNotificationCount > 99
+                      ? '99+'
+                      : unreadNotificationCount}
+                  </span>
+                )}
+              </button>
+
+              {notificationsOpen && (
+                <section
+                  className="adminNotificationPanel"
+                  aria-label="Central de notificações"
+                >
+                  <header className="adminNotificationHeader">
+                    <div>
+                      <span>NOTIFICAÇÕES</span>
+                      <strong>
+                        {unreadNotificationCount
+                          ? unreadNotificationCount + ' não lida(s)'
+                          : 'Tudo em dia'}
+                      </strong>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="adminNotificationReadAll"
+                      onClick={() => void markAllNotificationsRead()}
+                      disabled={unreadNotificationCount === 0}
+                    >
+                      <CheckCheck size={15} />
+                      Marcar como lidas
+                    </button>
+                  </header>
+
+                  <div className="adminNotificationList">
+                    {notificationsLoading ? (
+                      <RvLoadingState
+                        compact
+                        title="Carregando notificações"
+                        text="Buscando os eventos mais recentes."
+                      />
+                    ) : notifications.length === 0 ? (
+                      <RvEmptyState
+                        compact
+                        kind="search"
+                        title="Nenhuma notificação"
+                        text="Novos cadastros e conclusões aparecerão aqui."
+                      />
+                    ) : (
+                      notifications.map((notification) => (
+                        <button
+                          type="button"
+                          key={notification.id}
+                          className={
+                            notification.read_at
+                              ? 'adminNotificationItem'
+                              : 'adminNotificationItem unread'
+                          }
+                          onClick={() => openNotification(notification)}
+                        >
+                          <span className="adminNotificationIcon">
+                            {notification.kind === 'new_student' ? (
+                              <UserPlus size={17} />
+                            ) : (
+                              <Trophy size={17} />
+                            )}
+                          </span>
+
+                          <span className="adminNotificationCopy">
+                            <strong>{notification.title}</strong>
+                            <span>{notification.message}</span>
+                            <time>
+                              {formatDateTime(notification.created_at)}
+                            </time>
+                          </span>
+
+                          {!notification.read_at && (
+                            <i className="adminNotificationUnreadDot" />
+                          )}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </section>
+              )}
+            </div>
+
+            <div className="adminStats">
+              <span><strong>{pendingCount}</strong> aguardando</span>
+              <span><strong>{activeCount}</strong> ativos</span>
+            </div>
           </div>
         </header>
 
@@ -1384,8 +1625,8 @@ export default function AdminHome({ profile }: { profile: Profile }) {
             <h2>{profile.name}</h2>
             <p>{profile.email}</p>
             <div className="settingsRoadmap">
-              <span>Próximas integrações</span>
-              <strong>Notificação de novo cadastro</strong>
+              <span>Integrações</span>
+              <strong>Notificações em tempo real ativas</strong>
               <strong>Pagamento e liberação automática</strong>
             </div>
           </div>
