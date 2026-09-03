@@ -1943,3 +1943,317 @@ select {
     border-bottom-color: rgba(159, 187, 225, .11);
   }
 }
+
+
+/* RV_PWA_AUTO_UPDATE_V1 */
+
+.rvPwaSpin {
+  animation: rvPwaAutoUpdateSpin .8s linear infinite;
+}
+
+@keyframes rvPwaAutoUpdateSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.rvPwaUpdate .rvPwaToastIcon {
+  border-color: rgba(35, 200, 191, .3);
+  background: rgba(35, 200, 191, .1);
+}
+
+
+/* RV_P2_VISUAL_STATES_FINAL */
+
+/* Estados institucionais */
+.rvUiState {
+  width: min(560px, 100%);
+  margin: 24px auto;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 0 0, rgba(35, 200, 191, .055), transparent 36%),
+    linear-gradient(180deg, rgba(10, 39, 81, .94), rgba(7, 29, 63, .97));
+  box-shadow: 0 18px 48px rgba(0, 8, 24, .16);
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 12px;
+  text-align: center;
+  color: var(--text);
+}
+
+.rvUiState.compact {
+  width: 100%;
+  min-height: 128px;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.rvUiState.fullscreen {
+  width: 100%;
+  max-width: none;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(35, 200, 191, .07), transparent 28%),
+    linear-gradient(135deg, #04142f, #061b3d 55%, #031026);
+  box-shadow: none;
+}
+
+.rvUiStateLogo {
+  width: 150px;
+  max-width: 42vw;
+  height: auto;
+  margin-bottom: 6px;
+}
+
+.rvUiStateIcon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(35, 200, 191, .22);
+  border-radius: 14px;
+  background: rgba(35, 200, 191, .075);
+  color: var(--accent);
+}
+
+.rvUiState.compact .rvUiStateIcon {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+}
+
+.rvUiState.kind-error .rvUiStateIcon {
+  border-color: rgba(255, 133, 146, .25);
+  background: rgba(255, 133, 146, .065);
+  color: #ff9da6;
+}
+
+.rvUiStateCopy {
+  max-width: 440px;
+  display: grid;
+  gap: 5px;
+}
+
+.rvUiStateCopy strong {
+  font-size: 16px;
+  letter-spacing: -.2px;
+}
+
+.rvUiStateCopy span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.rvUiStateAction {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid rgba(35, 200, 191, .3);
+  border-radius: 10px;
+  background: rgba(35, 200, 191, .08);
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.rvUiStateAction:hover {
+  background: rgba(35, 200, 191, .13);
+}
+
+.rvUiSpin {
+  animation: rvUiSpin .8s linear infinite;
+}
+
+@keyframes rvUiSpin {
+  to { transform: rotate(360deg); }
+}
+
+.noProgramState {
+  margin-top: 72px;
+}
+
+/* Mensagens */
+.message,
+.studentMessage,
+.adminMessage,
+.contentFeedback,
+.accountInlineMessage {
+  overflow-wrap: anywhere;
+}
+
+.message.success,
+.authMessage.success,
+.studentMessage.success,
+.adminMessage.success {
+  border-color: rgba(61, 212, 143, .25) !important;
+  background: rgba(29, 128, 89, .09) !important;
+  color: #9cebc5 !important;
+}
+
+.message.error,
+.authMessage.error,
+.studentMessage.error,
+.adminMessage.error {
+  border-color: rgba(255, 133, 146, .26) !important;
+  background: rgba(170, 42, 59, .09) !important;
+  color: #ffabb3 !important;
+}
+
+.studentMessage {
+  margin: 0 0 18px;
+  padding: 11px 13px;
+  border: 1px solid rgba(35, 200, 191, .22);
+  border-radius: 11px;
+  background: rgba(35, 200, 191, .07);
+  color: #c9eeea;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.adminMessage {
+  border-radius: 11px;
+}
+
+.adminRefresh:disabled {
+  cursor: wait;
+  opacity: .68;
+}
+
+/* Estados de programa */
+.nextLessonEmpty {
+  min-height: 128px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 7px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.nextLessonEmpty > svg {
+  color: var(--accent);
+}
+
+.nextLessonEmpty strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.nextLessonEmpty span {
+  max-width: 240px;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.weekEmptyState {
+  grid-column: 1 / -1;
+  min-height: 72px;
+  padding: 18px;
+  border: 1px dashed var(--border);
+  border-radius: 11px;
+  background: rgba(4, 20, 47, .34);
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-size: 11px;
+}
+
+/* Microacabamento de interação */
+button,
+input,
+textarea,
+select {
+  transition:
+    border-color .14s ease,
+    background-color .14s ease,
+    color .14s ease,
+    opacity .14s ease,
+    box-shadow .14s ease,
+    transform .14s ease;
+}
+
+button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 2px solid rgba(35, 200, 191, .7);
+  outline-offset: 2px;
+}
+
+/* Scrollbar discreta, sem mudar o layout */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(121, 151, 188, .38) rgba(3, 16, 38, .22);
+}
+
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(3, 16, 38, .22);
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(121, 151, 188, .35);
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(121, 151, 188, .5);
+  background-clip: padding-box;
+}
+
+@media (max-width: 720px) {
+  .rvUiState {
+    padding: 20px 17px;
+    border-radius: 15px;
+  }
+
+  .rvUiState.fullscreen {
+    padding:
+      max(24px, env(safe-area-inset-top, 0px))
+      18px
+      max(24px, env(safe-area-inset-bottom, 0px));
+    border-radius: 0;
+  }
+
+  .rvUiStateLogo {
+    width: 138px;
+  }
+
+  .noProgramState {
+    margin-top: 42px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rvUiSpin {
+    animation-duration: 1.8s;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    transition: none;
+  }
+}

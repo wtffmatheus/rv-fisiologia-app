@@ -17,6 +17,7 @@ import {
   X,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { RvLoadingState } from './PlatformState'
 
 type Program = {
   id: number
@@ -1470,7 +1471,12 @@ export default function AdminContentManager() {
   }
 
   if (loading) {
-    return <div className="contentLoading">Carregando conteúdo...</div>
+    return (
+      <RvLoadingState
+        title="Carregando editor"
+        text="Buscando metodologias, semanas, aulas e exercícios."
+      />
+    )
   }
 
   return (

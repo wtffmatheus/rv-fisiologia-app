@@ -2,6 +2,7 @@ import { FormEvent, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 type Mode = 'login' | 'register' | 'forgot'
+type MessageTone = 'success' | 'error'
 
 export default function AuthPage() {
   const [mode, setMode] = useState<Mode>('login')
@@ -9,6 +10,7 @@ export default function AuthPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
+  const [messageTone, setMessageTone] = useState<MessageTone>('error')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(event: FormEvent) {
@@ -24,8 +26,10 @@ export default function AuthPage() {
       })
 
       if (error) {
+        setMessageTone('error')
         setMessage(error.message)
       } else {
+        setMessageTone('success')
         setMessage(
           'Enviamos um link para o seu e-mail. Abra a mensagem da RV Fisiologia para criar uma nova senha.',
         )
@@ -45,8 +49,10 @@ export default function AuthPage() {
       })
 
       if (error) {
+        setMessageTone('error')
         setMessage(error.message)
       } else {
+        setMessageTone('success')
         setMessage(
           'Cadastro enviado com sucesso. Agora é só aguardar a liberação do acesso pela equipe RV.',
         )
@@ -61,6 +67,7 @@ export default function AuthPage() {
       })
 
       if (error) {
+        setMessageTone('error')
         setMessage('E-mail ou senha inválidos.')
       }
     }
@@ -160,7 +167,7 @@ export default function AuthPage() {
             </button>
           </form>
 
-          {message && <p className="message">{message}</p>}
+          {message && <p className={`message authMessage ${messageTone}`}>{message}</p>}
 
           {mode === 'login' && (
             <div className="authForgotRow">

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import type { Profile } from '../types'
 import { supabase } from '../lib/supabase'
+import { RvEmptyState, RvLoadingState } from '../components/PlatformState'
 
 type StudentNav = 'home' | 'program' | 'profile'
 
@@ -127,7 +128,9 @@ export default function StudentHome({ profile }: { profile: Profile }) {
     () => readStudentRoute().tab,
   )
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [message, setMessage] = useState('')
+  const [completingLessonId, setCompletingLessonId] = useState<number | null>(null)
   const [accountEmail, setAccountEmail] = useState(profile.email || '')
   const [newEmail, setNewEmail] = useState('')
   const [emailMessage, setEmailMessage] = useState('')
@@ -140,8 +143,9 @@ export default function StudentHome({ profile }: { profile: Profile }) {
   const [passwordLoading, setPasswordLoading] = useState(false)
 
 
-  async function loadStudentData() {
-    setLoading(true)
+  async function loadStudentData(showLoader = true) {
+    if (showLoader) setLoading(true)
+    setLoadError('')
 
     const { data: assignmentData, error: assignmentError } = await supabase
       .from('student_programs')
@@ -188,7 +192,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
       .eq('student_id', profile.id)
 
     if (assignmentError) {
-      setMessage(`Não foi possível carregar seu programa: ${assignmentError.message}`)
+      setLoadError(`Não foi possível carregar seu programa: ${assignmentError.message}`)
     }
 
     if (progressError) {
@@ -220,7 +224,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
 
     setAssignment(normalized)
     setProgress((progressData as Progress[]) ?? [])
-    setLoading(false)
+    if (showLoader) setLoading(false)
   }
 
   useEffect(() => {
@@ -340,6 +344,9 @@ export default function StudentHome({ profile }: { profile: Profile }) {
       : null
 
   async function completeLesson(lesson: Lesson) {
+    setCompletingLessonId(lesson.id)
+    setMessage('')
+
     const { error } = await supabase
       .from('lesson_progress')
       .upsert(
@@ -354,16 +361,19 @@ export default function StudentHome({ profile }: { profile: Profile }) {
 
     if (error) {
       setMessage(`Não foi possível concluir a aula: ${error.message}`)
+      setCompletingLessonId(null)
       return
     }
 
-    await loadStudentData()
+    await loadStudentData(false)
 
     if (followingLesson) {
       openLesson(followingLesson.id, 'replace')
     } else {
       setMessage('Aula concluída.')
     }
+
+    setCompletingLessonId(null)
   }
 
   function changeTab(tab: StudentNav, mode: 'push' | 'replace' = 'push') {
@@ -383,7 +393,15 @@ export default function StudentHome({ profile }: { profile: Profile }) {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  if (loading) return <div className="center">Carregando seu programa...</div>
+  if (loading) {
+    return (
+      <RvLoadingState
+        fullScreen
+        title="Carregando seu acompanhamento"
+        text="Buscando metodologia, aulas e progresso."
+      />
+    )
+  }
 
   if (!program) {
     return (
@@ -397,13 +415,21 @@ export default function StudentHome({ profile }: { profile: Profile }) {
           </button>
         </header>
 
-        <section className="noProgramCard">
-          <p className="eyebrow">ACESSO ATIVO</p>
-          <h1>Seu programa ainda não foi vinculado.</h1>
-          <p className="muted">
-            Entre em contato com a equipe RV para verificar sua metodologia.
-          </p>
-        </section>
+        <RvEmptyState
+          className="noProgramState"
+          kind={loadError ? 'error' : 'program'}
+          title={
+            loadError
+              ? 'Não foi possível carregar seu programa'
+              : 'Seu programa ainda não foi vinculado'
+          }
+          text={
+            loadError ||
+            'Seu acesso está ativo, mas nenhuma metodologia foi vinculada a esta conta.'
+          }
+          actionLabel="Tentar novamente"
+          onAction={() => loadStudentData(true)}
+        />
       </main>
     )
   }
@@ -436,7 +462,16 @@ export default function StudentHome({ profile }: { profile: Profile }) {
           )}
         </section>
 
-        {message && <div className="studentMessage">{message}</div>}
+        {message && (
+          <div
+            className={`studentMessage ${
+              message.startsWith('Não foi possível') ? 'error' : 'success'
+            }`}
+            role="status"
+          >
+            {message}
+          </div>
+        )}
 
         <div className="lessonNavigator">
           <button
@@ -533,15 +568,18 @@ export default function StudentHome({ profile }: { profile: Profile }) {
             onClick={() => completeLesson(selectedLesson)}
             disabled={
               completedLessonIds.has(selectedLesson.id) ||
-              selectedLesson.exercises.length === 0
+              selectedLesson.exercises.length === 0 ||
+              completingLessonId === selectedLesson.id
             }
           >
             <CheckCircle2 size={18} />
-            {completedLessonIds.has(selectedLesson.id)
-              ? 'Aula concluída'
-              : selectedLesson.exercises.length === 0
-                ? 'Conteúdo em preparação'
-                : 'Concluir e avançar'}
+            {completingLessonId === selectedLesson.id
+              ? 'Salvando progresso...'
+              : completedLessonIds.has(selectedLesson.id)
+                ? 'Aula concluída'
+                : selectedLesson.exercises.length === 0
+                  ? 'Conteúdo em preparação'
+                  : 'Concluir e avançar'}
           </button>
 
           {followingLesson && (
@@ -602,7 +640,13 @@ export default function StudentHome({ profile }: { profile: Profile }) {
 
           <article className="nextLessonCard">
             <span className="miniLabel">PRÓXIMA NÃO CONCLUÍDA</span>
-            {nextLesson ? (
+            {lessons.length === 0 ? (
+              <div className="nextLessonEmpty">
+                <BookOpen size={22} />
+                <strong>Conteúdo em preparação</strong>
+                <span>As aulas desta metodologia ainda serão adicionadas.</span>
+              </div>
+            ) : nextLesson ? (
               <>
                 <div className="nextLessonInfo">
                   <div>
@@ -655,7 +699,13 @@ export default function StudentHome({ profile }: { profile: Profile }) {
           </div>
         </section>
 
-        {activeProgram.weeks.map((week) => (
+        {activeProgram.weeks.length === 0 ? (
+          <RvEmptyState
+            kind="program"
+            title="Programa em preparação"
+            text="As semanas e aulas desta metodologia ainda serão adicionadas pela equipe RV."
+          />
+        ) : activeProgram.weeks.map((week) => (
           <section className="lessonsSection" key={week.id}>
             <div className="sectionHeading">
               <div>
@@ -665,7 +715,11 @@ export default function StudentHome({ profile }: { profile: Profile }) {
             </div>
 
             <div className="lessonList">
-              {week.lessons.map((lesson) => {
+              {week.lessons.length === 0 ? (
+                <div className="weekEmptyState">
+                  Nenhuma aula cadastrada nesta semana ainda.
+                </div>
+              ) : week.lessons.map((lesson) => {
                 const completed = completedLessonIds.has(lesson.id)
 
                 return (

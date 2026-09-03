@@ -17,6 +17,7 @@ import {
 import type { Profile } from '../types'
 import { supabase } from '../lib/supabase'
 import AdminContentManager from '../components/AdminContentManager'
+import { RvEmptyState, RvLoadingState } from '../components/PlatformState'
 
 type AdminTab = 'dashboard' | 'students' | 'content' | 'settings'
 
@@ -127,11 +128,13 @@ export default function AdminHome({ profile }: { profile: Profile }) {
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [savingStudentId, setSavingStudentId] = useState<string | null>(null)
   const [message, setMessage] = useState('')
 
-  async function loadData() {
-    setLoading(true)
+  async function loadData(showLoader = false) {
+    if (showLoader) setLoading(true)
+    setRefreshing(true)
 
     const [
       studentsResult,
@@ -203,10 +206,11 @@ export default function AdminHome({ profile }: { profile: Profile }) {
     })
 
     setLoading(false)
+    setRefreshing(false)
   }
 
   useEffect(() => {
-    loadData()
+    loadData(true)
   }, [])
 
   useEffect(() => {
@@ -554,8 +558,13 @@ export default function AdminHome({ profile }: { profile: Profile }) {
             ))}
           </div>
 
-          <button className="adminRefresh" onClick={loadData}>
-            <RefreshCw size={16} /> Atualizar
+          <button
+            className="adminRefresh"
+            onClick={() => loadData(false)}
+            disabled={refreshing}
+          >
+            <RefreshCw size={16} className={refreshing ? 'rvUiSpin' : ''} />
+            {refreshing ? 'Atualizando...' : 'Atualizar'}
           </button>
         </div>
 
@@ -568,10 +577,21 @@ export default function AdminHome({ profile }: { profile: Profile }) {
             <span>Ações</span>
           </div>
 
-          {loading && <div className="emptyState">Carregando alunos...</div>}
+          {loading && (
+            <RvLoadingState
+              compact
+              title="Carregando alunos"
+              text="Buscando cadastros, planos e progresso."
+            />
+          )}
 
           {!loading && filteredStudents.length === 0 && (
-            <div className="emptyState">Nenhum aluno encontrado nesse filtro.</div>
+            <RvEmptyState
+              compact
+              kind="search"
+              title="Nenhum aluno encontrado"
+              text="Tente outro nome, e-mail ou filtro de status."
+            />
           )}
 
           {!loading &&
@@ -953,13 +973,25 @@ export default function AdminHome({ profile }: { profile: Profile }) {
         </header>
 
         {message && (
-          <div className="adminMessage">
+          <div
+            className={`adminMessage ${
+              /erro|não foi possível|escolha/i.test(message) ? 'error' : 'success'
+            }`}
+            role="status"
+          >
             <span>{message}</span>
             <button onClick={() => setMessage('')}>×</button>
           </div>
         )}
 
-        {activeTab === 'dashboard' && renderDashboard()}
+        {activeTab === 'dashboard' && (
+          loading ? (
+            <RvLoadingState
+              title="Carregando dashboard"
+              text="Atualizando alunos, acessos e metodologias."
+            />
+          ) : renderDashboard()
+        )}
         {activeTab === 'students' && renderStudents()}
         {activeTab === 'content' && <AdminContentManager />}
         {activeTab === 'settings' && (

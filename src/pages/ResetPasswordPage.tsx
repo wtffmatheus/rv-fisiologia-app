@@ -60,7 +60,7 @@ export default function ResetPasswordPage({ onDone }: { onDone: () => void }) {
 
           {success ? (
             <>
-              <p className="message accountSuccessMessage">
+              <p className="message accountSuccessMessage success">
                 Sua senha foi atualizada com sucesso.
               </p>
               <button className="primary" type="button" onClick={onDone}>
@@ -105,7 +105,7 @@ export default function ResetPasswordPage({ onDone }: { onDone: () => void }) {
                 </button>
               </form>
 
-              {message && <p className="message">{message}</p>}
+              {message && <p className="message error">{message}</p>}
             </>
           )}
         </div>

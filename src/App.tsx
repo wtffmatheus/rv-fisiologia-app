@@ -7,6 +7,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage'
 import PendingPage from './pages/PendingPage'
 import StudentHome from './pages/StudentHome'
 import AdminHome from './pages/AdminHome'
+import { RvLoadingState } from './components/PlatformState'
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null)
@@ -41,7 +42,15 @@ export default function App() {
     return () => listener.subscription.unsubscribe()
   }, [])
 
-  if (loading) return <div className="center">Carregando...</div>
+  if (loading) {
+    return (
+      <RvLoadingState
+        fullScreen
+        title="Abrindo o RV App"
+        text="Validando sua sessão e preparando seu acesso."
+      />
+    )
+  }
 
   if (recoveryMode && session) {
     return (
@@ -55,7 +64,15 @@ export default function App() {
   }
 
   if (!session) return <AuthPage />
-  if (!profile) return <div className="center">Preparando seu acesso...</div>
+  if (!profile) {
+    return (
+      <RvLoadingState
+        fullScreen
+        title="Preparando seu acesso"
+        text="Carregando seu perfil e permissões."
+      />
+    )
+  }
   if (profile.status !== 'active') return <PendingPage profile={profile} />
   if (profile.role === 'admin') return <AdminHome profile={profile} />
   return <StudentHome profile={profile} />
