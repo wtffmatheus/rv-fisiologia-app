@@ -2257,3 +2257,11 @@ a:focus-visible {
     transition: none;
   }
 }
+
+
+/* RV_SILENT_UPDATE_FINAL */
+
+/* Atualização do RV App é silenciosa. */
+.rvPwaUpdate {
+  display: none !important;
+}

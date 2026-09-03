@@ -1,4 +1,4 @@
-import { Download, RefreshCw, Share2, WifiOff, X } from 'lucide-react'
+import { Download, Share2, WifiOff, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 type InstallChoice = {
@@ -14,7 +14,7 @@ interface DeferredInstallPrompt extends Event {
 const INSTALL_DISMISS_KEY = 'rv-pwa-install-dismissed-at'
 const AUTO_UPDATE_ATTEMPT_KEY = 'rv-pwa-auto-update-attempt'
 const INSTALL_DISMISS_DAYS = 3
-const UPDATE_CHECK_INTERVAL = 2 * 60 * 1000
+const UPDATE_CHECK_INTERVAL = 60 * 1000
 const SAME_VERSION_RETRY_DELAY = 10 * 60 * 1000
 
 function isStandaloneMode() {
@@ -67,9 +67,11 @@ function installWasRecentlyDismissed() {
     if (!raw) return false
 
     const dismissedAt = Number(raw)
-    const elapsed = Date.now() - dismissedAt
 
-    return elapsed < INSTALL_DISMISS_DAYS * 24 * 60 * 60 * 1000
+    return (
+      Date.now() - dismissedAt <
+      INSTALL_DISMISS_DAYS * 24 * 60 * 60 * 1000
+    )
   } catch {
     return false
   }
@@ -79,7 +81,7 @@ function rememberInstallDismissal() {
   try {
     localStorage.setItem(INSTALL_DISMISS_KEY, String(Date.now()))
   } catch {
-    // O prompt continua funcionando mesmo sem localStorage.
+    // Sem impacto no funcionamento.
   }
 }
 
@@ -117,7 +119,7 @@ function rememberUpdateAttempt(signature: string) {
       }),
     )
   } catch {
-    // Sem impacto crítico; apenas perde a proteção extra contra loop.
+    // Sem impacto crítico.
   }
 }
 
@@ -131,6 +133,7 @@ function clearUpdateAttempt() {
 
 function isEditingForm() {
   const element = document.activeElement
+
   if (!element) return false
 
   return Boolean(
@@ -140,12 +143,31 @@ function isEditingForm() {
   )
 }
 
+function cleanUpdateParams() {
+  const url = new URL(window.location.href)
+  let changed = false
+
+  for (const key of ['rv_update', 'rv_sw']) {
+    if (url.searchParams.has(key)) {
+      url.searchParams.delete(key)
+      changed = true
+    }
+  }
+
+  if (changed) {
+    window.history.replaceState(
+      {},
+      document.title,
+      `${url.pathname}${url.search}${url.hash}`,
+    )
+  }
+}
+
 export default function PWAExperience() {
   const [installPrompt, setInstallPrompt] =
     useState<DeferredInstallPrompt | null>(null)
   const [standalone, setStandalone] = useState(isStandaloneMode)
   const [showIosInstall, setShowIosInstall] = useState(false)
-  const [updating, setUpdating] = useState(false)
   const [online, setOnline] = useState(navigator.onLine)
 
   const currentSignatureRef = useRef('')
@@ -156,20 +178,10 @@ export default function PWAExperience() {
 
   useEffect(() => {
     currentSignatureRef.current = getAssetSignature(document)
-
-    const currentUrl = new URL(window.location.href)
-
-    if (currentUrl.searchParams.has('rv_update')) {
-      currentUrl.searchParams.delete('rv_update')
-
-      window.history.replaceState(
-        {},
-        document.title,
-        `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`,
-      )
-    }
+    cleanUpdateParams()
 
     const lastAttempt = readLastUpdateAttempt()
+
     if (
       lastAttempt &&
       lastAttempt.signature === currentSignatureRef.current
@@ -180,7 +192,6 @@ export default function PWAExperience() {
 
   useEffect(() => {
     const displayMode = window.matchMedia('(display-mode: standalone)')
-
     const refreshStandalone = () => setStandalone(isStandaloneMode())
 
     displayMode.addEventListener?.('change', refreshStandalone)
@@ -299,7 +310,6 @@ export default function PWAExperience() {
       }
 
       updatingRef.current = true
-      setUpdating(true)
       rememberUpdateAttempt(signature)
 
       try {
@@ -313,6 +323,9 @@ export default function PWAExperience() {
             registration.waiting.postMessage({
               type: 'SKIP_WAITING',
             })
+
+            // O SW novo assume a aba e também força a navegação.
+            return
           }
         }
 
@@ -328,12 +341,11 @@ export default function PWAExperience() {
           )
         }
       } catch {
-        // O cache-busting abaixo ainda força a navegação na versão nova.
+        // O reload abaixo ainda força a navegação para a versão publicada.
       }
 
       const nextUrl = new URL(window.location.href)
       nextUrl.searchParams.set('rv_update', String(Date.now()))
-
       window.location.replace(nextUrl.toString())
     }
 
@@ -350,7 +362,7 @@ export default function PWAExperience() {
 
       if (
         !force &&
-        now - lastCheckAtRef.current < 25_000
+        now - lastCheckAtRef.current < 20_000
       ) {
         return
       }
@@ -374,14 +386,12 @@ export default function PWAExperience() {
         if (!response.ok) return
 
         const html = await response.text()
-
         const latestDocument = new DOMParser().parseFromString(
           html,
           'text/html',
         )
 
         const nextSignature = getAssetSignature(latestDocument)
-
         const currentSignature =
           currentSignatureRef.current ||
           getAssetSignature(document)
@@ -394,7 +404,7 @@ export default function PWAExperience() {
           await applyUpdate(nextSignature)
         }
       } catch {
-        // Se estiver sem rede ou houver falha transitória, tenta depois.
+        // Falha de rede: tenta novamente depois.
       } finally {
         checkingRef.current = false
       }
@@ -402,7 +412,7 @@ export default function PWAExperience() {
 
     const initialTimer = window.setTimeout(() => {
       checkForNewVersion(true)
-    }, 3500)
+    }, 2500)
 
     const interval = window.setInterval(
       () => checkForNewVersion(),
@@ -423,10 +433,7 @@ export default function PWAExperience() {
       window.setTimeout(() => {
         const signature = pendingSignatureRef.current
 
-        if (
-          signature &&
-          !isEditingForm()
-        ) {
+        if (signature && !isEditingForm()) {
           pendingSignatureRef.current = ''
           applyUpdate(signature)
         }
@@ -440,10 +447,7 @@ export default function PWAExperience() {
     return () => {
       window.clearTimeout(initialTimer)
       window.clearInterval(interval)
-      document.removeEventListener(
-        'visibilitychange',
-        onVisible,
-      )
+      document.removeEventListener('visibilitychange', onVisible)
       document.removeEventListener('focusout', onFocusOut)
       window.removeEventListener('focus', onFocus)
     }
@@ -473,34 +477,9 @@ export default function PWAExperience() {
   if (!online) {
     return (
       <aside className="rvPwaToast rvPwaOffline" role="status">
-        <div className="rvPwaToastIcon">
-          <WifiOff size={18} />
-        </div>
-
         <div className="rvPwaToastCopy">
           <strong>Você está sem conexão</strong>
-          <span>
-            Dados, progresso e vídeos precisam de internet.
-          </span>
-        </div>
-      </aside>
-    )
-  }
-
-  if (updating) {
-    return (
-      <aside
-        className="rvPwaToast rvPwaUpdate"
-        role="status"
-        aria-live="polite"
-      >
-        <div className="rvPwaToastIcon">
-          <RefreshCw size={18} className="rvPwaSpin" />
-        </div>
-
-        <div className="rvPwaToastCopy">
-          <strong>Atualizando RV App…</strong>
-          <span>A versão mais recente será aberta automaticamente.</span>
+          <span>Dados, progresso e vídeos precisam de internet.</span>
         </div>
       </aside>
     )

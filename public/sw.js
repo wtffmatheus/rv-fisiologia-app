@@ -1,10 +1,9 @@
-const CACHE_NAME = 'rv-fisiologia-pwa-v3'
+const CACHE_NAME = 'rv-fisiologia-pwa-v5'
 
 const CORE_ASSETS = [
   '/',
   '/manifest-rv-app.webmanifest',
   '/logo-rv-app.png',
-  '/icons/favicon-rv-v2.png',
   '/icons/icon-rvapp-192.png',
   '/icons/icon-rvapp-512.png',
   '/icons/maskable-rvapp-512.png',
@@ -23,9 +22,12 @@ async function putInCache(cacheKey, response) {
   return response
 }
 
-async function networkFirst(request, fallbackKey) {
+async function networkFirst(request, fallbackKey, noStore = false) {
   try {
-    const response = await fetch(request)
+    const response = await fetch(
+      request,
+      noStore ? { cache: 'no-store' } : undefined,
+    )
 
     if (canCache(response)) {
       await putInCache(fallbackKey || request, response)
@@ -63,6 +65,26 @@ async function staleWhileRevalidate(request) {
   return cached || networkPromise
 }
 
+async function reloadOpenWindows() {
+  const windows = await self.clients.matchAll({
+    type: 'window',
+    includeUncontrolled: true,
+  })
+
+  await Promise.allSettled(
+    windows.map((client) => {
+      if (!('navigate' in client)) return Promise.resolve()
+
+      const url = new URL(client.url)
+
+      // Preserva view/programa/aula/admin e só adiciona cache-busting.
+      url.searchParams.set('rv_sw', String(Date.now()))
+
+      return client.navigate(url.toString())
+    }),
+  )
+}
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
@@ -80,20 +102,25 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(
-          keys
-            .filter(
-              (key) =>
-                key.startsWith('rv-fisiologia-pwa-') &&
-                key !== CACHE_NAME,
-            )
-            .map((key) => caches.delete(key)),
-        ),
+    (async () => {
+      const keys = await caches.keys()
+
+      await Promise.all(
+        keys
+          .filter(
+            (key) =>
+              key.startsWith('rv-fisiologia-pwa-') &&
+              key !== CACHE_NAME,
+          )
+          .map((key) => caches.delete(key)),
       )
-      .then(() => self.clients.claim()),
+
+      await self.clients.claim()
+
+      // Importante para matar bundles antigos que ainda exibem
+      // "Nova versão disponível / Atualizar agora".
+      await reloadOpenWindows()
+    })(),
   )
 })
 
@@ -111,19 +138,15 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url)
 
   if (url.protocol !== 'http:' && url.protocol !== 'https:') return
-
-  // Supabase, R2 e qualquer serviço externo nunca entram no cache do PWA.
   if (url.origin !== self.location.origin) return
-
   if (url.pathname === '/sw.js') return
 
   if (request.mode === 'navigate') {
-    event.respondWith(networkFirst(request, '/'))
+    event.respondWith(networkFirst(request, '/', true))
     return
   }
 
   if (url.pathname.startsWith('/assets/')) {
-    // Assets do Vite têm hash no nome: podem ficar em cache com segurança.
     event.respondWith(cacheFirst(request))
     return
   }
@@ -138,6 +161,5 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Demais arquivos locais: rede primeiro, cache como fallback.
   event.respondWith(networkFirst(request))
 })

@@ -8,3 +8,5 @@ dist
 
 .vscode
 .DS_Store
+rv-updates/
+*.tsbuildinfo
