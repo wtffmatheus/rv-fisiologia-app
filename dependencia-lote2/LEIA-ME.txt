@@ -1,0 +1,44 @@
+RV FISIOLOGIA — P3 LOTE 2 / NOTIFICAÇÕES ADMIN
+
+O banco JÁ FOI APLICADO em produção.
+NÃO rode o SQL manualmente.
+
+BANCO
+- admin_notifications;
+- RLS somente admin;
+- Realtime;
+- novo cadastro;
+- metodologia concluída em 100%;
+- deduplicação;
+- índices;
+- backfill somente de pendentes existentes.
+
+FRONT
+- sino no topo;
+- contador de não lidas;
+- até 30 notificações;
+- atualização em tempo real;
+- marcar uma/todas como lidas;
+- novo cadastro abre filtro Aguardando;
+- conclusão abre o aluno;
+- responsivo.
+
+APLICAR
+
+node aplicar-p3-notificacoes-lote2.cjs
+npm run build
+
+Se passar:
+
+git add src/pages/AdminHome.tsx src/feature.css supabase/migrations/20260903230517_admin_notifications_realtime.sql
+git commit -m "adiciona notificacoes administrativas em tempo real"
+git push
+
+Depois:
+
+Move-Item aplicar-p3-notificacoes-lote2.cjs rv-updates\
+Move-Item arquivos-p3-notificacoes rv-updates\
+
+TESTE
+Abra o admin e crie uma nova conta de aluno em janela anônima.
+O sino deve atualizar sem F5.

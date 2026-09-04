@@ -56,6 +56,11 @@ function writeAdminTab(tab: AdminTab, mode: 'push' | 'replace' = 'replace') {
     url.searchParams.set('admin', tab)
   }
 
+  if (tab !== 'students') {
+    url.searchParams.delete('status')
+    url.searchParams.delete('student')
+  }
+
   const next = `${url.pathname}${url.search}${url.hash}`
 
   if (mode === 'push') {
@@ -101,6 +106,24 @@ type LessonIndexRow = {
 
 type StudentFilter = 'all' | 'pending' | 'active' | 'blocked'
 
+function readAdminStudentFilter(): StudentFilter {
+  const value = new URLSearchParams(window.location.search).get('status')
+
+  if (
+    value === 'pending' ||
+    value === 'active' ||
+    value === 'blocked'
+  ) {
+    return value
+  }
+
+  return 'all'
+}
+
+function readAdminSelectedStudentId() {
+  return new URLSearchParams(window.location.search).get('student')
+}
+
 type AdminNotification = {
   id: number
   kind: 'new_student' | 'program_completed'
@@ -144,8 +167,12 @@ export default function AdminHome({ profile }: { profile: Profile }) {
   const [lessonsIndex, setLessonsIndex] = useState<LessonIndexRow[]>([])
   const [selectedPrograms, setSelectedPrograms] = useState<Record<string, number>>({})
   const [selectedStartDates, setSelectedStartDates] = useState<Record<string, string>>({})
-  const [studentFilter, setStudentFilter] = useState<StudentFilter>('all')
-  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null)
+  const [studentFilter, setStudentFilter] = useState<StudentFilter>(
+    () => readAdminStudentFilter(),
+  )
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
+    () => readAdminSelectedStudentId(),
+  )
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -288,11 +315,55 @@ export default function AdminHome({ profile }: { profile: Profile }) {
 
   useEffect(() => {
     writeAdminTab(activeTab, 'replace')
+    setNotificationsOpen(false)
   }, [activeTab])
+
+  useEffect(() => {
+    if (activeTab !== 'students') return
+
+    const url = new URL(window.location.href)
+
+    if (studentFilter === 'all') {
+      url.searchParams.delete('status')
+    } else {
+      url.searchParams.set('status', studentFilter)
+    }
+
+    if (selectedStudentId) {
+      url.searchParams.set('student', selectedStudentId)
+    } else {
+      url.searchParams.delete('student')
+    }
+
+    window.history.replaceState(
+      {},
+      document.title,
+      url.pathname + url.search + url.hash,
+    )
+  }, [activeTab, selectedStudentId, studentFilter])
+
+  useEffect(() => {
+    if (!notificationsOpen) return
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setNotificationsOpen(false)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [notificationsOpen])
 
   useEffect(() => {
     function handlePopState() {
       setActiveTab(readAdminTab())
+      setStudentFilter(readAdminStudentFilter())
+      setSelectedStudentId(readAdminSelectedStudentId())
+      setNotificationsOpen(false)
       window.scrollTo({ top: 0, behavior: 'auto' })
     }
 
@@ -1445,17 +1516,17 @@ export default function AdminHome({ profile }: { profile: Profile }) {
 
         <nav className="adminMenu upgradedAdminMenu">
           <button className={activeTab === 'dashboard' ? 'active' : ''} onClick={() => setActiveTab('dashboard')}>
-            <LayoutDashboard size={18} /> Dashboard
+            <LayoutDashboard size={18} /> <span className="adminMenuLabel">Dashboard</span>
           </button>
           <button className={activeTab === 'students' ? 'active' : ''} onClick={() => setActiveTab('students')}>
-            <UsersRound size={18} /> Alunos
+            <UsersRound size={18} /> <span className="adminMenuLabel">Alunos</span>
             {pendingCount > 0 && <span className="menuBadge">{pendingCount}</span>}
           </button>
           <button className={activeTab === 'content' ? 'active' : ''} onClick={() => setActiveTab('content')}>
-            <BookOpen size={18} /> Conteúdo
+            <BookOpen size={18} /> <span className="adminMenuLabel">Conteúdo</span>
           </button>
           <button className={activeTab === 'settings' ? 'active' : ''} onClick={() => setActiveTab('settings')}>
-            <Settings size={18} /> Configurações
+            <Settings size={18} /> <span className="adminMenuLabel">Configurações</span>
           </button>
         </nav>
 
@@ -1524,6 +1595,15 @@ export default function AdminHome({ profile }: { profile: Profile }) {
                     >
                       <CheckCheck size={15} />
                       Marcar como lidas
+                    </button>
+
+                    <button
+                      type="button"
+                      className="adminNotificationClose"
+                      onClick={() => setNotificationsOpen(false)}
+                      aria-label="Fechar notificações"
+                    >
+                      <X size={16} />
                     </button>
                   </header>
 
@@ -1633,6 +1713,17 @@ export default function AdminHome({ profile }: { profile: Profile }) {
             </div>
 
             <AdminPushControl adminId={profile.id} />
+
+            <div className="settingsBuildInfo">
+              <span>VERSÃO PUBLICADA</span>
+              <strong>
+                {new Intl.DateTimeFormat('pt-BR', {
+                  dateStyle: 'short',
+                  timeStyle: 'medium',
+                }).format(new Date(__RV_BUILD_AT__))}
+              </strong>
+              <small>{__RV_BUILD_AT__}</small>
+            </div>
           </div>
         )}
       </section>

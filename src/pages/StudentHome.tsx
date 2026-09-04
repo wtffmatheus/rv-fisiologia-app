@@ -13,6 +13,7 @@ import {
 import type { Profile } from '../types'
 import { supabase } from '../lib/supabase'
 import { RvEmptyState, RvLoadingState } from '../components/PlatformState'
+import { authErrorMessage, dataErrorMessage } from '../lib/authErrors'
 
 type StudentNav = 'home' | 'program' | 'profile'
 
@@ -192,7 +193,12 @@ export default function StudentHome({ profile }: { profile: Profile }) {
       .eq('student_id', profile.id)
 
     if (assignmentError) {
-      setLoadError(`Não foi possível carregar seu programa: ${assignmentError.message}`)
+      setLoadError(
+        dataErrorMessage(
+          assignmentError,
+          'Não foi possível carregar seu programa agora.',
+        ),
+      )
     }
 
     if (progressError) {
@@ -360,7 +366,12 @@ export default function StudentHome({ profile }: { profile: Profile }) {
       )
 
     if (error) {
-      setMessage(`Não foi possível concluir a aula: ${error.message}`)
+      setMessage(
+        dataErrorMessage(
+          error,
+          'Não foi possível concluir a aula agora.',
+        ),
+      )
       setCompletingLessonId(null)
       return
     }
@@ -773,7 +784,12 @@ export default function StudentHome({ profile }: { profile: Profile }) {
     const { error } = await supabase.auth.updateUser({ email: nextEmail })
 
     if (error) {
-      setEmailMessage(error.message)
+      setEmailMessage(
+        authErrorMessage(
+          error,
+          'Não foi possível alterar o e-mail agora.',
+        ),
+      )
       setEmailLoading(false)
       return
     }
@@ -834,7 +850,12 @@ export default function StudentHome({ profile }: { profile: Profile }) {
     })
 
     if (error) {
-      setPasswordMessage(error.message)
+      setPasswordMessage(
+        authErrorMessage(
+          error,
+          'Não foi possível alterar a senha agora.',
+        ),
+      )
       setPasswordLoading(false)
       return
     }

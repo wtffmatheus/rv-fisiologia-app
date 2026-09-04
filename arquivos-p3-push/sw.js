@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rv-fisiologia-pwa-v7'
+const CACHE_NAME = 'rv-fisiologia-pwa-v6'
 
 const CORE_ASSETS = [
   '/',

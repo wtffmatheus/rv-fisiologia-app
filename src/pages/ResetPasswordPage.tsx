@@ -1,7 +1,12 @@
 import { FormEvent, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { authErrorMessage } from '../lib/authErrors'
 
-export default function ResetPasswordPage({ onDone }: { onDone: () => void }) {
+export default function ResetPasswordPage({
+  onDone,
+}: {
+  onDone: () => void
+}) {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [message, setMessage] = useState('')
@@ -24,24 +29,41 @@ export default function ResetPasswordPage({ onDone }: { onDone: () => void }) {
 
     setLoading(true)
 
-    const { error } = await supabase.auth.updateUser({ password })
+    try {
+      const { error } = await supabase.auth.updateUser({ password })
 
-    if (error) {
-      setMessage(error.message)
+      if (error) {
+        setMessage(
+          authErrorMessage(
+            error,
+            'Não foi possível alterar sua senha agora.',
+          ),
+        )
+        return
+      }
+
+      window.history.replaceState(
+        {},
+        document.title,
+        window.location.pathname,
+      )
+      setSuccess(true)
+    } catch (error) {
+      setMessage(authErrorMessage(error))
+    } finally {
       setLoading(false)
-      return
     }
-
-    window.history.replaceState({}, document.title, window.location.pathname)
-    setSuccess(true)
-    setLoading(false)
   }
 
   return (
     <main className="auth resetPasswordPage">
       <section className="brand">
         <div>
-          <img className="brandLogo" src="/logo-rv-app.png" alt="RV Fisiologia" />
+          <img
+            className="brandLogo"
+            src="/logo-rv-app.png"
+            alt="RV Fisiologia"
+          />
         </div>
 
         <div>
@@ -53,7 +75,11 @@ export default function ResetPasswordPage({ onDone }: { onDone: () => void }) {
 
       <section className="loginWrap">
         <div className="card resetPasswordCard">
-          <img className="mobileLogo" src="/logo-rv-app.png" alt="RV Fisiologia" />
+          <img
+            className="mobileLogo"
+            src="/logo-rv-app.png"
+            alt="RV Fisiologia"
+          />
 
           <p className="eyebrow">SEGURANÇA DA CONTA</p>
           <h2>{success ? 'Senha alterada' : 'Crie uma nova senha'}</h2>
@@ -63,7 +89,11 @@ export default function ResetPasswordPage({ onDone }: { onDone: () => void }) {
               <p className="message accountSuccessMessage success">
                 Sua senha foi atualizada com sucesso.
               </p>
-              <button className="primary" type="button" onClick={onDone}>
+              <button
+                className="primary"
+                type="button"
+                onClick={onDone}
+              >
                 Continuar para o aplicativo
               </button>
             </>
@@ -79,7 +109,9 @@ export default function ResetPasswordPage({ onDone }: { onDone: () => void }) {
                   <input
                     type="password"
                     value={password}
-                    onChange={(event) => setPassword(event.target.value)}
+                    onChange={(event) =>
+                      setPassword(event.target.value)
+                    }
                     placeholder="Digite a nova senha"
                     minLength={8}
                     autoComplete="new-password"
@@ -92,7 +124,9 @@ export default function ResetPasswordPage({ onDone }: { onDone: () => void }) {
                   <input
                     type="password"
                     value={confirmPassword}
-                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    onChange={(event) =>
+                      setConfirmPassword(event.target.value)
+                    }
                     placeholder="Digite novamente"
                     minLength={8}
                     autoComplete="new-password"
@@ -105,7 +139,9 @@ export default function ResetPasswordPage({ onDone }: { onDone: () => void }) {
                 </button>
               </form>
 
-              {message && <p className="message error">{message}</p>}
+              {message && (
+                <p className="message error">{message}</p>
+              )}
             </>
           )}
         </div>

@@ -1,4 +1,4 @@
-import { BellRing, BellOff, Check, Send, Smartphone } from 'lucide-react'
+import { BellRing, BellOff, Check, Smartphone } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
@@ -32,9 +32,7 @@ function isStandaloneMode() {
 
 function base64UrlToUint8Array(value: string) {
   const padding = '='.repeat((4 - (value.length % 4)) % 4)
-  const base64 = (value + padding)
-    .replace(/-/g, '+')
-    .replace(/_/g, '/')
+  const base64 = (value + padding).replace(/-/g, '+').replace(/_/g, '/')
   const raw = window.atob(base64)
   const output = new Uint8Array(raw.length)
 
@@ -60,36 +58,6 @@ export default function AdminPushControl({
 }) {
   const [state, setState] = useState<PushState>('checking')
   const [message, setMessage] = useState('')
-  const [testing, setTesting] = useState(false)
-
-  async function persistSubscription(subscription: PushSubscription) {
-    const serialized = subscription.toJSON()
-    const p256dh = serialized.keys?.p256dh
-    const auth = serialized.keys?.auth
-
-    if (!p256dh || !auth) {
-      throw new Error('subscription_keys_missing')
-    }
-
-    const { error } = await supabase
-      .from('admin_push_subscriptions')
-      .upsert(
-        {
-          admin_id: adminId,
-          endpoint: subscription.endpoint,
-          p256dh,
-          auth,
-          user_agent: navigator.userAgent,
-          active: true,
-          updated_at: new Date().toISOString(),
-        },
-        {
-          onConflict: 'endpoint',
-        },
-      )
-
-    if (error) throw error
-  }
 
   async function inspectCurrentState() {
     if (!supported()) {
@@ -112,14 +80,8 @@ export default function AdminPushControl({
       const subscription =
         await registration.pushManager.getSubscription()
 
-      if (subscription) {
-        await persistSubscription(subscription)
-        setState('enabled')
-      } else {
-        setState('ready')
-      }
-    } catch (error) {
-      console.error('Falha ao verificar push:', error)
+      setState(subscription ? 'enabled' : 'ready')
+    } catch {
       setState('error')
     }
   }
@@ -154,16 +116,38 @@ export default function AdminPushControl({
         })
       }
 
-      await persistSubscription(subscription)
+      const serialized = subscription.toJSON()
+      const p256dh = serialized.keys?.p256dh
+      const auth = serialized.keys?.auth
+
+      if (!p256dh || !auth) {
+        throw new Error('subscription_keys_missing')
+      }
+
+      const { error } = await supabase
+        .from('admin_push_subscriptions')
+        .upsert(
+          {
+            admin_id: adminId,
+            endpoint: subscription.endpoint,
+            p256dh,
+            auth,
+            user_agent: navigator.userAgent,
+            active: true,
+            updated_at: new Date().toISOString(),
+          },
+          {
+            onConflict: 'endpoint',
+          },
+        )
+
+      if (error) throw error
 
       setState('enabled')
       setMessage('Este dispositivo receberá avisos do RV App.')
-    } catch (error) {
-      console.error('Falha ao ativar push:', error)
+    } catch {
       setState('error')
-      setMessage(
-        'Não foi possível ativar as notificações neste dispositivo.',
-      )
+      setMessage('Não foi possível ativar as notificações neste dispositivo.')
     }
   }
 
@@ -187,40 +171,9 @@ export default function AdminPushControl({
 
       setState('ready')
       setMessage('Notificações deste dispositivo desativadas.')
-    } catch (error) {
-      console.error('Falha ao desativar push:', error)
+    } catch {
       setState('error')
       setMessage('Não foi possível desativar as notificações.')
-    }
-  }
-
-  async function sendTestPush() {
-    setTesting(true)
-    setMessage('')
-
-    try {
-      const { data, error } = await supabase.functions.invoke(
-        'admin-web-push',
-        {
-          body: { action: 'test' },
-        },
-      )
-
-      if (error) throw error
-
-      if (!data?.sent) {
-        setMessage(
-          'Nenhum dispositivo ativo foi encontrado. Desative e ative novamente as notificações.',
-        )
-        return
-      }
-
-      setMessage('Teste enviado. A notificação deve aparecer neste dispositivo.')
-    } catch (error) {
-      console.error('Falha ao testar push:', error)
-      setMessage('Não foi possível enviar a notificação de teste.')
-    } finally {
-      setTesting(false)
     }
   }
 
@@ -262,27 +215,15 @@ export default function AdminPushControl({
 
       <div className="adminPushSettingsAction">
         {enabled ? (
-          <>
-            <button
-              type="button"
-              className="adminPushTest"
-              onClick={() => void sendTestPush()}
-              disabled={testing || busy}
-            >
-              <Send size={15} />
-              {testing ? 'Enviando...' : 'Enviar teste'}
-            </button>
-
-            <button
-              type="button"
-              className="adminPushDisable"
-              onClick={() => void disablePush()}
-              disabled={busy || testing}
-            >
-              <BellOff size={15} />
-              Desativar
-            </button>
-          </>
+          <button
+            type="button"
+            className="adminPushDisable"
+            onClick={() => void disablePush()}
+            disabled={busy}
+          >
+            <BellOff size={15} />
+            Desativar
+          </button>
         ) : (
           <button
             type="button"

@@ -1,5 +1,6 @@
 import { FormEvent, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { authErrorMessage } from '../lib/authErrors'
 
 type Mode = 'login' | 'register' | 'forgot'
 type MessageTone = 'success' | 'error'
@@ -16,73 +17,113 @@ export default function AuthPage() {
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     setMessage('')
-    setLoading(true)
 
-    if (mode === 'forgot') {
-      const normalizedEmail = email.trim().toLowerCase()
+    const normalizedEmail = email.trim().toLowerCase()
 
-      const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
-        redirectTo: `${window.location.origin}/?recovery=1`,
-      })
-
-      if (error) {
-        setMessageTone('error')
-        setMessage(error.message)
-      } else {
-        setMessageTone('success')
-        setMessage(
-          'Enviamos um link para o seu e-mail. Abra a mensagem da RV Fisiologia para criar uma nova senha.',
-        )
-      }
-
-      setLoading(false)
+    if (!normalizedEmail) {
+      setMessageTone('error')
+      setMessage('Digite seu e-mail.')
       return
     }
 
-    if (mode === 'register') {
-      const normalizedEmail = email.trim().toLowerCase()
-
-      const { error } = await supabase.auth.signUp({
-        email: normalizedEmail,
-        password,
-        options: {
-          data: { name: name.trim() },
-          emailRedirectTo: window.location.origin,
-        },
-      })
-
-      if (error) {
-        setMessageTone('error')
-        setMessage(error.message)
-      } else {
-        setMessageTone('success')
-        setMessage(
-          'Cadastro enviado com sucesso. Agora é só aguardar a liberação do acesso pela equipe RV.',
-        )
-        setName('')
-        setEmail('')
-        setPassword('')
-      }
-    } else {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-
-      if (error) {
-        setMessageTone('error')
-        setMessage('E-mail ou senha inválidos.')
-      }
+    if (mode === 'register' && name.trim().length < 2) {
+      setMessageTone('error')
+      setMessage('Digite seu nome.')
+      return
     }
 
-    setLoading(false)
+    if (mode !== 'forgot' && password.length < 8) {
+      setMessageTone('error')
+      setMessage('A senha precisa ter pelo menos 8 caracteres.')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      if (mode === 'forgot') {
+        const { error } = await supabase.auth.resetPasswordForEmail(
+          normalizedEmail,
+          {
+            redirectTo: `${window.location.origin}/?recovery=1`,
+          },
+        )
+
+        if (error) {
+          setMessageTone('error')
+          setMessage(
+            authErrorMessage(
+              error,
+              'Não foi possível enviar o e-mail de recuperação agora.',
+            ),
+          )
+        } else {
+          setMessageTone('success')
+          setMessage(
+            'Se este e-mail estiver cadastrado, você receberá uma mensagem da RV Fisiologia para criar uma nova senha.',
+          )
+        }
+
+        return
+      }
+
+      if (mode === 'register') {
+        const { error } = await supabase.auth.signUp({
+          email: normalizedEmail,
+          password,
+          options: {
+            data: { name: name.trim() },
+            emailRedirectTo: window.location.origin,
+          },
+        })
+
+        if (error) {
+          setMessageTone('error')
+          setMessage(
+            authErrorMessage(
+              error,
+              'Não foi possível criar o cadastro agora.',
+            ),
+          )
+        } else {
+          setMessageTone('success')
+          setMessage(
+            'Cadastro enviado com sucesso. Agora é só aguardar a liberação do acesso pela equipe RV.',
+          )
+          setName('')
+          setEmail('')
+          setPassword('')
+        }
+
+        return
+      }
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password,
+      })
+
+      if (error) {
+        setMessageTone('error')
+        setMessage(authErrorMessage(error, 'E-mail ou senha inválidos.'))
+      }
+    } catch (error) {
+      setMessageTone('error')
+      setMessage(authErrorMessage(error))
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <main className="auth">
       <section className="brand">
         <div>
-          <img className="brandLogo" src="/logo-rv-app.png" alt="RV Fisiologia" />
+          <img
+            className="brandLogo"
+            src="/logo-rv-app.png"
+            alt="RV Fisiologia"
+          />
         </div>
 
         <div>
@@ -102,7 +143,11 @@ export default function AuthPage() {
 
       <section className="loginWrap">
         <div className="card">
-          <img className="mobileLogo" src="/logo-rv-app.png" alt="RV Fisiologia" />
+          <img
+            className="mobileLogo"
+            src="/logo-rv-app.png"
+            alt="RV Fisiologia"
+          />
 
           <p className="eyebrow">ÁREA DO ALUNO</p>
           <h2>
@@ -129,6 +174,7 @@ export default function AuthPage() {
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   placeholder="Seu nome"
+                  autoComplete="name"
                   required
                 />
               </label>
@@ -141,6 +187,8 @@ export default function AuthPage() {
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="seuemail@exemplo.com"
+                autoComplete="email"
+                inputMode="email"
                 required
               />
             </label>
@@ -154,6 +202,9 @@ export default function AuthPage() {
                   onChange={(event) => setPassword(event.target.value)}
                   placeholder="Digite sua senha"
                   minLength={8}
+                  autoComplete={
+                    mode === 'login' ? 'current-password' : 'new-password'
+                  }
                   required
                 />
               </label>
@@ -170,7 +221,11 @@ export default function AuthPage() {
             </button>
           </form>
 
-          {message && <p className={`message authMessage ${messageTone}`}>{message}</p>}
+          {message && (
+            <p className={`message authMessage ${messageTone}`}>
+              {message}
+            </p>
+          )}
 
           {mode === 'login' && (
             <div className="authForgotRow">
@@ -192,7 +247,13 @@ export default function AuthPage() {
             className="link"
             type="button"
             onClick={() => {
-              setMode(mode === 'forgot' ? 'login' : mode === 'login' ? 'register' : 'login')
+              setMode(
+                mode === 'forgot'
+                  ? 'login'
+                  : mode === 'login'
+                    ? 'register'
+                    : 'login',
+              )
               setMessage('')
               setPassword('')
             }}
