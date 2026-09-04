@@ -14,6 +14,8 @@ import type { Profile } from '../types'
 import { supabase } from '../lib/supabase'
 import { RvEmptyState, RvLoadingState } from '../components/PlatformState'
 import { authErrorMessage, dataErrorMessage } from '../lib/authErrors'
+import { useI18n } from '../i18n'
+import LanguagePreferenceCard from '../components/LanguagePreferenceCard'
 
 type StudentNav = 'home' | 'program' | 'profile'
 
@@ -118,6 +120,7 @@ type Progress = {
 }
 
 export default function StudentHome({ profile }: { profile: Profile }) {
+  const { t, locale } = useI18n()
   const firstName = profile.name?.trim().split(' ')[0] || 'Aluno'
   const [assignment, setAssignment] = useState<Assignment | null>(null)
   const [progress, setProgress] = useState<Progress[]>([])
@@ -607,7 +610,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
   }
 
   const startDate = assignment?.starts_at
-    ? new Intl.DateTimeFormat('pt-BR').format(
+    ? new Intl.DateTimeFormat(locale).format(
         new Date(`${assignment.starts_at}T12:00:00`),
       )
     : '—'
@@ -875,9 +878,9 @@ export default function StudentHome({ profile }: { profile: Profile }) {
             {(profile.name || 'A').charAt(0).toUpperCase()}
           </div>
           <div>
-            <p className="eyebrow">MEU PERFIL</p>
+            <p className="eyebrow">{t('myProfile')}</p>
             <h1>{profile.name || 'Aluno RV'}</h1>
-            <p className="muted">Informações da sua conta e do acompanhamento atual.</p>
+            <p className="muted">{t('profileHelp')}</p>
           </div>
         </div>
 
@@ -907,6 +910,8 @@ export default function StudentHome({ profile }: { profile: Profile }) {
             <strong>Acesso ativo</strong>
           </div>
         </div>
+
+        <LanguagePreferenceCard profileId={profile.id} />
 
         <section className="accountSettingsCard">
           <div className="accountSettingsHeader">
@@ -1038,19 +1043,19 @@ export default function StudentHome({ profile }: { profile: Profile }) {
             className={activeNav === 'home' ? 'active' : ''}
             onClick={() => changeTab('home')}
           >
-            <Home size={16} /> <span>Início</span>
+            <Home size={16} /> <span>{t('navHome')}</span>
           </button>
           <button
             className={activeNav === 'program' ? 'active' : ''}
             onClick={() => changeTab('program')}
           >
-            <BookOpen size={16} /> <span>Programa</span>
+            <BookOpen size={16} /> <span>{t('navProgram')}</span>
           </button>
           <button
             className={activeNav === 'profile' ? 'active' : ''}
             onClick={() => changeTab('profile')}
           >
-            <UserRound size={16} /> <span>Perfil</span>
+            <UserRound size={16} /> <span>{t('navProfile')}</span>
           </button>
         </nav>
 
@@ -1074,7 +1079,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
           aria-current={activeNav === 'home' ? 'page' : undefined}
         >
           <Home size={20} />
-          <span>Início</span>
+          <span>{t('navHome')}</span>
         </button>
 
         <button
@@ -1083,7 +1088,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
           aria-current={activeNav === 'program' ? 'page' : undefined}
         >
           <BookOpen size={20} />
-          <span>Programa</span>
+          <span>{t('navProgram')}</span>
         </button>
 
         <button
@@ -1092,7 +1097,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
           aria-current={activeNav === 'profile' ? 'page' : undefined}
         >
           <UserRound size={20} />
-          <span>Perfil</span>
+          <span>{t('navProfile')}</span>
         </button>
       </nav>
     </main>

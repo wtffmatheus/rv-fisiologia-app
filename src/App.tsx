@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import type { Profile } from './types'
 import { RvEmptyState, RvLoadingState } from './components/PlatformState'
+import { useI18n } from './i18n'
 
 const AuthPage = lazy(() => import('./pages/AuthPage'))
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
@@ -33,6 +34,7 @@ async function withTimeout<T>(
 }
 
 export default function App() {
+  const { setLanguage } = useI18n()
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
@@ -136,6 +138,8 @@ export default function App() {
       listener.subscription.unsubscribe()
     }
   }, [])
+
+  useEffect(() => { if (profile?.language) setLanguage(profile.language) }, [profile?.language, setLanguage])
 
   if (loading || (session && profileLoading)) {
     return (

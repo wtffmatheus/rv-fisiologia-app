@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
 import PWAExperience from './components/PWAExperience'
+import { LanguageProvider } from './i18n'
 import './styles.css'
 import './feature.css'
 import './ui-fixes.css'
@@ -29,7 +30,9 @@ if ('serviceWorker' in navigator) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
-    <PWAExperience />
+    <LanguageProvider>
+      <App />
+      <PWAExperience />
+    </LanguageProvider>
   </StrictMode>,
 )

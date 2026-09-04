@@ -5,4 +5,5 @@ export type Profile = {
   role: 'student' | 'admin'
   status: 'pending' | 'active' | 'blocked'
   created_at: string
+  language: 'pt-BR' | 'en' | 'es' | 'zh-CN' | 'de'
 }
