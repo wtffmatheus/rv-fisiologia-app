@@ -22,6 +22,8 @@ import type { Profile } from '../types'
 import { supabase } from '../lib/supabase'
 import { RvEmptyState, RvLoadingState } from '../components/PlatformState'
 import AdminPushControl from '../components/AdminPushControl'
+import LanguagePreferenceCard from '../components/LanguagePreferenceCard'
+import { useI18n } from '../i18n'
 
 const AdminContentManager = lazy(
   () => import('../components/AdminContentManager'),
@@ -158,6 +160,7 @@ function formatDateTime(value?: string | null) {
 }
 
 export default function AdminHome({ profile }: { profile: Profile }) {
+  const { t, locale } = useI18n()
   const [activeTab, setActiveTab] = useState<AdminTab>(() => readAdminTab())
   const [students, setStudents] = useState<Profile[]>([])
   const [programs, setPrograms] = useState<Program[]>([])
@@ -1497,9 +1500,9 @@ export default function AdminHome({ profile }: { profile: Profile }) {
       subtitle: 'Metodologias, semanas, aulas, exercícios e vídeos em um só lugar.',
     },
     settings: {
-      eyebrow: 'CONFIGURAÇÕES',
-      title: 'Configurações',
-      subtitle: 'Dados da conta administrativa e futuras integrações.',
+      eyebrow: t('navSettings').toUpperCase(),
+      title: t('settingsTitle'),
+      subtitle: t('settingsSubtitle'),
     },
   }
 
@@ -1701,32 +1704,92 @@ export default function AdminHome({ profile }: { profile: Profile }) {
           </Suspense>
         )}
         {activeTab === 'settings' && (
-          <div className="adminSettingsCard">
-            <p className="eyebrow">CONTA</p>
-            <h2>{profile.name}</h2>
-            <p>{profile.email}</p>
-            <div className="settingsRoadmap">
-              <span>Integrações</span>
-              <strong>Notificações em tempo real ativas</strong>
-              <strong>Push do dispositivo disponível</strong>
-              <strong>Pagamento e liberação automática</strong>
-            </div>
+          <div className="adminSettingsShell">
+            <section className="settingsIdentity">
+              <div className="settingsIdentityAvatar">
+                {(profile.name || 'R').charAt(0).toUpperCase()}
+              </div>
+              <div className="settingsIdentityCopy">
+                <strong>{profile.name}</strong>
+                <span>{profile.email}</span>
+                <small>{t('admin')}</small>
+              </div>
+            </section>
 
-            <AdminPushControl adminId={profile.id} />
+            <section className="settingsGroup">
+              <div className="settingsGroupTitle">{t('preferences')}</div>
+              <LanguagePreferenceCard profileId={profile.id} />
+            </section>
 
-            <div className="settingsBuildInfo">
-              <span>VERSÃO PUBLICADA</span>
-              <strong>
-                {new Intl.DateTimeFormat('pt-BR', {
-                  dateStyle: 'short',
-                  timeStyle: 'medium',
-                }).format(new Date(__RV_BUILD_AT__))}
-              </strong>
-              <small>{__RV_BUILD_AT__}</small>
-            </div>
+            <section className="settingsGroup">
+              <div className="settingsGroupTitle">{t('notifications')}</div>
+              <AdminPushControl adminId={profile.id} />
+            </section>
+
+            <section className="settingsGroup">
+              <div className="settingsGroupTitle">{t('app')}</div>
+              <div className="settingsVersionRow">
+                <div>
+                  <strong>{t('version')}</strong>
+                  <span>
+                    {new Intl.DateTimeFormat(locale, {
+                      dateStyle: 'short',
+                      timeStyle: 'medium',
+                    }).format(new Date(__RV_BUILD_AT__))}
+                  </span>
+                </div>
+                <small>RV App</small>
+              </div>
+            </section>
+
+            <section className="settingsGroup">
+              <div className="settingsGroupTitle">{t('session')}</div>
+              <button
+                type="button"
+                className="settingsLogoutButton"
+                onClick={() => void supabase.auth.signOut()}
+              >
+                {t('logout')}
+              </button>
+            </section>
           </div>
         )}
       </section>
+      <nav className="adminMobileDock" aria-label="Admin">
+        <button
+          type="button"
+          className={activeTab === 'dashboard' ? 'active' : ''}
+          onClick={() => setActiveTab('dashboard')}
+        >
+          <LayoutDashboard size={20} />
+          <span>{t('navDashboard')}</span>
+        </button>
+        <button
+          type="button"
+          className={activeTab === 'students' ? 'active' : ''}
+          onClick={() => setActiveTab('students')}
+        >
+          <UsersRound size={20} />
+          <span>{t('navStudents')}</span>
+        </button>
+        <button
+          type="button"
+          className={activeTab === 'content' ? 'active' : ''}
+          onClick={() => setActiveTab('content')}
+        >
+          <BookOpen size={20} />
+          <span>{t('navContent')}</span>
+        </button>
+        <button
+          type="button"
+          className={activeTab === 'settings' ? 'active' : ''}
+          onClick={() => setActiveTab('settings')}
+        >
+          <Settings size={20} />
+          <span>{t('navSettings')}</span>
+        </button>
+      </nav>
+
     </main>
   )
 }
