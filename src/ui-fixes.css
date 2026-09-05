@@ -3768,3 +3768,84 @@ html[lang="zh-CN"] .authLanguageCurrent {
   }
 }
 
+
+
+/* RV_DELETE_STUDENT_AND_STABLE_DOCK_20260905 */
+
+.deleteStudentButton {
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 133, 146, .24);
+  border-radius: 9px;
+  background: rgba(255, 133, 146, .045);
+  color: #ff9da6;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.deleteStudentButton:hover {
+  border-color: rgba(255, 133, 146, .42);
+  background: rgba(255, 133, 146, .08);
+}
+
+.deleteStudentButton:disabled {
+  opacity: .48;
+  cursor: default;
+}
+
+/*
+  No iPhone/Safari o "layout viewport" e o "visual viewport"
+  podem mudar de posição quando as barras do navegador aparecem.
+  A variável abaixo é atualizada pelo StudentHome.
+*/
+:root {
+  --rv-student-dock-bottom: 0px;
+}
+
+@media (max-width: 720px) {
+  html.rvStudentViewport,
+  html.rvStudentViewport body {
+    overscroll-behavior-y: none;
+    min-height: 100dvh;
+  }
+
+  .bottomNav.mobileStudentNav {
+    position: fixed !important;
+    z-index: 2147483000 !important;
+
+    top: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: var(--rv-student-dock-bottom, 0px) !important;
+
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+
+    margin: 0 !important;
+    transform: translate3d(0, 0, 0) !important;
+    will-change: transform, bottom !important;
+
+    padding:
+      6px
+      max(8px, env(safe-area-inset-right, 0px))
+      calc(6px + env(safe-area-inset-bottom, 0px))
+      max(8px, env(safe-area-inset-left, 0px))
+      !important;
+
+    contain: layout style paint;
+  }
+
+  .advancedRowActions .deleteStudentButton {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 40px !important;
+    margin: 0 !important;
+  }
+}
+

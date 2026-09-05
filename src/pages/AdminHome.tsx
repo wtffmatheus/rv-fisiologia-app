@@ -14,6 +14,7 @@ import {
   Settings,
   ShieldX,
   Trophy,
+  Trash2,
   UserPlus,
   UsersRound,
   X,
@@ -773,6 +774,60 @@ export default function AdminHome({ profile }: { profile: Profile }) {
     setSavingStudentId(null)
   }
 
+  async function removeStudent(student: Profile) {
+    const displayName =
+      student.name?.trim() ||
+      student.email ||
+      'este aluno'
+
+    const accepted = window.confirm(
+      `Remover definitivamente ${displayName}?\n\nIsso apaga o cadastro, login, plano, progresso e notificações deste aluno. Esta ação não pode ser desfeita.`,
+    )
+
+    if (!accepted) return
+
+    setSavingStudentId(student.id)
+    setMessage('')
+
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        'admin-student-management',
+        {
+          body: {
+            action: 'delete_student',
+            student_id: student.id,
+          },
+        },
+      )
+
+      if (error || !data?.ok) {
+        throw error ?? new Error(
+          String(data?.error || 'delete_failed'),
+        )
+      }
+
+      if (selectedStudentId === student.id) {
+        setSelectedStudentId(null)
+      }
+
+      setMessage(
+        `Cadastro de ${displayName} removido definitivamente.`,
+      )
+
+      await Promise.all([
+        loadData(false),
+        loadNotifications(),
+      ])
+    } catch (error) {
+      console.error('Falha ao remover aluno:', error)
+      setMessage(
+        'Não foi possível remover o cadastro do aluno agora.',
+      )
+    } finally {
+      setSavingStudentId(null)
+    }
+  }
+
   async function reactivateStudent(studentId: string) {
     const programId = getSelectedProgramId(studentId)
     const startDate = getSelectedStartDate(studentId)
@@ -1366,6 +1421,16 @@ export default function AdminHome({ profile }: { profile: Profile }) {
                         <ShieldX size={16} /> Bloquear
                       </button>
                     )}
+
+                    <button
+                      className="deleteStudentButton"
+                      type="button"
+                      onClick={() => void removeStudent(student)}
+                      disabled={savingStudentId === student.id}
+                      title="Apagar cadastro e dados deste aluno"
+                    >
+                      <Trash2 size={15} /> Remover cadastro
+                    </button>
                   </div>
                 </article>
               )

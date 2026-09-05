@@ -245,6 +245,90 @@ export default function StudentHome({ profile }: { profile: Profile }) {
   }, [])
 
   useEffect(() => {
+    const root = document.documentElement
+    const viewport = window.visualViewport
+    let frame = 0
+
+    root.classList.add('rvStudentViewport')
+
+    function syncStudentDock() {
+      window.cancelAnimationFrame(frame)
+
+      frame = window.requestAnimationFrame(() => {
+        if (!viewport) {
+          root.style.setProperty(
+            '--rv-student-dock-bottom',
+            '0px',
+          )
+          return
+        }
+
+        const layoutHeight = Math.max(
+          window.innerHeight,
+          document.documentElement.clientHeight,
+        )
+
+        const bottomGap = Math.max(
+          0,
+          layoutHeight -
+            viewport.height -
+            viewport.offsetTop,
+        )
+
+        root.style.setProperty(
+          '--rv-student-dock-bottom',
+          `${Math.round(bottomGap)}px`,
+        )
+      })
+    }
+
+    syncStudentDock()
+
+    viewport?.addEventListener(
+      'resize',
+      syncStudentDock,
+    )
+    viewport?.addEventListener(
+      'scroll',
+      syncStudentDock,
+    )
+    window.addEventListener(
+      'resize',
+      syncStudentDock,
+    )
+    window.addEventListener(
+      'orientationchange',
+      syncStudentDock,
+    )
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+
+      viewport?.removeEventListener(
+        'resize',
+        syncStudentDock,
+      )
+      viewport?.removeEventListener(
+        'scroll',
+        syncStudentDock,
+      )
+      window.removeEventListener(
+        'resize',
+        syncStudentDock,
+      )
+      window.removeEventListener(
+        'orientationchange',
+        syncStudentDock,
+      )
+
+      root.classList.remove('rvStudentViewport')
+      root.style.removeProperty(
+        '--rv-student-dock-bottom',
+      )
+    }
+  }, [])
+
+  useEffect(() => {
     function handlePopState() {
       const route = readStudentRoute()
       setActiveNav(route.tab)
