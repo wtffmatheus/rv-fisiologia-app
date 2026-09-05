@@ -209,7 +209,12 @@ export default function App() {
       />
     )
   } else if (profile.status !== 'active') {
-    page = <PendingPage profile={profile} />
+    page = (
+      <PendingPage
+        profile={profile}
+        onProfileChange={setProfile}
+      />
+    )
   } else if (profile.role === 'admin') {
     page = <AdminHome profile={profile} />
   } else {

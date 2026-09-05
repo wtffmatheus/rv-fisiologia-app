@@ -2822,3 +2822,71 @@ html[lang="zh-CN"] .authLanguageCurrent {
   letter-spacing: 0;
 }
 
+
+
+/* RV_PENDING_REALTIME_20260905 */
+
+.pendingLiveStatus {
+  width: 100%;
+  margin-top: 18px;
+  padding: 13px;
+  border: 1px solid rgba(35, 200, 191, .16);
+  border-radius: 12px;
+  background: rgba(35, 200, 191, .045);
+  display: grid;
+  gap: 11px;
+}
+
+.pendingLiveIndicator {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.pendingLiveIndicator > span {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 9px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 5px rgba(35, 200, 191, .08);
+}
+
+.pendingLiveIndicator p {
+  margin: 0;
+  color: #8ca2bf;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.pendingRefreshButton {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #071a39;
+  color: #dce8f7;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.pendingRefreshButton:disabled {
+  opacity: .65;
+}
+
+@media (max-width: 720px) {
+  .pendingPage .statusCard {
+    width: min(100%, 460px);
+    margin-inline: auto;
+  }
+
+  .pendingRefreshButton {
+    min-height: 44px;
+  }
+}
+
