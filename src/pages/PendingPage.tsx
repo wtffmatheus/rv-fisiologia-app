@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import type { Profile } from '../types'
 import { supabase } from '../lib/supabase'
 import { useI18n } from '../i18n'
+import StudentPushControl from '../components/StudentPushControl'
 
 const liveCopy = {
   'pt-BR': {
@@ -173,6 +174,13 @@ export default function PendingPage({
                 : copy.check}
             </button>
           </div>
+        )}
+
+        {!blocked && (
+          <StudentPushControl
+            studentId={profile.id}
+            compact
+          />
         )}
 
         <button

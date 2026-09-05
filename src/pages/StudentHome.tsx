@@ -16,6 +16,8 @@ import { RvEmptyState, RvLoadingState } from '../components/PlatformState'
 import { authErrorMessage, dataErrorMessage } from '../lib/authErrors'
 import { useI18n } from '../i18n'
 import LanguagePreferenceCard from '../components/LanguagePreferenceCard'
+import StudentPushControl from '../components/StudentPushControl'
+import StudentNotificationBell from '../components/StudentNotificationBell'
 
 type StudentNav = 'home' | 'program' | 'profile'
 
@@ -921,6 +923,10 @@ export default function StudentHome({ profile }: { profile: Profile }) {
 
         <LanguagePreferenceCard profileId={profile.id} />
 
+        <section className="accountSettingsCard studentNotificationSettingsCard">
+          <StudentPushControl studentId={profile.id} />
+        </section>
+
         <section className="accountSettingsCard">
           <div className="accountSettingsHeader">
             <div>
@@ -1067,9 +1073,17 @@ export default function StudentHome({ profile }: { profile: Profile }) {
           </button>
         </nav>
 
-        <button className="iconButton" onClick={() => supabase.auth.signOut()} aria-label="Sair">
-          <LogOut size={18} />
-        </button>
+        <div className="studentHeaderActions">
+          <StudentNotificationBell studentId={profile.id} />
+
+          <button
+            className="iconButton"
+            onClick={() => supabase.auth.signOut()}
+            aria-label={t('logout')}
+          >
+            <LogOut size={18} />
+          </button>
+        </div>
       </header>
 
       {message && <div className="studentMessage studentPageMessage">{message}</div>}

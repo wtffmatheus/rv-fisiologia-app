@@ -23,6 +23,7 @@ import { supabase } from '../lib/supabase'
 import { RvEmptyState, RvLoadingState } from '../components/PlatformState'
 import AdminPushControl from '../components/AdminPushControl'
 import LanguagePreferenceCard from '../components/LanguagePreferenceCard'
+import AdminNotificationCenter from '../components/AdminNotificationCenter'
 import { useI18n } from '../i18n'
 
 const AdminContentManager = lazy(
@@ -1731,6 +1732,11 @@ export default function AdminHome({ profile }: { profile: Profile }) {
             <section className="settingsGroup">
               <div className="settingsGroupTitle">{t('notifications')}</div>
               <AdminPushControl adminId={profile.id} />
+            </section>
+
+            <section className="settingsGroup notificationCenterSettingsGroup">
+              <div className="settingsGroupTitle">Envios aos alunos</div>
+              <AdminNotificationCenter students={students} />
             </section>
 
             <section className="settingsGroup">
