@@ -1,12 +1,14 @@
 import { FormEvent, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { authErrorMessage } from '../lib/authErrors'
+import { useI18n } from '../i18n'
 
 export default function ResetPasswordPage({
   onDone,
 }: {
   onDone: () => void
 }) {
+  const { language, t } = useI18n()
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [message, setMessage] = useState('')
@@ -18,12 +20,12 @@ export default function ResetPasswordPage({
     setMessage('')
 
     if (password.length < 8) {
-      setMessage('A senha precisa ter pelo menos 8 caracteres.')
+      setMessage(t('authMin8'))
       return
     }
 
     if (password !== confirmPassword) {
-      setMessage('As senhas não são iguais.')
+      setMessage(t('resetMismatch'))
       return
     }
 
@@ -36,7 +38,8 @@ export default function ResetPasswordPage({
         setMessage(
           authErrorMessage(
             error,
-            'Não foi possível alterar sua senha agora.',
+            t('passwordChangeError'),
+            language,
           ),
         )
         return
@@ -49,7 +52,13 @@ export default function ResetPasswordPage({
       )
       setSuccess(true)
     } catch (error) {
-      setMessage(authErrorMessage(error))
+      setMessage(
+        authErrorMessage(
+          error,
+          t('passwordChangeError'),
+          language,
+        ),
+      )
     } finally {
       setLoading(false)
     }
@@ -68,8 +77,8 @@ export default function ResetPasswordPage({
 
         <div>
           <p className="eyebrow">RV FISIOLOGIA</p>
-          <h1>Proteja sua conta.</h1>
-          <p>Crie uma nova senha para voltar ao seu acompanhamento.</p>
+          <h1>{t('resetBrandTitle')}</h1>
+          <p>{t('resetBrandText')}</p>
         </div>
       </section>
 
@@ -81,38 +90,39 @@ export default function ResetPasswordPage({
             alt="RV Fisiologia"
           />
 
-          <p className="eyebrow">SEGURANÇA DA CONTA</p>
-          <h2>{success ? 'Senha alterada' : 'Crie uma nova senha'}</h2>
+          <p className="eyebrow">{t('resetSecurity')}</p>
+          <h2>
+            {success ? t('resetChanged') : t('resetCreate')}
+          </h2>
 
           {success ? (
             <>
               <p className="message accountSuccessMessage success">
-                Sua senha foi atualizada com sucesso.
+                {t('resetSuccess')}
               </p>
+
               <button
                 className="primary"
                 type="button"
                 onClick={onDone}
               >
-                Continuar para o aplicativo
+                {t('resetContinue')}
               </button>
             </>
           ) : (
             <>
-              <p className="muted">
-                Use uma senha que você não utiliza em outros serviços.
-              </p>
+              <p className="muted">{t('resetHelp')}</p>
 
               <form onSubmit={handleSubmit}>
                 <label>
-                  Nova senha
+                  {t('newPassword')}
                   <input
                     type="password"
                     value={password}
                     onChange={(event) =>
                       setPassword(event.target.value)
                     }
-                    placeholder="Digite a nova senha"
+                    placeholder={t('min8Placeholder')}
                     minLength={8}
                     autoComplete="new-password"
                     required
@@ -120,14 +130,14 @@ export default function ResetPasswordPage({
                 </label>
 
                 <label>
-                  Confirmar nova senha
+                  {t('confirmNewPassword')}
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(event) =>
                       setConfirmPassword(event.target.value)
                     }
-                    placeholder="Digite novamente"
+                    placeholder={t('repeatPlaceholder')}
                     minLength={8}
                     autoComplete="new-password"
                     required
@@ -135,7 +145,9 @@ export default function ResetPasswordPage({
                 </label>
 
                 <button className="primary" disabled={loading}>
-                  {loading ? 'Alterando...' : 'Salvar nova senha'}
+                  {loading
+                    ? t('resetChanging')
+                    : t('resetSave')}
                 </button>
               </form>
 

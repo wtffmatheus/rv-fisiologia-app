@@ -120,8 +120,8 @@ type Progress = {
 }
 
 export default function StudentHome({ profile }: { profile: Profile }) {
-  const { t, locale } = useI18n()
-  const firstName = profile.name?.trim().split(' ')[0] || 'Aluno'
+  const { t, locale, language } = useI18n()
+  const firstName = profile.name?.trim().split(' ')[0] || t('studentFallback')
   const [assignment, setAssignment] = useState<Assignment | null>(null)
   const [progress, setProgress] = useState<Progress[]>([])
   const [selectedLessonId, setSelectedLessonId] = useState<number | null>(
@@ -134,6 +134,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [message, setMessage] = useState('')
+  const [messageTone, setMessageTone] = useState<'success' | 'error' | ''>('')
   const [completingLessonId, setCompletingLessonId] = useState<number | null>(null)
   const [accountEmail, setAccountEmail] = useState(profile.email || '')
   const [newEmail, setNewEmail] = useState('')
@@ -199,7 +200,8 @@ export default function StudentHome({ profile }: { profile: Profile }) {
       setLoadError(
         dataErrorMessage(
           assignmentError,
-          'Não foi possível carregar seu programa agora.',
+          t('loadProgramError'),
+          language,
         ),
       )
     }
@@ -355,6 +357,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
   async function completeLesson(lesson: Lesson) {
     setCompletingLessonId(lesson.id)
     setMessage('')
+    setMessageTone('')
 
     const { error } = await supabase
       .from('lesson_progress')
@@ -372,9 +375,11 @@ export default function StudentHome({ profile }: { profile: Profile }) {
       setMessage(
         dataErrorMessage(
           error,
-          'Não foi possível concluir a aula agora.',
+          t('completeLessonError'),
+          language,
         ),
       )
+      setMessageTone('error')
       setCompletingLessonId(null)
       return
     }
@@ -384,7 +389,8 @@ export default function StudentHome({ profile }: { profile: Profile }) {
     if (followingLesson) {
       openLesson(followingLesson.id, 'replace')
     } else {
-      setMessage('Aula concluída.')
+      setMessage(t('lessonCompleted'))
+      setMessageTone('success')
     }
 
     setCompletingLessonId(null)
@@ -411,8 +417,8 @@ export default function StudentHome({ profile }: { profile: Profile }) {
     return (
       <RvLoadingState
         fullScreen
-        title="Carregando seu acompanhamento"
-        text="Buscando metodologia, aulas e progresso."
+        title={t('loadingTracking')}
+        text={t('loadingTrackingText')}
       />
     )
   }
@@ -424,7 +430,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
           <div className="studentBrand">
             <img src="/logo-rv-app.png" className="headerLogo" alt="RV Fisiologia" />
           </div>
-          <button className="iconButton" onClick={() => supabase.auth.signOut()} aria-label="Sair">
+          <button className="iconButton" onClick={() => supabase.auth.signOut()} aria-label={t('logout')}>
             <LogOut size={18} />
           </button>
         </header>
@@ -434,14 +440,14 @@ export default function StudentHome({ profile }: { profile: Profile }) {
           kind={loadError ? 'error' : 'program'}
           title={
             loadError
-              ? 'Não foi possível carregar seu programa'
-              : 'Seu programa ainda não foi vinculado'
+              ? t('noProgramLoadTitle')
+              : t('noProgramTitle')
           }
           text={
             loadError ||
-            'Seu acesso está ativo, mas nenhuma metodologia foi vinculada a esta conta.'
+            t('noProgramText')
           }
-          actionLabel="Tentar novamente"
+          actionLabel={t('retry')}
           onAction={() => loadStudentData(true)}
         />
       </main>
@@ -461,14 +467,14 @@ export default function StudentHome({ profile }: { profile: Profile }) {
               setActiveNav('program')
             }}
           >
-            <ChevronLeft size={18} /> Programa
+            <ChevronLeft size={18} /> {t('program')}
           </button>
           <img src="/logo-rv-app.png" className="headerLogo" alt="RV Fisiologia" />
         </header>
 
         <section className="lessonHero">
           <span className="miniLabel">
-            {program.title} · Aula {String(selectedLesson.lesson_number).padStart(2, '0')}
+            {program.title} · {t('lesson')} {String(selectedLesson.lesson_number).padStart(2, '0')}
           </span>
           <h1>{selectedLesson.title}</h1>
           {selectedLesson.description && (
@@ -479,7 +485,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
         {message && (
           <div
             className={`studentMessage ${
-              message.startsWith('Não foi possível') ? 'error' : 'success'
+              messageTone === 'error' ? 'error' : 'success'
             }`}
             role="status"
           >
@@ -493,7 +499,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
             onClick={() => previousLesson && openLesson(previousLesson.id)}
             disabled={!previousLesson}
           >
-            <ChevronLeft size={17} /> Aula anterior
+            <ChevronLeft size={17} /> {t('previousLesson')}
           </button>
 
           <span>
@@ -505,15 +511,15 @@ export default function StudentHome({ profile }: { profile: Profile }) {
             onClick={() => followingLesson && openLesson(followingLesson.id)}
             disabled={!followingLesson}
           >
-            Próxima aula <ChevronRight size={17} />
+            {t('nextLesson')} <ChevronRight size={17} />
           </button>
         </div>
 
         <section className="exerciseList">
           {selectedLesson.exercises.length === 0 && (
             <div className="emptyExercise">
-              <strong>Conteúdo em preparação.</strong>
-              <span>Esta aula ainda não possui exercícios cadastrados.</span>
+              <strong>{t('contentPreparing')}.</strong>
+              <span>{t('lessonNoExercises')}</span>
             </div>
           )}
 
@@ -522,7 +528,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
               <div className="exerciseHeader">
                 <span>{String(index + 1).padStart(2, '0')}</span>
                 <div>
-                  <small>EXERCÍCIO</small>
+                  <small>{t('exercise')}</small>
                   <h2>{exercise.title}</h2>
                 </div>
               </div>
@@ -543,23 +549,23 @@ export default function StudentHome({ profile }: { profile: Profile }) {
                   <Play size={28} />
                   <span>
                     {exercise.video_path
-                      ? 'Carregando vídeo...'
-                      : 'Vídeo ainda não disponível'}
+                      ? t('videoLoading')
+                      : t('videoUnavailable')}
                   </span>
                 </div>
               )}
 
               <div className="exerciseMeta">
                 <div>
-                  <span>Séries</span>
+                  <span>{t('sets')}</span>
                   <strong>{exercise.sets || '—'}</strong>
                 </div>
                 <div>
-                  <span>Repetições / tempo</span>
+                  <span>{t('repsTime')}</span>
                   <strong>{exercise.repetitions || '—'}</strong>
                 </div>
                 <div>
-                  <span>Descanso</span>
+                  <span>{t('rest')}</span>
                   <strong>
                     {exercise.rest_seconds ? `${exercise.rest_seconds}s` : '—'}
                   </strong>
@@ -568,7 +574,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
 
               {exercise.instructions && (
                 <div className="exerciseInstructions">
-                  <span>Orientação</span>
+                  <span>{t('guidance')}</span>
                   <p>{exercise.instructions}</p>
                 </div>
               )}
@@ -588,12 +594,12 @@ export default function StudentHome({ profile }: { profile: Profile }) {
           >
             <CheckCircle2 size={18} />
             {completingLessonId === selectedLesson.id
-              ? 'Salvando progresso...'
+              ? t('savingProgress')
               : completedLessonIds.has(selectedLesson.id)
-                ? 'Aula concluída'
+                ? t('lessonDone')
                 : selectedLesson.exercises.length === 0
-                  ? 'Conteúdo em preparação'
-                  : 'Concluir e avançar'}
+                  ? t('contentPreparing')
+                  : t('completeAndAdvance')}
           </button>
 
           {followingLesson && (
@@ -601,7 +607,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
               className="secondary"
               onClick={() => openLesson(followingLesson.id)}
             >
-              Pular para próxima aula <ChevronRight size={17} />
+              {t('skipNext')} <ChevronRight size={17} />
             </button>
           )}
         </div>
@@ -620,9 +626,9 @@ export default function StudentHome({ profile }: { profile: Profile }) {
       <>
         <section className="studentHero studentTabHero">
           <div>
-            <p className="eyebrow">SEU ACOMPANHAMENTO</p>
-            <h1>Olá, {firstName}.</h1>
-            <p className="muted">Acesse suas aulas e acompanhe seu progresso.</p>
+            <p className="eyebrow">{t('tracking')}</p>
+            <h1>{t('hello', { name: firstName })}</h1>
+            <p className="muted">{t('trackingHelp')}</p>
           </div>
         </section>
 
@@ -630,7 +636,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
           <article className="programMainCard">
             <div className="programCardTop">
               <div>
-                <span className="miniLabel">METODOLOGIA</span>
+                <span className="miniLabel">{t('methodology').toUpperCase()}</span>
                 <h2>{activeProgram.title}</h2>
               </div>
               <strong>{percentage}%</strong>
@@ -641,31 +647,31 @@ export default function StudentHome({ profile }: { profile: Profile }) {
             </div>
 
             <p className="muted smallText">
-              {completedCount} de {lessons.length} aulas concluídas
+              {t('lessonsCompletedTemplate', { done: completedCount, total: lessons.length })}
             </p>
 
             {nextLesson && (
               <button className="primary programAction" onClick={() => openLesson(nextLesson.id)}>
-                Continuar na aula {String(nextLesson.lesson_number).padStart(2, '0')}
+                {t('continueLesson', { number: String(nextLesson.lesson_number).padStart(2, '0') })}
                 <ChevronRight size={18} />
               </button>
             )}
           </article>
 
           <article className="nextLessonCard">
-            <span className="miniLabel">PRÓXIMA NÃO CONCLUÍDA</span>
+            <span className="miniLabel">{t('nextIncomplete')}</span>
             {lessons.length === 0 ? (
               <div className="nextLessonEmpty">
                 <BookOpen size={22} />
-                <strong>Conteúdo em preparação</strong>
-                <span>As aulas desta metodologia ainda serão adicionadas.</span>
+                <strong>{t('contentPreparing')}</strong>
+                <span>{t('programPreparingText')}</span>
               </div>
             ) : nextLesson ? (
               <>
                 <div className="nextLessonInfo">
                   <div>
                     <h2>{nextLesson.title}</h2>
-                    <p className="muted">{nextLesson.exercises.length} exercício(s)</p>
+                    <p className="muted">{t('exercisesCount', { count: nextLesson.exercises.length })}</p>
                   </div>
                   <span className="lessonNumber">
                     {String(nextLesson.lesson_number).padStart(2, '0')}
@@ -673,23 +679,23 @@ export default function StudentHome({ profile }: { profile: Profile }) {
                 </div>
 
                 <button className="secondary wideButton" onClick={() => openLesson(nextLesson.id)}>
-                  Abrir aula
+                  {t('openLesson')}
                 </button>
               </>
             ) : (
-              <p className="muted">Programa concluído.</p>
+              <p className="muted">{t('programCompleted')}</p>
             )}
           </article>
         </section>
 
         <section className="homeProgramShortcut">
           <div>
-            <span className="miniLabel">SEU PLANO</span>
-            <h2>Veja todas as semanas e aulas</h2>
-            <p className="muted">Acesse a estrutura completa da metodologia {activeProgram.title}.</p>
+            <span className="miniLabel">{t('yourPlan')}</span>
+            <h2>{t('allWeeksTitle')}</h2>
+            <p className="muted">{t('fullMethodologyText', { name: activeProgram.title })}</p>
           </div>
           <button className="secondary" onClick={() => changeTab('program')}>
-            Ver programa <ChevronRight size={17} />
+            {t('viewProgram')} <ChevronRight size={17} />
           </button>
         </section>
       </>
@@ -701,37 +707,37 @@ export default function StudentHome({ profile }: { profile: Profile }) {
       <>
         <section className="studentTabIntro">
           <div>
-            <p className="eyebrow">PROGRAMA</p>
+            <p className="eyebrow">{t('program').toUpperCase()}</p>
             <h1>{activeProgram.title}</h1>
             <p className="muted">
-              {activeProgram.description || 'Todas as aulas da sua metodologia, organizadas por semana.'}
+              {activeProgram.description || t('programDescriptionFallback')}
             </p>
           </div>
           <div className="programSummaryPill">
             <strong>{percentage}%</strong>
-            <span>{completedCount}/{lessons.length} aulas</span>
+            <span>{t('lessonsShort', { done: completedCount, total: lessons.length })}</span>
           </div>
         </section>
 
         {activeProgram.weeks.length === 0 ? (
           <RvEmptyState
             kind="program"
-            title="Programa em preparação"
-            text="As semanas e aulas desta metodologia ainda serão adicionadas pela equipe RV."
+            title={t('programPreparing')}
+            text={t('programPreparingText')}
           />
         ) : activeProgram.weeks.map((week) => (
           <section className="lessonsSection" key={week.id}>
             <div className="sectionHeading">
               <div>
-                <span className="miniLabel">SEMANA {week.week_number}</span>
-                <h2>{week.title || `Semana ${week.week_number}`}</h2>
+                <span className="miniLabel">{t('week', { number: week.week_number })}</span>
+                <h2>{week.title || t('weekTitle', { number: week.week_number })}</h2>
               </div>
             </div>
 
             <div className="lessonList">
               {week.lessons.length === 0 ? (
                 <div className="weekEmptyState">
-                  Nenhuma aula cadastrada nesta semana ainda.
+                  {t('noLessonsWeek')}
                 </div>
               ) : week.lessons.map((lesson) => {
                 const completed = completedLessonIds.has(lesson.id)
@@ -749,10 +755,10 @@ export default function StudentHome({ profile }: { profile: Profile }) {
                       <strong>{lesson.title}</strong>
                       <span>
                         {completed
-                          ? 'Concluída'
+                          ? t('completed')
                           : lesson.exercises.length > 0
-                            ? `${lesson.exercises.length} exercício(s)`
-                            : 'Conteúdo em preparação'}
+                            ? t('exercisesCount', { count: lesson.exercises.length })
+                            : t('contentPreparing')}
                       </span>
                     </div>
                     {completed ? <CheckCircle2 size={17} /> : <ChevronRight size={17} />}
@@ -773,12 +779,12 @@ export default function StudentHome({ profile }: { profile: Profile }) {
     const nextEmail = newEmail.trim().toLowerCase()
 
     if (!nextEmail) {
-      setEmailMessage('Digite o novo e-mail.')
+      setEmailMessage(t('emailRequired'))
       return
     }
 
     if (nextEmail === accountEmail.toLowerCase()) {
-      setEmailMessage('Esse já é o e-mail atual da sua conta.')
+      setEmailMessage(t('emailSame'))
       return
     }
 
@@ -790,7 +796,8 @@ export default function StudentHome({ profile }: { profile: Profile }) {
       setEmailMessage(
         authErrorMessage(
           error,
-          'Não foi possível alterar o e-mail agora.',
+          t('emailChangeError'),
+          language,
         ),
       )
       setEmailLoading(false)
@@ -799,7 +806,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
 
     setNewEmail('')
     setEmailMessage(
-      'Solicitação enviada. Confira seu e-mail para confirmar a alteração. Por segurança, o Supabase também pode pedir confirmação no endereço atual.',
+      t('emailChangeSent'),
     )
     setEmailLoading(false)
   }
@@ -809,29 +816,29 @@ export default function StudentHome({ profile }: { profile: Profile }) {
     setPasswordMessage('')
 
     if (!currentPassword) {
-      setPasswordMessage('Digite sua senha atual.')
+      setPasswordMessage(t('currentPasswordRequired'))
       return
     }
 
     if (newPassword.length < 8) {
-      setPasswordMessage('A nova senha precisa ter pelo menos 8 caracteres.')
+      setPasswordMessage(t('newPasswordMin8'))
       return
     }
 
     if (newPassword === currentPassword) {
-      setPasswordMessage('A nova senha precisa ser diferente da senha atual.')
+      setPasswordMessage(t('passwordDifferent'))
       return
     }
 
     if (newPassword !== confirmPassword) {
-      setPasswordMessage('A confirmação da nova senha não confere.')
+      setPasswordMessage(t('passwordMismatch'))
       return
     }
 
     const email = accountEmail.trim().toLowerCase()
 
     if (!email) {
-      setPasswordMessage('Não foi possível identificar o e-mail da sua conta.')
+      setPasswordMessage(t('accountEmailUnknown'))
       return
     }
 
@@ -843,7 +850,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
     })
 
     if (reauthError) {
-      setPasswordMessage('Senha atual incorreta.')
+      setPasswordMessage(t('currentPasswordWrong'))
       setPasswordLoading(false)
       return
     }
@@ -856,7 +863,8 @@ export default function StudentHome({ profile }: { profile: Profile }) {
       setPasswordMessage(
         authErrorMessage(
           error,
-          'Não foi possível alterar a senha agora.',
+          t('passwordChangeError'),
+          language,
         ),
       )
       setPasswordLoading(false)
@@ -866,7 +874,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
     setCurrentPassword('')
     setNewPassword('')
     setConfirmPassword('')
-    setPasswordMessage('Senha alterada com sucesso.')
+    setPasswordMessage(t('passwordChangedSuccess'))
     setPasswordLoading(false)
   }
 
@@ -886,28 +894,28 @@ export default function StudentHome({ profile }: { profile: Profile }) {
 
         <div className="studentProfileGrid profileScreenGrid">
           <div>
-            <span>E-mail</span>
+            <span>{t('email')}</span>
             <strong>{accountEmail || profile.email}</strong>
           </div>
           <div>
-            <span>Metodologia</span>
+            <span>{t('methodology')}</span>
             <strong>{activeProgram.title}</strong>
           </div>
           <div>
-            <span>Início do programa</span>
+            <span>{t('programStart')}</span>
             <strong>{startDate}</strong>
           </div>
           <div>
-            <span>Progresso</span>
-            <strong>{percentage}% concluído</strong>
+            <span>{t('progress')}</span>
+            <strong>{t('completedPercent', { percent: percentage })}</strong>
           </div>
           <div>
-            <span>Aulas concluídas</span>
+            <span>{t('lessonsCompletedLabel')}</span>
             <strong>{completedCount} de {lessons.length}</strong>
           </div>
           <div>
-            <span>Status</span>
-            <strong>Acesso ativo</strong>
+            <span>{t('status')}</span>
+            <strong>{t('activeAccess')}</strong>
           </div>
         </div>
 
@@ -916,17 +924,17 @@ export default function StudentHome({ profile }: { profile: Profile }) {
         <section className="accountSettingsCard">
           <div className="accountSettingsHeader">
             <div>
-              <span className="miniLabel">CONTA</span>
-              <h2>Alterar e-mail</h2>
+              <span className="miniLabel">{t('account')}</span>
+              <h2>{t('changeEmail')}</h2>
               <p className="muted">
-                O novo endereço só passa a valer depois da confirmação por e-mail.
+                {t('changeEmailHelp')}
               </p>
             </div>
           </div>
 
           <form className="accountEmailForm" onSubmit={requestEmailChange}>
             <label>
-              Novo e-mail
+              {t('newEmail')}
               <input
                 type="email"
                 value={newEmail}
@@ -938,7 +946,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
             </label>
 
             <button className="secondary" disabled={emailLoading}>
-              {emailLoading ? 'Enviando...' : 'Solicitar alteração'}
+              {emailLoading ? t('sending') : t('requestChange')}
             </button>
           </form>
 
@@ -952,10 +960,10 @@ export default function StudentHome({ profile }: { profile: Profile }) {
         <section className="accountSettingsCard passwordSettingsCard">
           <div className="accountSettingsHeader">
             <div>
-              <span className="miniLabel">SEGURANÇA</span>
-              <h2>Alterar senha</h2>
+              <span className="miniLabel">{t('security')}</span>
+              <h2>{t('changePassword')}</h2>
               <p className="muted">
-                Confirme sua senha atual e escolha uma nova senha para sua conta.
+                {t('changePasswordHelp')}
               </p>
             </div>
             <KeyRound size={20} />
@@ -963,24 +971,24 @@ export default function StudentHome({ profile }: { profile: Profile }) {
 
           <form className="accountPasswordForm" onSubmit={changePassword}>
             <label>
-              Senha atual
+              {t('currentPassword')}
               <input
                 type="password"
                 value={currentPassword}
                 onChange={(event) => setCurrentPassword(event.target.value)}
-                placeholder="Digite sua senha atual"
+                placeholder={t('currentPasswordPlaceholder')}
                 autoComplete="current-password"
                 required
               />
             </label>
 
             <label>
-              Nova senha
+              {t('newPassword')}
               <input
                 type="password"
                 value={newPassword}
                 onChange={(event) => setNewPassword(event.target.value)}
-                placeholder="Mínimo de 8 caracteres"
+                placeholder={t('min8Placeholder')}
                 minLength={8}
                 autoComplete="new-password"
                 required
@@ -988,12 +996,12 @@ export default function StudentHome({ profile }: { profile: Profile }) {
             </label>
 
             <label>
-              Confirmar nova senha
+              {t('confirmNewPassword')}
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
-                placeholder="Digite novamente"
+                placeholder={t('repeatPlaceholder')}
                 minLength={8}
                 autoComplete="new-password"
                 required
@@ -1001,14 +1009,14 @@ export default function StudentHome({ profile }: { profile: Profile }) {
             </label>
 
             <button className="secondary passwordSaveButton" disabled={passwordLoading}>
-              {passwordLoading ? 'Alterando...' : 'Alterar senha'}
+              {passwordLoading ? t('changing') : t('changePassword')}
             </button>
           </form>
 
           {passwordMessage && (
             <div
               className={
-                passwordMessage === 'Senha alterada com sucesso.'
+                passwordMessage === t('passwordChangedSuccess')
                   ? 'accountInlineMessage success'
                   : 'accountInlineMessage'
               }
@@ -1021,10 +1029,10 @@ export default function StudentHome({ profile }: { profile: Profile }) {
 
         <div className="profileActions">
           <button className="secondary" onClick={() => changeTab('program')}>
-            <BookOpen size={17} /> Ver meu programa
+            <BookOpen size={17} /> {t('viewMyProgram')}
           </button>
           <button className="studentProfileLogout" onClick={() => supabase.auth.signOut()}>
-            <LogOut size={17} /> Sair da conta
+            <LogOut size={17} /> {t('logout')}
           </button>
         </div>
       </section>
