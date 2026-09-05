@@ -2294,3 +2294,20 @@ html {
   }
 }
 
+
+
+/* RV_FIX_LANGUAGE_MESSAGE */
+.languagePreferenceMessage {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.languagePreferenceMessage.success {
+  color: var(--accent);
+}
+
+.languagePreferenceMessage.error {
+  color: #ff9da6;
+}
+
