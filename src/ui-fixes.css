@@ -2682,3 +2682,143 @@ a:focus-visible {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* RV_AUTH_LANGUAGE_PICKER_FINAL */
+
+.authCardTop {
+  width: 100%;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.authCardTop .mobileLogo {
+  margin: 0 !important;
+  flex: 0 0 auto;
+}
+
+.authLanguagePicker {
+  position: relative;
+  min-width: 0;
+  max-width: 210px;
+  height: 40px;
+  padding: 0 34px 0 11px;
+  border: 1px solid rgba(159, 187, 225, .18);
+  border-radius: 11px;
+  background: rgba(4, 20, 47, .82);
+  color: #dce8f7;
+  display: grid;
+  grid-template-columns: 17px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition:
+    border-color .16s ease,
+    background .16s ease,
+    box-shadow .16s ease;
+}
+
+.authLanguagePicker:hover,
+.authLanguagePicker:focus-within {
+  border-color: rgba(35, 200, 191, .42);
+  background: rgba(7, 31, 66, .96);
+  box-shadow: 0 0 0 3px rgba(35, 200, 191, .055);
+}
+
+.authLanguageIcon {
+  color: var(--accent);
+  pointer-events: none;
+}
+
+.authLanguageCurrent {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #dce8f7;
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.authLanguageChevron {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #748cac;
+  pointer-events: none;
+}
+
+.authLanguagePicker select {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: inherit !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  opacity: 0 !important;
+  cursor: pointer !important;
+}
+
+.authLanguagePicker select:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 720px) {
+  .auth .card {
+    width: min(100%, 450px);
+    padding: 27px 22px 30px;
+  }
+
+  .authCardTop {
+    margin-bottom: 22px;
+    gap: 12px;
+  }
+
+  .authCardTop .mobileLogo {
+    width: 105px !important;
+    max-width: 105px !important;
+  }
+
+  .authLanguagePicker {
+    width: min(190px, 52vw);
+    max-width: 52vw;
+    height: 42px;
+    padding-left: 10px;
+  }
+
+  .authLanguageCurrent {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 390px) {
+  .authCardTop {
+    align-items: flex-start;
+  }
+
+  .authCardTop .mobileLogo {
+    width: 96px !important;
+    max-width: 96px !important;
+  }
+
+  .authLanguagePicker {
+    width: min(176px, 50vw);
+    max-width: 50vw;
+  }
+}
+
+html[lang="zh-CN"] .authLanguageCurrent {
+  letter-spacing: 0;
+}
+

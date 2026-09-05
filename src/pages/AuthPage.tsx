@@ -1,4 +1,5 @@
 import { FormEvent, useState } from 'react'
+import { ChevronDown, Globe2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { authErrorMessage } from '../lib/authErrors'
 import { AppLanguage, languages, useI18n } from '../i18n'
@@ -15,6 +16,9 @@ export default function AuthPage() {
   const [message, setMessage] = useState('')
   const [messageTone, setMessageTone] = useState<MessageTone>('error')
   const [loading, setLoading] = useState(false)
+
+  const currentLanguage =
+    languages.find((item) => item.value === language) ?? languages[0]
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
@@ -53,7 +57,13 @@ export default function AuthPage() {
 
         if (error) {
           setMessageTone('error')
-          setMessage(authErrorMessage(error, t('authGenericError'), language))
+          setMessage(
+            authErrorMessage(
+              error,
+              t('authGenericError'),
+              language,
+            ),
+          )
         } else {
           setMessageTone('success')
           setMessage(t('authRecoverySent'))
@@ -67,14 +77,23 @@ export default function AuthPage() {
           email: normalizedEmail,
           password,
           options: {
-            data: { name: name.trim(), language },
+            data: {
+              name: name.trim(),
+              language,
+            },
             emailRedirectTo: window.location.origin,
           },
         })
 
         if (error) {
           setMessageTone('error')
-          setMessage(authErrorMessage(error, t('authGenericError'), language))
+          setMessage(
+            authErrorMessage(
+              error,
+              t('authGenericError'),
+              language,
+            ),
+          )
         } else {
           setMessageTone('success')
           setMessage(t('authRegistrationSent'))
@@ -93,11 +112,23 @@ export default function AuthPage() {
 
       if (error) {
         setMessageTone('error')
-        setMessage(authErrorMessage(error, t('authGenericError'), language))
+        setMessage(
+          authErrorMessage(
+            error,
+            t('authGenericError'),
+            language,
+          ),
+        )
       }
     } catch (error) {
       setMessageTone('error')
-      setMessage(authErrorMessage(error, t('authGenericError'), language))
+      setMessage(
+        authErrorMessage(
+          error,
+          t('authGenericError'),
+          language,
+        ),
+      )
     } finally {
       setLoading(false)
     }
@@ -113,6 +144,7 @@ export default function AuthPage() {
             alt="RV Fisiologia"
           />
         </div>
+
         <div>
           <p className="eyebrow">RV FISIOLOGIA</p>
           <h1>{t('brandTitle')}</h1>
@@ -128,23 +160,43 @@ export default function AuthPage() {
               src="/logo-rv-app.png"
               alt="RV Fisiologia"
             />
-            <select
-              className="authLanguageSelect"
-              value={language}
-              onChange={(event) =>
-                setLanguage(event.target.value as AppLanguage)
-              }
-              aria-label={t('languageTitle')}
+
+            <label
+              className="authLanguagePicker"
+              title={t('languageTitle')}
             >
-              {languages.map((item) => (
-                <option key={item.value} value={item.value}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
+              <Globe2 size={17} className="authLanguageIcon" />
+
+              <span className="authLanguageCurrent">
+                {currentLanguage.name}
+              </span>
+
+              <ChevronDown
+                size={15}
+                className="authLanguageChevron"
+              />
+
+              <select
+                value={language}
+                onChange={(event) =>
+                  setLanguage(event.target.value as AppLanguage)
+                }
+                aria-label={t('languageTitle')}
+              >
+                {languages.map((item) => (
+                  <option
+                    key={item.value}
+                    value={item.value}
+                  >
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
 
           <p className="eyebrow">RV APP</p>
+
           <h2>
             {mode === 'login'
               ? t('loginTitle')
@@ -167,28 +219,12 @@ export default function AuthPage() {
                 {t('name')}
                 <input
                   value={name}
-                  onChange={(event) => setName(event.target.value)}
+                  onChange={(event) =>
+                    setName(event.target.value)
+                  }
                   autoComplete="name"
                   required
                 />
-              </label>
-            )}
-
-            {mode === 'register' && (
-              <label>
-                {t('languageTitle')}
-                <select
-                  value={language}
-                  onChange={(event) =>
-                    setLanguage(event.target.value as AppLanguage)
-                  }
-                >
-                  {languages.map((item) => (
-                    <option key={item.value} value={item.value}>
-                      {item.name}
-                    </option>
-                  ))}
-                </select>
               </label>
             )}
 
@@ -197,7 +233,9 @@ export default function AuthPage() {
               <input
                 type="email"
                 value={email}
-                onChange={(event) => setEmail(event.target.value)}
+                onChange={(event) =>
+                  setEmail(event.target.value)
+                }
                 autoComplete="email"
                 inputMode="email"
                 required
@@ -210,7 +248,9 @@ export default function AuthPage() {
                 <input
                   type="password"
                   value={password}
-                  onChange={(event) => setPassword(event.target.value)}
+                  onChange={(event) =>
+                    setPassword(event.target.value)
+                  }
                   minLength={8}
                   autoComplete={
                     mode === 'login'
@@ -222,7 +262,10 @@ export default function AuthPage() {
               </label>
             )}
 
-            <button className="primary" disabled={loading}>
+            <button
+              className="primary"
+              disabled={loading}
+            >
               {loading
                 ? t('wait')
                 : mode === 'login'
@@ -234,7 +277,9 @@ export default function AuthPage() {
           </form>
 
           {message && (
-            <p className={`message authMessage ${messageTone}`}>
+            <p
+              className={`message authMessage ${messageTone}`}
+            >
               {message}
             </p>
           )}
