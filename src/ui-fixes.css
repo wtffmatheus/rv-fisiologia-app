@@ -2890,3 +2890,251 @@ html[lang="zh-CN"] .authLanguageCurrent {
   }
 }
 
+
+
+/* RV_APPROVAL_MOBILE_FINAL_20260905 */
+
+.pendingApprovalHint {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  /* A tabela de desktop nunca pode manter largura mínima no celular. */
+  .adminStudentsPage,
+  .enhancedStudentTable,
+  .advancedStudentTable {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+  }
+
+  .studentTable.enhancedStudentTable.advancedStudentTable {
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    overflow: visible !important;
+  }
+
+  .advancedStudentHeader,
+  .enhancedStudentHeader {
+    display: none !important;
+  }
+
+  .studentRow.enhancedStudentRow.advancedStudentRow {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 0 12px !important;
+    padding: 14px !important;
+    border: 1px solid rgba(159, 187, 225, .16) !important;
+    border-radius: 16px !important;
+    background:
+      linear-gradient(180deg, rgba(8, 32, 71, .98), rgba(5, 23, 52, .98)) !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 11px !important;
+    overflow: hidden !important;
+  }
+
+  .advancedStudentRow .studentIdentity {
+    grid-column: 1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding-right: 94px !important;
+  }
+
+  .advancedStudentRow .studentIdentity > div:last-child {
+    min-width: 0 !important;
+  }
+
+  .advancedStudentRow .studentIdentity strong {
+    font-size: 13px !important;
+    line-height: 1.25 !important;
+  }
+
+  .advancedStudentRow .studentIdentity span {
+    display: block !important;
+    max-width: 100% !important;
+    font-size: 10px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .advancedStudentRow .studentIdentity small {
+    font-size: 9px !important;
+  }
+
+  /* Status vira um selo no canto do card. */
+  .advancedStudentRow > div:nth-child(2) {
+    position: absolute !important;
+    z-index: 2 !important;
+    top: 14px !important;
+    right: 14px !important;
+    width: auto !important;
+    max-width: 92px !important;
+  }
+
+  .advancedStudentRow .statusPill {
+    max-width: 92px !important;
+    padding: 6px 8px !important;
+    font-size: 9px !important;
+    white-space: nowrap !important;
+  }
+
+  /* Área de plano deixa de parecer célula de tabela. */
+  .studentPlanCell {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    padding: 12px !important;
+    border: 1px solid rgba(159, 187, 225, .12) !important;
+    border-radius: 12px !important;
+    background: rgba(3, 16, 38, .42) !important;
+    display: grid !important;
+    gap: 9px !important;
+  }
+
+  .pendingApprovalRow .studentPlanCell {
+    border-color: rgba(35, 200, 191, .17) !important;
+    background:
+      linear-gradient(180deg, rgba(35, 200, 191, .04), rgba(3, 16, 38, .42)) !important;
+  }
+
+  .pendingApprovalHint {
+    display: block !important;
+    margin: 0 0 1px !important;
+    color: #8fa7c4 !important;
+    font-size: 9px !important;
+    line-height: 1.45 !important;
+  }
+
+  .pendingApprovalHint strong {
+    color: var(--accent) !important;
+  }
+
+  .studentPlanCell > select {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: 48px !important;
+    padding: 0 38px 0 12px !important;
+    border-radius: 10px !important;
+    font-size: 16px !important;
+  }
+
+  .studentStartDate {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: 48px !important;
+    padding: 0 10px !important;
+    border-radius: 10px !important;
+    grid-template-columns: 20px auto minmax(0, 1fr) !important;
+    gap: 7px !important;
+  }
+
+  .studentStartDate > span {
+    font-size: 10px !important;
+  }
+
+  .studentStartDate input {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 44px !important;
+    font-size: 16px !important;
+    text-align: right !important;
+  }
+
+  .studentPlanCell > small {
+    font-size: 9px !important;
+    line-height: 1.45 !important;
+  }
+
+  /* Pendentes não precisam ocupar tela com "Sem plano ativo". */
+  .pendingApprovalRow .studentProgressCell {
+    display: none !important;
+  }
+
+  /* Ativos continuam com progresso, mas compacto. */
+  .studentProgressCell {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 10px 2px 2px !important;
+  }
+
+  /* Ação principal é inequívoca e fácil de tocar com uma mão. */
+  .advancedRowActions {
+    width: 100% !important;
+    min-width: 0 !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .advancedRowActions button {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 43px !important;
+    margin: 0 !important;
+    justify-content: center !important;
+    border-radius: 10px !important;
+  }
+
+  .pendingApprovalRow .approveButton {
+    grid-column: 1 / -1 !important;
+    grid-row: 1 !important;
+    min-height: 50px !important;
+    font-size: 13px !important;
+    font-weight: 850 !important;
+  }
+
+  .pendingApprovalRow .studentDetailsButton,
+  .pendingApprovalRow .blockButton {
+    grid-row: 2 !important;
+    font-size: 10px !important;
+  }
+
+  .pendingApprovalRow .studentDetailsButton {
+    grid-column: 1 !important;
+  }
+
+  .pendingApprovalRow .blockButton {
+    grid-column: 2 !important;
+  }
+
+  /* Remove qualquer scrollbar horizontal herdado da tabela antiga. */
+  .adminStudentsPage,
+  .advancedStudentTable,
+  .advancedStudentRow,
+  .studentPlanCell,
+  .advancedRowActions {
+    overflow-x: clip !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .advancedStudentRow .studentIdentity {
+    padding-right: 0 !important;
+    padding-top: 34px !important;
+  }
+
+  .advancedStudentRow > div:nth-child(2) {
+    left: 14px !important;
+    right: auto !important;
+  }
+
+  .advancedRowActions {
+    grid-template-columns: 1fr !important;
+  }
+
+  .pendingApprovalRow .approveButton,
+  .pendingApprovalRow .studentDetailsButton,
+  .pendingApprovalRow .blockButton {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+  }
+}
+

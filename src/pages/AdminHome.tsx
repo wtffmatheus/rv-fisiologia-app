@@ -1196,7 +1196,7 @@ export default function AdminHome({ profile }: { profile: Profile }) {
 
               return (
                 <article
-                  className="studentRow enhancedStudentRow advancedStudentRow"
+                  className={`studentRow enhancedStudentRow advancedStudentRow ${student.status === 'pending' ? 'pendingApprovalRow' : ''}`}
                   key={student.id}
                 >
                   <div className="studentIdentity">
@@ -1226,6 +1226,13 @@ export default function AdminHome({ profile }: { profile: Profile }) {
                   </div>
 
                   <div className="studentPlanCell">
+                    {student.status === 'pending' && (
+                      <p className="pendingApprovalHint">
+                        <strong>Aprovação rápida:</strong> escolha a metodologia.
+                        A data de início já vem preenchida com hoje e pode ser alterada se necessário.
+                      </p>
+                    )}
+
                     <select
                       value={selectedProgramId || ''}
                       onChange={(event) =>
