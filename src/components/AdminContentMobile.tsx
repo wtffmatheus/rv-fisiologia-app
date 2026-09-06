@@ -1,16 +1,12 @@
 import {
-  BookOpen,
-  Check,
-  ChevronDown,
+  ArrowLeft,
+  ChevronRight,
   FileVideo,
-  FolderPlus,
-  Pencil,
   Play,
   Plus,
   Save,
   Trash2,
   Upload,
-  Video,
   X,
 } from 'lucide-react'
 import {
@@ -639,9 +635,358 @@ async function uploadMultipart({
   }
 }
 
+
+const flowCopy = {
+  'pt-BR': {
+    content: 'Conteúdo',
+    activeMethods: 'Metodologias ativas',
+    activeMethodsHelp: 'Escolha uma metodologia para ver e editar as aulas.',
+    lessons: 'Aulas',
+    lessonsHelp: 'Abra uma aula para editar. Uma coisa por vez.',
+    exercises: 'Exercícios',
+    exercisesHelp: 'Abra um exercício para editar séries, repetições e vídeo.',
+    addMethod: 'Nova metodologia',
+    addLesson: 'Adicionar aula',
+    addExercise: 'Adicionar exercício',
+    backMethods: 'Metodologias',
+    backLessons: 'Aulas',
+    backLesson: 'Aula',
+    noActiveMethods: 'Nenhuma metodologia ativa',
+    noActiveMethodsHelp: 'Crie uma metodologia para começar a publicar treinos.',
+    noLessons: 'Nenhuma aula nesta metodologia',
+    noLessonsHelp: 'Adicione a primeira aula.',
+    noExercises: 'Nenhum exercício nesta aula',
+    noExercisesHelp: 'Adicione o primeiro exercício e, se quiser, já envie o vídeo.',
+    methodName: 'Nome da metodologia',
+    methodDescription: 'Descrição',
+    createMethod: 'Criar metodologia',
+    lessonName: 'Nome da aula',
+    lessonGuidance: 'Orientação da aula',
+    createLesson: 'Criar aula',
+    saveLesson: 'Salvar aula',
+    exerciseName: 'Nome do exercício',
+    sets: 'Séries',
+    reps: 'Repetições / tempo',
+    rest: 'Descanso (s)',
+    instructions: 'Instruções',
+    video: 'Vídeo',
+    noVideo: 'Sem vídeo',
+    videoReady: 'Vídeo adicionado',
+    selectVideo: 'Selecionar vídeo',
+    changeVideo: 'Trocar vídeo',
+    previewVideo: 'Ver vídeo',
+    closeVideo: 'Fechar vídeo',
+    saveExercise: 'Salvar exercício',
+    createExercise: 'Adicionar exercício',
+    advanced: 'Opções avançadas',
+    videoFormat: 'Formato do vídeo',
+    videoFit: 'Enquadramento',
+    fill: 'Preencher sem bordas',
+    full: 'Mostrar inteiro',
+    organization: 'Organização',
+    week: 'Semana',
+    deleteLesson: 'Excluir aula',
+    deleteExercise: 'Excluir exercício',
+    confirmDeleteLesson: 'Excluir esta aula e todos os exercícios?',
+    confirmDeleteExercise: 'Excluir este exercício?',
+    upload: 'Enviando vídeo...',
+    saved: 'Alterações salvas.',
+    created: 'Criado com sucesso.',
+    error: 'Não foi possível concluir esta ação.',
+    videoError: 'Não foi possível enviar o vídeo.',
+    active: 'Ativa',
+    lessonCount: 'aula(s)',
+    exerciseCount: 'exercício(s)',
+    optional: 'Opcional',
+    required: 'Obrigatório',
+    chooseWeek: 'Escolher semana',
+    newLessonTitle: 'Nova aula',
+    newExerciseTitle: 'Novo exercício',
+  },
+  en: {
+    content: 'Content',
+    activeMethods: 'Active methodologies',
+    activeMethodsHelp: 'Choose a methodology to view and edit its lessons.',
+    lessons: 'Lessons',
+    lessonsHelp: 'Open one lesson to edit it. One thing at a time.',
+    exercises: 'Exercises',
+    exercisesHelp: 'Open an exercise to edit sets, repetitions and video.',
+    addMethod: 'New methodology',
+    addLesson: 'Add lesson',
+    addExercise: 'Add exercise',
+    backMethods: 'Methodologies',
+    backLessons: 'Lessons',
+    backLesson: 'Lesson',
+    noActiveMethods: 'No active methodologies',
+    noActiveMethodsHelp: 'Create a methodology to start publishing training.',
+    noLessons: 'No lessons in this methodology',
+    noLessonsHelp: 'Add the first lesson.',
+    noExercises: 'No exercises in this lesson',
+    noExercisesHelp: 'Add the first exercise and upload a video if you want.',
+    methodName: 'Methodology name',
+    methodDescription: 'Description',
+    createMethod: 'Create methodology',
+    lessonName: 'Lesson name',
+    lessonGuidance: 'Lesson guidance',
+    createLesson: 'Create lesson',
+    saveLesson: 'Save lesson',
+    exerciseName: 'Exercise name',
+    sets: 'Sets',
+    reps: 'Repetitions / time',
+    rest: 'Rest (s)',
+    instructions: 'Instructions',
+    video: 'Video',
+    noVideo: 'No video',
+    videoReady: 'Video added',
+    selectVideo: 'Select video',
+    changeVideo: 'Change video',
+    previewVideo: 'View video',
+    closeVideo: 'Close video',
+    saveExercise: 'Save exercise',
+    createExercise: 'Add exercise',
+    advanced: 'Advanced options',
+    videoFormat: 'Video format',
+    videoFit: 'Framing',
+    fill: 'Fill without borders',
+    full: 'Show full video',
+    organization: 'Organization',
+    week: 'Week',
+    deleteLesson: 'Delete lesson',
+    deleteExercise: 'Delete exercise',
+    confirmDeleteLesson: 'Delete this lesson and all exercises?',
+    confirmDeleteExercise: 'Delete this exercise?',
+    upload: 'Uploading video...',
+    saved: 'Changes saved.',
+    created: 'Created successfully.',
+    error: 'Could not complete this action.',
+    videoError: 'Could not upload the video.',
+    active: 'Active',
+    lessonCount: 'lesson(s)',
+    exerciseCount: 'exercise(s)',
+    optional: 'Optional',
+    required: 'Required',
+    chooseWeek: 'Choose week',
+    newLessonTitle: 'New lesson',
+    newExerciseTitle: 'New exercise',
+  },
+  es: {
+    content: 'Contenido',
+    activeMethods: 'Metodologías activas',
+    activeMethodsHelp: 'Elige una metodología para ver y editar sus clases.',
+    lessons: 'Clases',
+    lessonsHelp: 'Abre una clase para editarla. Una cosa a la vez.',
+    exercises: 'Ejercicios',
+    exercisesHelp: 'Abre un ejercicio para editar series, repeticiones y video.',
+    addMethod: 'Nueva metodología',
+    addLesson: 'Agregar clase',
+    addExercise: 'Agregar ejercicio',
+    backMethods: 'Metodologías',
+    backLessons: 'Clases',
+    backLesson: 'Clase',
+    noActiveMethods: 'No hay metodologías activas',
+    noActiveMethodsHelp: 'Crea una metodología para comenzar a publicar entrenamientos.',
+    noLessons: 'No hay clases en esta metodología',
+    noLessonsHelp: 'Agrega la primera clase.',
+    noExercises: 'No hay ejercicios en esta clase',
+    noExercisesHelp: 'Agrega el primer ejercicio y, si quieres, sube el video.',
+    methodName: 'Nombre de la metodología',
+    methodDescription: 'Descripción',
+    createMethod: 'Crear metodología',
+    lessonName: 'Nombre de la clase',
+    lessonGuidance: 'Orientación de la clase',
+    createLesson: 'Crear clase',
+    saveLesson: 'Guardar clase',
+    exerciseName: 'Nombre del ejercicio',
+    sets: 'Series',
+    reps: 'Repeticiones / tiempo',
+    rest: 'Descanso (s)',
+    instructions: 'Instrucciones',
+    video: 'Video',
+    noVideo: 'Sin video',
+    videoReady: 'Video agregado',
+    selectVideo: 'Seleccionar video',
+    changeVideo: 'Cambiar video',
+    previewVideo: 'Ver video',
+    closeVideo: 'Cerrar video',
+    saveExercise: 'Guardar ejercicio',
+    createExercise: 'Agregar ejercicio',
+    advanced: 'Opciones avanzadas',
+    videoFormat: 'Formato del video',
+    videoFit: 'Encuadre',
+    fill: 'Rellenar sin bordes',
+    full: 'Mostrar completo',
+    organization: 'Organización',
+    week: 'Semana',
+    deleteLesson: 'Eliminar clase',
+    deleteExercise: 'Eliminar ejercicio',
+    confirmDeleteLesson: '¿Eliminar esta clase y todos sus ejercicios?',
+    confirmDeleteExercise: '¿Eliminar este ejercicio?',
+    upload: 'Subiendo video...',
+    saved: 'Cambios guardados.',
+    created: 'Creado correctamente.',
+    error: 'No se pudo completar esta acción.',
+    videoError: 'No se pudo subir el video.',
+    active: 'Activa',
+    lessonCount: 'clase(s)',
+    exerciseCount: 'ejercicio(s)',
+    optional: 'Opcional',
+    required: 'Obligatorio',
+    chooseWeek: 'Elegir semana',
+    newLessonTitle: 'Nueva clase',
+    newExerciseTitle: 'Nuevo ejercicio',
+  },
+  'zh-CN': {
+    content: '内容',
+    activeMethods: '启用的训练方案',
+    activeMethodsHelp: '选择训练方案后查看和编辑课程。',
+    lessons: '课程',
+    lessonsHelp: '打开一节课程进行编辑，一次只处理一项。',
+    exercises: '练习',
+    exercisesHelp: '打开练习后编辑组数、次数和视频。',
+    addMethod: '新建训练方案',
+    addLesson: '添加课程',
+    addExercise: '添加练习',
+    backMethods: '训练方案',
+    backLessons: '课程',
+    backLesson: '课程',
+    noActiveMethods: '暂无启用的训练方案',
+    noActiveMethodsHelp: '创建训练方案后即可开始发布训练。',
+    noLessons: '此训练方案暂无课程',
+    noLessonsHelp: '添加第一节课程。',
+    noExercises: '此课程暂无练习',
+    noExercisesHelp: '添加第一个练习，也可以直接上传视频。',
+    methodName: '训练方案名称',
+    methodDescription: '描述',
+    createMethod: '创建训练方案',
+    lessonName: '课程名称',
+    lessonGuidance: '课程说明',
+    createLesson: '创建课程',
+    saveLesson: '保存课程',
+    exerciseName: '练习名称',
+    sets: '组数',
+    reps: '次数 / 时间',
+    rest: '休息（秒）',
+    instructions: '说明',
+    video: '视频',
+    noVideo: '无视频',
+    videoReady: '已添加视频',
+    selectVideo: '选择视频',
+    changeVideo: '更换视频',
+    previewVideo: '查看视频',
+    closeVideo: '关闭视频',
+    saveExercise: '保存练习',
+    createExercise: '添加练习',
+    advanced: '高级选项',
+    videoFormat: '视频格式',
+    videoFit: '画面适配',
+    fill: '填充无边框',
+    full: '完整显示',
+    organization: '组织',
+    week: '周',
+    deleteLesson: '删除课程',
+    deleteExercise: '删除练习',
+    confirmDeleteLesson: '删除此课程及所有练习？',
+    confirmDeleteExercise: '删除此练习？',
+    upload: '视频上传中...',
+    saved: '已保存修改。',
+    created: '创建成功。',
+    error: '无法完成此操作。',
+    videoError: '无法上传视频。',
+    active: '启用',
+    lessonCount: '节课',
+    exerciseCount: '个练习',
+    optional: '可选',
+    required: '必填',
+    chooseWeek: '选择周次',
+    newLessonTitle: '新课程',
+    newExerciseTitle: '新练习',
+  },
+  de: {
+    content: 'Inhalte',
+    activeMethods: 'Aktive Methoden',
+    activeMethodsHelp: 'Wähle eine Methode, um ihre Lektionen anzusehen und zu bearbeiten.',
+    lessons: 'Lektionen',
+    lessonsHelp: 'Öffne eine Lektion zum Bearbeiten. Eine Sache nach der anderen.',
+    exercises: 'Übungen',
+    exercisesHelp: 'Öffne eine Übung, um Sätze, Wiederholungen und Video zu bearbeiten.',
+    addMethod: 'Neue Methode',
+    addLesson: 'Lektion hinzufügen',
+    addExercise: 'Übung hinzufügen',
+    backMethods: 'Methoden',
+    backLessons: 'Lektionen',
+    backLesson: 'Lektion',
+    noActiveMethods: 'Keine aktiven Methoden',
+    noActiveMethodsHelp: 'Erstelle eine Methode, um Trainings zu veröffentlichen.',
+    noLessons: 'Keine Lektionen in dieser Methode',
+    noLessonsHelp: 'Füge die erste Lektion hinzu.',
+    noExercises: 'Keine Übungen in dieser Lektion',
+    noExercisesHelp: 'Füge die erste Übung hinzu und lade optional ein Video hoch.',
+    methodName: 'Methodenname',
+    methodDescription: 'Beschreibung',
+    createMethod: 'Methode erstellen',
+    lessonName: 'Lektionsname',
+    lessonGuidance: 'Lektionshinweise',
+    createLesson: 'Lektion erstellen',
+    saveLesson: 'Lektion speichern',
+    exerciseName: 'Übungsname',
+    sets: 'Sätze',
+    reps: 'Wiederholungen / Zeit',
+    rest: 'Pause (s)',
+    instructions: 'Anweisungen',
+    video: 'Video',
+    noVideo: 'Kein Video',
+    videoReady: 'Video hinzugefügt',
+    selectVideo: 'Video auswählen',
+    changeVideo: 'Video wechseln',
+    previewVideo: 'Video ansehen',
+    closeVideo: 'Video schließen',
+    saveExercise: 'Übung speichern',
+    createExercise: 'Übung hinzufügen',
+    advanced: 'Erweiterte Optionen',
+    videoFormat: 'Videoformat',
+    videoFit: 'Darstellung',
+    fill: 'Ohne Ränder ausfüllen',
+    full: 'Ganzes Video anzeigen',
+    organization: 'Organisation',
+    week: 'Woche',
+    deleteLesson: 'Lektion löschen',
+    deleteExercise: 'Übung löschen',
+    confirmDeleteLesson: 'Diese Lektion und alle Übungen löschen?',
+    confirmDeleteExercise: 'Diese Übung löschen?',
+    upload: 'Video wird hochgeladen...',
+    saved: 'Änderungen gespeichert.',
+    created: 'Erfolgreich erstellt.',
+    error: 'Aktion konnte nicht abgeschlossen werden.',
+    videoError: 'Video konnte nicht hochgeladen werden.',
+    active: 'Aktiv',
+    lessonCount: 'Lektion(en)',
+    exerciseCount: 'Übung(en)',
+    optional: 'Optional',
+    required: 'Erforderlich',
+    chooseWeek: 'Woche auswählen',
+    newLessonTitle: 'Neue Lektion',
+    newExerciseTitle: 'Neue Übung',
+  },
+} as const
+
+type FlowView =
+  | 'programs'
+  | 'new-program'
+  | 'lessons'
+  | 'new-lesson'
+  | 'lesson'
+  | 'new-exercise'
+  | 'exercise'
+
 export default function AdminContentMobile() {
   const { language } = useI18n()
-  const text = copy[language]
+  const text = {
+    ...copy[language],
+    ...flowCopy[language],
+  }
+
+  const [view, setView] =
+    useState<FlowView>('programs')
 
   const [programs, setPrograms] =
     useState<Program[]>([])
@@ -658,34 +1003,24 @@ export default function AdminContentMobile() {
   ] = useState<number | null>(null)
 
   const [
-    selectedWeekId,
-    setSelectedWeekId,
-  ] = useState<number | null>(null)
-
-  const [
     selectedLessonId,
     setSelectedLessonId,
   ] = useState<number | null>(null)
 
+  const [
+    selectedExerciseId,
+    setSelectedExerciseId,
+  ] = useState<number | null>(null)
+
   const [loading, setLoading] =
     useState(true)
-
   const [saving, setSaving] =
     useState(false)
-
   const [feedback, setFeedback] =
     useState('')
 
-  const [
-    showNewProgram,
-    setShowNewProgram,
-  ] = useState(false)
-
-  const [
-    newProgramTitle,
-    setNewProgramTitle,
-  ] = useState('')
-
+  const [newProgramTitle, setNewProgramTitle] =
+    useState('')
   const [
     newProgramDescription,
     setNewProgramDescription,
@@ -693,59 +1028,44 @@ export default function AdminContentMobile() {
 
   const [lessonTitle, setLessonTitle] =
     useState('')
-
   const [
     lessonDescription,
     setLessonDescription,
   ] = useState('')
+  const [
+    newLessonWeekId,
+    setNewLessonWeekId,
+  ] = useState<number | null>(null)
 
   const [
-    showNewExercise,
-    setShowNewExercise,
-  ] = useState(false)
-
-  const [
-    newExerciseTitle,
-    setNewExerciseTitle,
+    exerciseTitle,
+    setExerciseTitle,
   ] = useState('')
-
+  const [exerciseSets, setExerciseSets] =
+    useState('3')
+  const [exerciseReps, setExerciseReps] =
+    useState('12')
+  const [exerciseRest, setExerciseRest] =
+    useState('45')
   const [
-    newExerciseSets,
-    setNewExerciseSets,
-  ] = useState('3')
-
-  const [
-    newExerciseReps,
-    setNewExerciseReps,
-  ] = useState('12')
-
-  const [
-    newExerciseRest,
-    setNewExerciseRest,
-  ] = useState('45')
-
-  const [
-    newExerciseInstructions,
-    setNewExerciseInstructions,
+    exerciseInstructions,
+    setExerciseInstructions,
   ] = useState('')
-
   const [
-    newExerciseRatio,
-    setNewExerciseRatio,
+    exerciseRatio,
+    setExerciseRatio,
   ] = useState<
     '9:16' | '4:5' | '1:1' | '16:9'
   >('9:16')
-
   const [
-    newExerciseFit,
-    setNewExerciseFit,
+    exerciseFit,
+    setExerciseFit,
   ] = useState<'cover' | 'contain'>(
     'cover',
   )
-
   const [
-    newExerciseVideo,
-    setNewExerciseVideo,
+    exerciseVideo,
+    setExerciseVideo,
   ] = useState<File | null>(null)
 
   const [
@@ -754,13 +1074,11 @@ export default function AdminContentMobile() {
   ] = useState<UploadState>(null)
 
   const [
-    previewUrls,
-    setPreviewUrls,
-  ] = useState<Record<number, string>>(
-    {},
-  )
+    previewUrl,
+    setPreviewUrl,
+  ] = useState('')
 
-  const newVideoInput =
+  const videoInputRef =
     useRef<HTMLInputElement | null>(null)
 
   const selectedProgram = useMemo(
@@ -772,15 +1090,6 @@ export default function AdminContentMobile() {
     [programs, selectedProgramId],
   )
 
-  const selectedWeek = useMemo(
-    () =>
-      weeks.find(
-        (item) =>
-          item.id === selectedWeekId,
-      ) ?? null,
-    [weeks, selectedWeekId],
-  )
-
   const selectedLesson = useMemo(
     () =>
       lessons.find(
@@ -790,15 +1099,52 @@ export default function AdminContentMobile() {
     [lessons, selectedLessonId],
   )
 
-  async function loadPrograms(
-    preferred?: number | null,
-  ) {
+  const selectedExercise = useMemo(
+    () =>
+      exercises.find(
+        (item) =>
+          item.id === selectedExerciseId,
+      ) ?? null,
+    [exercises, selectedExerciseId],
+  )
+
+  const weekById = useMemo(
+    () =>
+      new Map(
+        weeks.map((week) => [
+          week.id,
+          week,
+        ]),
+      ),
+    [weeks],
+  )
+
+  function resetExerciseForm() {
+    setExerciseTitle('')
+    setExerciseSets('3')
+    setExerciseReps('12')
+    setExerciseRest('45')
+    setExerciseInstructions('')
+    setExerciseRatio('9:16')
+    setExerciseFit('cover')
+    setExerciseVideo(null)
+    setPreviewUrl('')
+
+    if (videoInputRef.current) {
+      videoInputRef.current.value = ''
+    }
+  }
+
+  async function loadPrograms() {
+    setLoading(true)
+
     const { data, error } =
       await supabase
         .from('programs')
         .select(
           'id,title,description,is_active',
         )
+        .eq('is_active', true)
         .order('created_at', {
           ascending: true,
         })
@@ -809,34 +1155,19 @@ export default function AdminContentMobile() {
       return
     }
 
-    const rows =
-      (data as Program[]) ?? []
-
-    setPrograms(rows)
-
-    const next =
-      preferred &&
-      rows.some(
-        (item) => item.id === preferred,
-      )
-        ? preferred
-        : selectedProgramId &&
-            rows.some(
-              (item) =>
-                item.id === selectedProgramId,
-            )
-          ? selectedProgramId
-          : rows[0]?.id ?? null
-
-    setSelectedProgramId(next)
+    setPrograms(
+      (data as Program[]) ?? [],
+    )
     setLoading(false)
   }
 
-  async function loadWeeks(
+  async function loadProgramContent(
     programId: number,
-    preferred?: number | null,
   ) {
-    const { data, error } =
+    setLoading(true)
+    setFeedback('')
+
+    const { data: weekData, error: weekError } =
       await supabase
         .from('weeks')
         .select(
@@ -845,84 +1176,75 @@ export default function AdminContentMobile() {
         .eq('program_id', programId)
         .order('week_number')
 
-    if (error) {
+    if (weekError) {
       setFeedback(text.error)
+      setLoading(false)
       return
     }
 
-    const rows =
-      (data as Week[]) ?? []
+    const nextWeeks =
+      (weekData as Week[]) ?? []
 
-    setWeeks(rows)
+    setWeeks(nextWeeks)
 
-    const next =
-      preferred &&
-      rows.some(
-        (item) => item.id === preferred,
-      )
-        ? preferred
-        : rows.some(
-              (item) =>
-                item.id === selectedWeekId,
-            )
-          ? selectedWeekId
-          : rows[0]?.id ?? null
-
-    setSelectedWeekId(next ?? null)
-
-    if (!next) {
+    if (!nextWeeks.length) {
       setLessons([])
-      setSelectedLessonId(null)
-      setExercises([])
+      setLoading(false)
+      return
     }
-  }
 
-  async function loadLessons(
-    weekId: number,
-    preferred?: number | null,
-  ) {
-    const { data, error } =
+    const { data: lessonData, error: lessonError } =
       await supabase
         .from('lessons')
         .select(
           'id,week_id,lesson_number,title,description',
         )
-        .eq('week_id', weekId)
-        .order('lesson_number')
+        .in(
+          'week_id',
+          nextWeeks.map(
+            (item) => item.id,
+          ),
+        )
 
-    if (error) {
+    if (lessonError) {
       setFeedback(text.error)
+      setLoading(false)
       return
     }
 
-    const rows =
-      (data as Lesson[]) ?? []
+    const order = new Map(
+      nextWeeks.map((week) => [
+        week.id,
+        week.week_number,
+      ]),
+    )
 
-    setLessons(rows)
+    const nextLessons =
+      ((lessonData as Lesson[]) ?? [])
+        .sort((a, b) => {
+          const weekDiff =
+            (order.get(a.week_id) ?? 0) -
+            (order.get(b.week_id) ?? 0)
 
-    const next =
-      preferred &&
-      rows.some(
-        (item) => item.id === preferred,
-      )
-        ? preferred
-        : rows.some(
-              (item) =>
-                item.id === selectedLessonId,
-            )
-          ? selectedLessonId
-          : rows[0]?.id ?? null
+          if (weekDiff !== 0) {
+            return weekDiff
+          }
 
-    setSelectedLessonId(next ?? null)
+          return (
+            a.lesson_number -
+            b.lesson_number
+          )
+        })
 
-    if (!next) {
-      setExercises([])
-    }
+    setLessons(nextLessons)
+    setLoading(false)
   }
 
   async function loadExercises(
     lessonId: number,
   ) {
+    setLoading(true)
+
     const { data, error } =
       await supabase
         .from('exercises')
@@ -935,55 +1257,104 @@ export default function AdminContentMobile() {
 
     if (error) {
       setFeedback(text.error)
+      setLoading(false)
       return
     }
 
     setExercises(
       (data as Exercise[]) ?? [],
     )
+    setLoading(false)
   }
 
   useEffect(() => {
     void loadPrograms()
   }, [])
 
-  useEffect(() => {
-    if (!selectedProgramId) {
-      setWeeks([])
-      setSelectedWeekId(null)
-      return
-    }
+  async function openProgram(
+    programId: number,
+  ) {
+    setSelectedProgramId(programId)
+    setSelectedLessonId(null)
+    setSelectedExerciseId(null)
+    setView('lessons')
 
-    void loadWeeks(selectedProgramId)
-  }, [selectedProgramId])
+    await loadProgramContent(
+      programId,
+    )
+  }
 
-  useEffect(() => {
-    if (!selectedWeekId) {
-      setLessons([])
-      setSelectedLessonId(null)
-      return
-    }
-
-    void loadLessons(selectedWeekId)
-  }, [selectedWeekId])
-
-  useEffect(() => {
-    if (!selectedLesson) {
-      setLessonTitle('')
-      setLessonDescription('')
-      setExercises([])
-      return
-    }
-
-    setLessonTitle(selectedLesson.title)
+  async function openLesson(
+    lesson: Lesson,
+  ) {
+    setSelectedLessonId(lesson.id)
+    setSelectedExerciseId(null)
+    setLessonTitle(lesson.title)
     setLessonDescription(
-      selectedLesson.description ?? '',
+      lesson.description ?? '',
     )
+    setView('lesson')
 
-    void loadExercises(
-      selectedLesson.id,
+    await loadExercises(lesson.id)
+  }
+
+  function openExercise(
+    exercise: Exercise,
+  ) {
+    setSelectedExerciseId(exercise.id)
+    setExerciseTitle(exercise.title)
+    setExerciseSets(
+      exercise.sets ?? '',
     )
-  }, [selectedLessonId])
+    setExerciseReps(
+      exercise.repetitions ?? '',
+    )
+    setExerciseRest(
+      exercise.rest_seconds == null
+        ? ''
+        : String(
+            exercise.rest_seconds,
+          ),
+    )
+    setExerciseInstructions(
+      exercise.instructions ?? '',
+    )
+    setExerciseRatio(
+      exercise.video_ratio || '9:16',
+    )
+    setExerciseFit(
+      exercise.video_fit || 'cover',
+    )
+    setExerciseVideo(null)
+    setPreviewUrl('')
+    setView('exercise')
+  }
+
+  function goPrograms() {
+    setView('programs')
+    setSelectedProgramId(null)
+    setSelectedLessonId(null)
+    setSelectedExerciseId(null)
+    setWeeks([])
+    setLessons([])
+    setExercises([])
+    setFeedback('')
+  }
+
+  function goLessons() {
+    setView('lessons')
+    setSelectedLessonId(null)
+    setSelectedExerciseId(null)
+    setExercises([])
+    setFeedback('')
+  }
+
+  function goLesson() {
+    setView('lesson')
+    setSelectedExerciseId(null)
+    resetExerciseForm()
+    setFeedback('')
+  }
 
   async function createProgram() {
     const title =
@@ -1016,91 +1387,128 @@ export default function AdminContentMobile() {
 
     setNewProgramTitle('')
     setNewProgramDescription('')
-    setShowNewProgram(false)
     setFeedback(text.created)
 
-    await loadPrograms(data.id)
+    await loadPrograms()
+    await openProgram(data.id)
   }
 
-  async function createWeek() {
-    if (!selectedProgramId) return
+  async function ensureWeek() {
+    if (newLessonWeekId) {
+      return newLessonWeekId
+    }
 
-    const nextNumber =
-      Math.max(
-        0,
-        ...weeks.map(
-          (item) => item.week_number,
-        ),
-      ) + 1
+    if (weeks.length) {
+      return weeks[0].id
+    }
 
-    setSaving(true)
+    if (!selectedProgramId) {
+      throw new Error(
+        'missing_program',
+      )
+    }
 
     const { data, error } =
       await supabase
         .from('weeks')
         .insert({
-          program_id: selectedProgramId,
-          week_number: nextNumber,
-          title: `Semana ${nextNumber}`,
+          program_id:
+            selectedProgramId,
+          week_number: 1,
+          title: 'Semana 1',
         })
         .select('id')
         .single()
 
-    setSaving(false)
-
     if (error || !data) {
-      setFeedback(text.error)
-      return
+      throw error ||
+        new Error('week_create_failed')
     }
 
-    setFeedback(text.created)
+    setWeeks([
+      {
+        id: data.id,
+        program_id:
+          selectedProgramId,
+        week_number: 1,
+        title: 'Semana 1',
+      },
+    ])
 
-    await loadWeeks(
-      selectedProgramId,
-      data.id,
-    )
+    return data.id
   }
 
   async function createLesson() {
-    if (!selectedWeekId) return
-
-    const nextNumber =
-      Math.max(
-        0,
-        ...lessons.map(
-          (item) => item.lesson_number,
-        ),
-      ) + 1
-
-    setSaving(true)
-
-    const { data, error } =
-      await supabase
-        .from('lessons')
-        .insert({
-          week_id: selectedWeekId,
-          lesson_number: nextNumber,
-          title: `Aula ${String(
-            nextNumber,
-          ).padStart(2, '0')}`,
-          description: null,
-        })
-        .select('id')
-        .single()
-
-    setSaving(false)
-
-    if (error || !data) {
-      setFeedback(text.error)
+    if (
+      !selectedProgramId ||
+      !lessonTitle.trim()
+    ) {
       return
     }
 
-    setFeedback(text.created)
+    setSaving(true)
+    setFeedback('')
 
-    await loadLessons(
-      selectedWeekId,
-      data.id,
-    )
+    try {
+      const weekId =
+        await ensureWeek()
+
+      const weekLessons =
+        lessons.filter(
+          (item) =>
+            item.week_id === weekId,
+        )
+
+      const nextNumber =
+        Math.max(
+          0,
+          ...weekLessons.map(
+            (item) =>
+              item.lesson_number,
+          ),
+        ) + 1
+
+      const { data, error } =
+        await supabase
+          .from('lessons')
+          .insert({
+            week_id: weekId,
+            lesson_number:
+              nextNumber,
+            title:
+              lessonTitle.trim(),
+            description:
+              lessonDescription.trim() ||
+              null,
+          })
+          .select(
+            'id,week_id,lesson_number,title,description',
+          )
+          .single()
+
+      if (error || !data) {
+        throw error ||
+          new Error(
+            'lesson_create_failed',
+          )
+      }
+
+      setFeedback(text.created)
+      await loadProgramContent(
+        selectedProgramId,
+      )
+      await openLesson(
+        data as Lesson,
+      )
+    } catch (error) {
+      console.error(
+        'create lesson:',
+        error,
+      )
+      setFeedback(text.error)
+    } finally {
+      setSaving(false)
+    }
   }
 
   async function saveLesson() {
@@ -1117,12 +1525,16 @@ export default function AdminContentMobile() {
       await supabase
         .from('lessons')
         .update({
-          title: lessonTitle.trim(),
+          title:
+            lessonTitle.trim(),
           description:
             lessonDescription.trim() ||
             null,
         })
-        .eq('id', selectedLessonId)
+        .eq(
+          'id',
+          selectedLessonId,
+        )
 
     setSaving(false)
 
@@ -1136,7 +1548,8 @@ export default function AdminContentMobile() {
         item.id === selectedLessonId
           ? {
               ...item,
-              title: lessonTitle.trim(),
+              title:
+                lessonTitle.trim(),
               description:
                 lessonDescription.trim() ||
                 null,
@@ -1148,273 +1561,305 @@ export default function AdminContentMobile() {
     setFeedback(text.saved)
   }
 
-  function updateExercise(
-    id: number,
-    patch: Partial<Exercise>,
+  async function persistExercise(
+    exerciseId: number,
+    oldVideoPath?: string | null,
   ) {
-    setExercises((current) =>
-      current.map((item) =>
-        item.id === id
-          ? { ...item, ...patch }
-          : item,
-      ),
-    )
-  }
-
-  async function saveExercise(
-    exercise: Exercise,
-  ) {
-    setSaving(true)
+    const rest =
+      Number(exerciseRest)
 
     const { error } =
       await supabase
         .from('exercises')
         .update({
-          title: exercise.title.trim(),
+          title:
+            exerciseTitle.trim(),
           sets:
-            exercise.sets?.trim() || null,
+            exerciseSets.trim() ||
+            null,
           repetitions:
-            exercise.repetitions?.trim() ||
+            exerciseReps.trim() ||
             null,
           rest_seconds:
-            exercise.rest_seconds,
+            exerciseRest === ''
+              ? null
+              : Number.isFinite(rest)
+                ? rest
+                : null,
           instructions:
-            exercise.instructions?.trim() ||
+            exerciseInstructions.trim() ||
             null,
           video_ratio:
-            exercise.video_ratio,
+            exerciseRatio,
           video_fit:
-            exercise.video_fit,
+            exerciseFit,
         })
-        .eq('id', exercise.id)
+        .eq('id', exerciseId)
 
-    setSaving(false)
+    if (error) {
+      throw error
+    }
 
-    setFeedback(
-      error ? text.error : text.saved,
-    )
+    if (
+      exerciseVideo &&
+      selectedProgramId &&
+      selectedLessonId
+    ) {
+      setUploadState({
+        id: exerciseId,
+        progress: 0,
+        message: text.upload,
+      })
+
+      await uploadMultipart({
+        exerciseId,
+        programId:
+          selectedProgramId,
+        lessonId:
+          selectedLessonId,
+        file: exerciseVideo,
+        oldKey:
+          oldVideoPath || null,
+        onProgress: (progress) =>
+          setUploadState({
+            id: exerciseId,
+            progress,
+            message:
+              text.upload,
+          }),
+      })
+
+      setUploadState(null)
+    }
   }
 
-  async function addExercise() {
+  async function createExercise() {
     if (
       !selectedLessonId ||
       !selectedProgramId ||
-      !newExerciseTitle.trim()
+      !exerciseTitle.trim()
     ) {
       return
     }
-
-    const rest =
-      Number(newExerciseRest)
-
-    const sortOrder =
-      Math.max(
-        0,
-        ...exercises.map(
-          (item) => item.sort_order,
-        ),
-      ) + 1
 
     setSaving(true)
     setFeedback('')
 
-    const { data, error } =
-      await supabase
-        .from('exercises')
-        .insert({
-          lesson_id: selectedLessonId,
-          title:
-            newExerciseTitle.trim(),
-          sets:
-            newExerciseSets.trim() ||
-            null,
-          repetitions:
-            newExerciseReps.trim() ||
-            null,
-          rest_seconds:
-            Number.isFinite(rest)
-              ? rest
-              : null,
-          instructions:
-            newExerciseInstructions.trim() ||
-            null,
-          video_ratio:
-            newExerciseRatio,
-          video_fit:
-            newExerciseFit,
-          sort_order: sortOrder,
-        })
-        .select(
-          'id,video_path',
-        )
-        .single()
+    try {
+      const sortOrder =
+        Math.max(
+          0,
+          ...exercises.map(
+            (item) =>
+              item.sort_order,
+          ),
+        ) + 1
 
-    if (error || !data) {
-      setSaving(false)
-      setFeedback(text.error)
-      return
-    }
+      const rest =
+        Number(exerciseRest)
 
-    if (newExerciseVideo) {
-      try {
+      const { data, error } =
+        await supabase
+          .from('exercises')
+          .insert({
+            lesson_id:
+              selectedLessonId,
+            title:
+              exerciseTitle.trim(),
+            sets:
+              exerciseSets.trim() ||
+              null,
+            repetitions:
+              exerciseReps.trim() ||
+              null,
+            rest_seconds:
+              exerciseRest === ''
+                ? null
+                : Number.isFinite(rest)
+                  ? rest
+                  : null,
+            instructions:
+              exerciseInstructions.trim() ||
+              null,
+            video_ratio:
+              exerciseRatio,
+            video_fit:
+              exerciseFit,
+            sort_order:
+              sortOrder,
+          })
+          .select(
+            'id,video_path',
+          )
+          .single()
+
+      if (error || !data) {
+        throw error ||
+          new Error(
+            'exercise_create_failed',
+          )
+      }
+
+      if (exerciseVideo) {
         setUploadState({
           id: 'new',
           progress: 0,
-          message: text.uploading,
+          message: text.upload,
         })
 
         await uploadMultipart({
           exerciseId: data.id,
-          programId: selectedProgramId,
-          lessonId: selectedLessonId,
-          file: newExerciseVideo,
+          programId:
+            selectedProgramId,
+          lessonId:
+            selectedLessonId,
+          file: exerciseVideo,
           onProgress: (progress) =>
             setUploadState({
               id: 'new',
               progress,
-              message: text.uploading,
+              message:
+                text.upload,
             }),
         })
-      } catch (error) {
-        console.error(
-          'RV mobile content upload:',
-          error,
-        )
 
-        setFeedback(text.videoError)
-      } finally {
         setUploadState(null)
       }
+
+      setFeedback(text.created)
+      await loadExercises(
+        selectedLessonId,
+      )
+      resetExerciseForm()
+      setView('lesson')
+    } catch (error) {
+      console.error(
+        'create exercise:',
+        error,
+      )
+      setUploadState(null)
+      setFeedback(
+        exerciseVideo
+          ? text.videoError
+          : text.error,
+      )
+    } finally {
+      setSaving(false)
     }
-
-    setNewExerciseTitle('')
-    setNewExerciseSets('3')
-    setNewExerciseReps('12')
-    setNewExerciseRest('45')
-    setNewExerciseInstructions('')
-    setNewExerciseRatio('9:16')
-    setNewExerciseFit('cover')
-    setNewExerciseVideo(null)
-
-    if (newVideoInput.current) {
-      newVideoInput.current.value = ''
-    }
-
-    setShowNewExercise(false)
-    setSaving(false)
-    setFeedback(text.created)
-
-    await loadExercises(
-      selectedLessonId,
-    )
   }
 
-  async function uploadExerciseVideo(
-    exercise: Exercise,
-    event: ChangeEvent<HTMLInputElement>,
-  ) {
-    const input = event.currentTarget
-    const file = input.files?.[0]
-
+  async function saveExercise() {
     if (
-      !file ||
-      !selectedProgramId ||
-      !selectedLessonId
+      !selectedExercise ||
+      !exerciseTitle.trim()
     ) {
       return
     }
 
+    setSaving(true)
+    setFeedback('')
+
     try {
-      getVideoMeta(file)
-
-      setUploadState({
-        id: exercise.id,
-        progress: 0,
-        message: text.uploading,
-      })
-
-      await uploadMultipart({
-        exerciseId: exercise.id,
-        programId: selectedProgramId,
-        lessonId: selectedLessonId,
-        file,
-        oldKey: exercise.video_path,
-        onProgress: (progress) =>
-          setUploadState({
-            id: exercise.id,
-            progress,
-            message: text.uploading,
-          }),
-      })
-
-      setFeedback(text.saved)
+      await persistExercise(
+        selectedExercise.id,
+        selectedExercise.video_path,
+      )
 
       await loadExercises(
-        selectedLessonId,
+        selectedExercise.lesson_id,
       )
+
+      setFeedback(text.saved)
+      setExerciseVideo(null)
+
+      if (
+        videoInputRef.current
+      ) {
+        videoInputRef.current.value = ''
+      }
     } catch (error) {
       console.error(
-        'RV mobile content video:',
+        'save exercise:',
         error,
       )
-      setFeedback(text.videoError)
-    } finally {
       setUploadState(null)
-      input.value = ''
+      setFeedback(
+        exerciseVideo
+          ? text.videoError
+          : text.error,
+      )
+    } finally {
+      setSaving(false)
     }
   }
 
-  async function previewVideo(
-    exercise: Exercise,
-  ) {
-    if (previewUrls[exercise.id]) {
-      setPreviewUrls((current) => {
-        const next = { ...current }
-        delete next[exercise.id]
-        return next
-      })
+  async function togglePreview() {
+    if (!selectedExercise) return
+
+    if (previewUrl) {
+      setPreviewUrl('')
       return
     }
 
-    if (exercise.video_url) {
-      setPreviewUrls((current) => ({
-        ...current,
-        [exercise.id]:
-          exercise.video_url || '',
-      }))
+    if (selectedExercise.video_url) {
+      setPreviewUrl(
+        selectedExercise.video_url,
+      )
       return
     }
 
-    if (!exercise.video_path) return
+    if (!selectedExercise.video_path) {
+      return
+    }
 
     try {
-      const data = await invokeR2({
-        action: 'play',
-        exercise_id: exercise.id,
-      })
+      const data =
+        await invokeR2({
+          action: 'play',
+          exercise_id:
+            selectedExercise.id,
+        })
 
       const url =
         String(data?.url || '')
 
       if (url) {
-        setPreviewUrls((current) => ({
-          ...current,
-          [exercise.id]: url,
-        }))
+        setPreviewUrl(url)
       }
     } catch (error) {
       console.error(
-        'RV mobile preview:',
+        'preview:',
         error,
       )
       setFeedback(text.error)
     }
   }
 
-  async function deleteExercise(
-    exercise: Exercise,
+  function chooseVideo(
+    event: ChangeEvent<HTMLInputElement>,
   ) {
+    const file =
+      event.currentTarget.files?.[0] ??
+      null
+
+    if (!file) {
+      setExerciseVideo(null)
+      return
+    }
+
+    try {
+      getVideoMeta(file)
+      setExerciseVideo(file)
+    } catch {
+      setExerciseVideo(null)
+      event.currentTarget.value = ''
+      setFeedback(text.videoError)
+    }
+  }
+
+  async function deleteExercise() {
     if (
+      !selectedExercise ||
       !window.confirm(
         text.confirmDeleteExercise,
       )
@@ -1424,10 +1869,13 @@ export default function AdminContentMobile() {
 
     setSaving(true)
 
-    if (exercise.video_path) {
+    if (
+      selectedExercise.video_path
+    ) {
       await invokeR2({
         action: 'delete',
-        key: exercise.video_path,
+        key:
+          selectedExercise.video_path,
       }).catch(() => null)
     }
 
@@ -1435,7 +1883,10 @@ export default function AdminContentMobile() {
       await supabase
         .from('exercises')
         .delete()
-        .eq('id', exercise.id)
+        .eq(
+          'id',
+          selectedExercise.id,
+        )
 
     setSaving(false)
 
@@ -1444,20 +1895,21 @@ export default function AdminContentMobile() {
       return
     }
 
-    setExercises((current) =>
-      current.filter(
-        (item) =>
-          item.id !== exercise.id,
-      ),
-    )
+    if (selectedLessonId) {
+      await loadExercises(
+        selectedLessonId,
+      )
+    }
 
+    resetExerciseForm()
+    setSelectedExerciseId(null)
+    setView('lesson')
     setFeedback(text.saved)
   }
 
   async function deleteLesson() {
     if (
-      !selectedLessonId ||
-      !selectedWeekId ||
+      !selectedLesson ||
       !window.confirm(
         text.confirmDeleteLesson,
       )
@@ -1470,7 +1922,8 @@ export default function AdminContentMobile() {
     await Promise.all(
       exercises
         .filter(
-          (item) => item.video_path,
+          (item) =>
+            item.video_path,
         )
         .map((item) =>
           invokeR2({
@@ -1484,7 +1937,10 @@ export default function AdminContentMobile() {
       await supabase
         .from('lessons')
         .delete()
-        .eq('id', selectedLessonId)
+        .eq(
+          'id',
+          selectedLesson.id,
+        )
 
     setSaving(false)
 
@@ -1493,1016 +1949,855 @@ export default function AdminContentMobile() {
       return
     }
 
-    setSelectedLessonId(null)
-    setFeedback(text.saved)
+    if (selectedProgramId) {
+      await loadProgramContent(
+        selectedProgramId,
+      )
+    }
 
-    await loadLessons(selectedWeekId)
+    setSelectedLessonId(null)
+    setExercises([])
+    setView('lessons')
+    setFeedback(text.saved)
+  }
+
+  function header(
+    backLabel?: string,
+    onBack?: () => void,
+    title?: string,
+    subtitle?: string,
+  ) {
+    return (
+      <header className="rvFlowHeader">
+        {onBack && (
+          <button
+            type="button"
+            className="rvFlowBack"
+            onClick={onBack}
+          >
+            <ArrowLeft size={18} />
+            {backLabel}
+          </button>
+        )}
+
+        <div>
+          <span>
+            {text.content}
+          </span>
+          <h2>{title}</h2>
+          {subtitle && (
+            <p>{subtitle}</p>
+          )}
+        </div>
+      </header>
+    )
+  }
+
+  function feedbackBox() {
+    if (!feedback) return null
+
+    return (
+      <div
+        className="rvFlowFeedback"
+        role="status"
+      >
+        <span>{feedback}</span>
+        <button
+          type="button"
+          onClick={() =>
+            setFeedback('')
+          }
+          aria-label="Fechar"
+        >
+          <X size={15} />
+        </button>
+      </div>
+    )
+  }
+
+  function uploadProgress() {
+    if (!uploadState) return null
+
+    return (
+      <div className="rvFlowUpload">
+        <div>
+          <span>
+            {uploadState.message}
+          </span>
+          <strong>
+            {uploadState.progress}%
+          </strong>
+        </div>
+        <i>
+          <span
+            style={{
+              width: `${uploadState.progress}%`,
+            }}
+          />
+        </i>
+      </div>
+    )
+  }
+
+  function videoField(
+    existingVideo: boolean,
+  ) {
+    return (
+      <section className="rvFlowVideoBox">
+        <div className="rvFlowVideoTitle">
+          <FileVideo size={21} />
+          <span>
+            <strong>
+              {text.video}
+            </strong>
+            <small>
+              {exerciseVideo
+                ? exerciseVideo.name
+                : existingVideo
+                  ? text.videoReady
+                  : text.noVideo}
+            </small>
+          </span>
+        </div>
+
+        {previewUrl && (
+          <video
+            controls
+            playsInline
+            preload="metadata"
+            src={previewUrl}
+          />
+        )}
+
+        <div className="rvFlowVideoActions">
+          {existingVideo &&
+            selectedExercise && (
+              <button
+                type="button"
+                onClick={() =>
+                  void togglePreview()
+                }
+              >
+                <Play size={16} />
+                {previewUrl
+                  ? text.closeVideo
+                  : text.previewVideo}
+              </button>
+            )}
+
+          <label>
+            <Upload size={16} />
+            {existingVideo ||
+            exerciseVideo
+              ? text.changeVideo
+              : text.selectVideo}
+            <input
+              ref={videoInputRef}
+              type="file"
+              accept=".mp4,.mov,.webm,video/mp4,video/quicktime,video/webm"
+              onChange={chooseVideo}
+            />
+          </label>
+        </div>
+
+        {uploadProgress()}
+      </section>
+    )
   }
 
   if (loading) {
     return (
       <RvLoadingState
-        title={text.title}
-        text={text.subtitle}
+        title={text.content}
+        text={text.activeMethodsHelp}
       />
     )
   }
 
-  return (
-    <div className="rvMobileContentEditor">
-      <header className="rvMobileContentHero">
-        <span>{text.eyebrow}</span>
-        <h2>{text.title}</h2>
-        <p>{text.subtitle}</p>
-      </header>
+  if (view === 'programs') {
+    return (
+      <div className="rvFlowEditor">
+        {header(
+          undefined,
+          undefined,
+          text.activeMethods,
+          text.activeMethodsHelp,
+        )}
 
-      {feedback && (
-        <div
-          className="rvMobileContentFeedback"
-          role="status"
-        >
-          <span>{feedback}</span>
-          <button
-            type="button"
-            onClick={() =>
-              setFeedback('')
+        {feedbackBox()}
+
+        {programs.length === 0 ? (
+          <RvEmptyState
+            compact
+            kind="program"
+            title={
+              text.noActiveMethods
             }
-            aria-label="Fechar"
-          >
-            <X size={15} />
-          </button>
-        </div>
-      )}
+            text={
+              text.noActiveMethodsHelp
+            }
+          />
+        ) : (
+          <div className="rvFlowList">
+            {programs.map(
+              (program) => (
+                <button
+                  type="button"
+                  className="rvFlowListItem"
+                  key={program.id}
+                  onClick={() =>
+                    void openProgram(
+                      program.id,
+                    )
+                  }
+                >
+                  <span className="rvFlowListIcon">
+                    {program.title
+                      .charAt(0)
+                      .toUpperCase()}
+                  </span>
 
-      <section className="rvMobileContentStep active">
-        <header>
-          <span className="rvMobileStepNumber">
-            1
-          </span>
-          <div>
-            <strong>{text.methodology}</strong>
-            <small>
-              {selectedProgram?.title ||
-                text.chooseMethodology}
-            </small>
+                  <span className="rvFlowListCopy">
+                    <strong>
+                      {program.title}
+                    </strong>
+                    <small>
+                      {program.description ||
+                        text.active}
+                    </small>
+                  </span>
+
+                  <ChevronRight
+                    size={20}
+                  />
+                </button>
+              ),
+            )}
           </div>
-        </header>
-
-        <select
-          value={selectedProgramId ?? ''}
-          onChange={(event) =>
-            setSelectedProgramId(
-              event.target.value
-                ? Number(
-                    event.target.value,
-                  )
-                : null,
-            )
-          }
-        >
-          <option value="">
-            {text.chooseMethodology}
-          </option>
-          {programs.map((program) => (
-            <option
-              key={program.id}
-              value={program.id}
-            >
-              {program.title}
-              {' · '}
-              {program.is_active
-                ? text.active
-                : text.inactive}
-            </option>
-          ))}
-        </select>
+        )}
 
         <button
           type="button"
-          className="rvMobileSecondaryAction"
-          onClick={() =>
-            setShowNewProgram(
-              (current) => !current,
-            )
-          }
+          className="rvFlowAdd"
+          onClick={() => {
+            setNewProgramTitle('')
+            setNewProgramDescription('')
+            setView('new-program')
+          }}
         >
-          <Plus size={17} />
-          {text.newMethodology}
+          <Plus size={19} />
+          {text.addMethod}
         </button>
+      </div>
+    )
+  }
 
-        {showNewProgram && (
-          <div className="rvMobileInlineForm">
-            <label>
-              {text.methodologyName}
-              <input
-                value={newProgramTitle}
-                onChange={(event) =>
-                  setNewProgramTitle(
-                    event.target.value,
-                  )
-                }
-              />
-            </label>
-
-            <label>
-              {text.optionalDescription}
-              <textarea
-                value={
-                  newProgramDescription
-                }
-                onChange={(event) =>
-                  setNewProgramDescription(
-                    event.target.value,
-                  )
-                }
-              />
-            </label>
-
-            <button
-              type="button"
-              className="rvMobilePrimaryAction"
-              onClick={() =>
-                void createProgram()
-              }
-              disabled={
-                saving ||
-                !newProgramTitle.trim()
-              }
-            >
-              <Check size={17} />
-              {text.createMethodology}
-            </button>
-          </div>
+  if (view === 'new-program') {
+    return (
+      <div className="rvFlowEditor">
+        {header(
+          text.backMethods,
+          goPrograms,
+          text.addMethod,
         )}
-      </section>
 
-      {!selectedProgramId ? (
-        <RvEmptyState
-          compact
-          kind="program"
-          title={text.chooseMethodology}
-          text={text.noMethodology}
-        />
-      ) : (
-        <>
-          <section className="rvMobileContentStep active">
-            <header>
-              <span className="rvMobileStepNumber">
-                2
-              </span>
-              <div>
-                <strong>{text.week}</strong>
-                <small>
-                  {selectedWeek?.title ||
-                    text.chooseWeek}
-                </small>
-              </div>
-            </header>
+        {feedbackBox()}
 
-            <select
-              value={selectedWeekId ?? ''}
+        <section className="rvFlowForm">
+          <label>
+            {text.methodName}
+            <input
+              autoFocus
+              value={newProgramTitle}
               onChange={(event) =>
-                setSelectedWeekId(
-                  event.target.value
-                    ? Number(
-                        event.target.value,
-                      )
-                    : null,
+                setNewProgramTitle(
+                  event.target.value,
                 )
               }
-            >
-              <option value="">
-                {text.chooseWeek}
-              </option>
-              {weeks.map((week) => (
-                <option
-                  key={week.id}
-                  value={week.id}
-                >
-                  {week.title ||
-                    `Semana ${week.week_number}`}
-                </option>
-              ))}
-            </select>
-
-            <button
-              type="button"
-              className="rvMobileSecondaryAction"
-              onClick={() =>
-                void createWeek()
-              }
-              disabled={saving}
-            >
-              <FolderPlus size={17} />
-              {text.newWeek}
-            </button>
-          </section>
-
-          {weeks.length === 0 ? (
-            <RvEmptyState
-              compact
-              kind="program"
-              title={text.week}
-              text={text.noWeek}
             />
-          ) : (
-            <section className="rvMobileContentStep active">
-              <header>
-                <span className="rvMobileStepNumber">
-                  3
-                </span>
-                <div>
-                  <strong>{text.lesson}</strong>
-                  <small>
-                    {selectedLesson?.title ||
-                      text.chooseLesson}
-                  </small>
-                </div>
-              </header>
+          </label>
 
-              <select
-                value={
-                  selectedLessonId ?? ''
-                }
-                onChange={(event) =>
-                  setSelectedLessonId(
-                    event.target.value
-                      ? Number(
-                          event.target.value,
-                        )
-                      : null,
+          <label>
+            {text.methodDescription}
+            <textarea
+              value={
+                newProgramDescription
+              }
+              onChange={(event) =>
+                setNewProgramDescription(
+                  event.target.value,
+                )
+              }
+            />
+          </label>
+
+          <button
+            type="button"
+            className="rvFlowPrimary"
+            disabled={
+              saving ||
+              !newProgramTitle.trim()
+            }
+            onClick={() =>
+              void createProgram()
+            }
+          >
+            <Save size={17} />
+            {saving
+              ? text.saving
+              : text.createMethod}
+          </button>
+        </section>
+      </div>
+    )
+  }
+
+  if (view === 'lessons') {
+    return (
+      <div className="rvFlowEditor">
+        {header(
+          text.backMethods,
+          goPrograms,
+          selectedProgram?.title ||
+            text.lessons,
+          text.lessonsHelp,
+        )}
+
+        {feedbackBox()}
+
+        {lessons.length === 0 ? (
+          <div className="rvFlowEmpty">
+            <strong>
+              {text.noLessons}
+            </strong>
+            <span>
+              {text.noLessonsHelp}
+            </span>
+          </div>
+        ) : (
+          <div className="rvFlowList">
+            {lessons.map(
+              (lesson) => {
+                const week =
+                  weekById.get(
+                    lesson.week_id,
                   )
-                }
-              >
-                <option value="">
-                  {text.chooseLesson}
-                </option>
-                {lessons.map((lesson) => (
-                  <option
+
+                return (
+                  <button
+                    type="button"
+                    className="rvFlowListItem"
                     key={lesson.id}
-                    value={lesson.id}
+                    onClick={() =>
+                      void openLesson(
+                        lesson,
+                      )
+                    }
                   >
-                    {String(
-                      lesson.lesson_number,
-                    ).padStart(2, '0')}
-                    {' · '}
-                    {lesson.title}
-                  </option>
-                ))}
-              </select>
+                    <span className="rvFlowListNumber">
+                      {String(
+                        lesson.lesson_number,
+                      ).padStart(2, '0')}
+                    </span>
 
-              <button
-                type="button"
-                className="rvMobileSecondaryAction"
-                onClick={() =>
-                  void createLesson()
-                }
-                disabled={saving}
-              >
-                <Plus size={17} />
-                {text.newLesson}
-              </button>
-            </section>
-          )}
-        </>
-      )}
+                    <span className="rvFlowListCopy">
+                      <strong>
+                        {lesson.title}
+                      </strong>
+                      <small>
+                        {week?.title ||
+                          `${text.week} ${week?.week_number ?? ''}`}
+                      </small>
+                    </span>
 
-      {selectedLesson ? (
-        <>
-          <section className="rvMobileLessonEditor">
-            <div className="rvMobileSectionTitle">
-              <span>
-                <Pencil size={17} />
-              </span>
-              <div>
-                <strong>
-                  {text.lesson}
-                </strong>
-                <small>
-                  {text.stepHelp}
-                </small>
-              </div>
-            </div>
-
-            <label>
-              {text.lessonTitle}
-              <input
-                value={lessonTitle}
-                onChange={(event) =>
-                  setLessonTitle(
-                    event.target.value,
-                  )
-                }
-              />
-            </label>
-
-            <label>
-              {text.lessonDescription}
-              <textarea
-                value={lessonDescription}
-                onChange={(event) =>
-                  setLessonDescription(
-                    event.target.value,
-                  )
-                }
-              />
-            </label>
-
-            <button
-              type="button"
-              className="rvMobilePrimaryAction"
-              onClick={() =>
-                void saveLesson()
-              }
-              disabled={
-                saving ||
-                !lessonTitle.trim()
-              }
-            >
-              <Save size={17} />
-              {saving
-                ? text.saving
-                : text.saveLesson}
-            </button>
-          </section>
-
-          <section className="rvMobileExercisesSection">
-            <header className="rvMobileExercisesHeader">
-              <div>
-                <span>
-                  {text.exercises}
-                </span>
-                <h3>
-                  {text.addedExercises}
-                </h3>
-              </div>
-              <strong>
-                {exercises.length}
-              </strong>
-            </header>
-
-            {exercises.length === 0 && (
-              <div className="rvMobileExercisesEmpty">
-                <Video size={23} />
-                <strong>
-                  {text.noExercises}
-                </strong>
-                <span>
-                  {text.noExercisesHelp}
-                </span>
-              </div>
+                    <ChevronRight
+                      size={20}
+                    />
+                  </button>
+                )
+              },
             )}
+          </div>
+        )}
 
-            <div className="rvMobileExerciseList">
+        <button
+          type="button"
+          className="rvFlowAdd"
+          onClick={() => {
+            setLessonTitle('')
+            setLessonDescription('')
+            setNewLessonWeekId(
+              weeks[0]?.id ??
+                null,
+            )
+            setView('new-lesson')
+          }}
+        >
+          <Plus size={19} />
+          {text.addLesson}
+        </button>
+      </div>
+    )
+  }
+
+  if (view === 'new-lesson') {
+    return (
+      <div className="rvFlowEditor">
+        {header(
+          text.backLessons,
+          goLessons,
+          text.newLessonTitle,
+        )}
+
+        {feedbackBox()}
+
+        <section className="rvFlowForm">
+          <label>
+            {text.lessonName}
+            <input
+              autoFocus
+              value={lessonTitle}
+              onChange={(event) =>
+                setLessonTitle(
+                  event.target.value,
+                )
+              }
+            />
+          </label>
+
+          <label>
+            {text.lessonGuidance}
+            <textarea
+              value={
+                lessonDescription
+              }
+              onChange={(event) =>
+                setLessonDescription(
+                  event.target.value,
+                )
+              }
+            />
+          </label>
+
+          {weeks.length > 1 && (
+            <details className="rvFlowAdvanced">
+              <summary>
+                {text.organization}
+              </summary>
+
+              <label>
+                {text.week}
+                <select
+                  value={
+                    newLessonWeekId ??
+                    ''
+                  }
+                  onChange={(event) =>
+                    setNewLessonWeekId(
+                      Number(
+                        event.target
+                          .value,
+                      ),
+                    )
+                  }
+                >
+                  {weeks.map(
+                    (week) => (
+                      <option
+                        key={week.id}
+                        value={week.id}
+                      >
+                        {week.title ||
+                          `${text.week} ${week.week_number}`}
+                      </option>
+                    ),
+                  )}
+                </select>
+              </label>
+            </details>
+          )}
+
+          <button
+            type="button"
+            className="rvFlowPrimary"
+            disabled={
+              saving ||
+              !lessonTitle.trim()
+            }
+            onClick={() =>
+              void createLesson()
+            }
+          >
+            <Plus size={17} />
+            {saving
+              ? text.saving
+              : text.createLesson}
+          </button>
+        </section>
+      </div>
+    )
+  }
+
+  if (view === 'lesson') {
+    return (
+      <div className="rvFlowEditor">
+        {header(
+          text.backLessons,
+          goLessons,
+          selectedLesson?.title ||
+            text.backLesson,
+          text.exercisesHelp,
+        )}
+
+        {feedbackBox()}
+
+        <section className="rvFlowForm rvFlowLessonInfo">
+          <label>
+            {text.lessonName}
+            <input
+              value={lessonTitle}
+              onChange={(event) =>
+                setLessonTitle(
+                  event.target.value,
+                )
+              }
+            />
+          </label>
+
+          <label>
+            {text.lessonGuidance}
+            <textarea
+              value={
+                lessonDescription
+              }
+              onChange={(event) =>
+                setLessonDescription(
+                  event.target.value,
+                )
+              }
+            />
+          </label>
+
+          <button
+            type="button"
+            className="rvFlowSecondary"
+            disabled={
+              saving ||
+              !lessonTitle.trim()
+            }
+            onClick={() =>
+              void saveLesson()
+            }
+          >
+            <Save size={16} />
+            {text.saveLesson}
+          </button>
+        </section>
+
+        <section className="rvFlowSection">
+          <div className="rvFlowSectionHead">
+            <div>
+              <span>
+                {text.exercises}
+              </span>
+              <strong>
+                {exercises.length}{' '}
+                {text.exerciseCount}
+              </strong>
+            </div>
+          </div>
+
+          {exercises.length === 0 ? (
+            <div className="rvFlowEmpty compact">
+              <strong>
+                {text.noExercises}
+              </strong>
+              <span>
+                {text.noExercisesHelp}
+              </span>
+            </div>
+          ) : (
+            <div className="rvFlowList">
               {exercises.map(
                 (exercise, index) => (
-                  <details
-                    className="rvMobileExerciseCard"
+                  <button
+                    type="button"
+                    className="rvFlowListItem"
                     key={exercise.id}
+                    onClick={() =>
+                      openExercise(
+                        exercise,
+                      )
+                    }
                   >
-                    <summary>
-                      <span className="rvMobileExerciseIndex">
-                        {String(
-                          index + 1,
-                        ).padStart(2, '0')}
-                      </span>
+                    <span className="rvFlowListNumber">
+                      {String(
+                        index + 1,
+                      ).padStart(2, '0')}
+                    </span>
 
-                      <span className="rvMobileExerciseSummary">
-                        <strong>
-                          {exercise.title}
-                        </strong>
-                        <small>
-                          {exercise.video_path ||
-                          exercise.video_url
-                            ? text.videoReady
-                            : text.noVideo}
-                          {' · '}
-                          {exercise.sets ||
-                            '—'}
-                          {' × '}
-                          {exercise.repetitions ||
-                            '—'}
-                        </small>
-                      </span>
+                    <span className="rvFlowListCopy">
+                      <strong>
+                        {exercise.title}
+                      </strong>
+                      <small>
+                        {exercise.sets ||
+                          '—'}
+                        {' × '}
+                        {exercise.repetitions ||
+                          '—'}
+                        {' · '}
+                        {exercise.video_path ||
+                        exercise.video_url
+                          ? text.videoReady
+                          : text.noVideo}
+                      </small>
+                    </span>
 
-                      <ChevronDown
-                        size={18}
-                      />
-                    </summary>
-
-                    <div className="rvMobileExerciseBody">
-                      <label>
-                        {text.exerciseName}
-                        <input
-                          value={
-                            exercise.title
-                          }
-                          onChange={(event) =>
-                            updateExercise(
-                              exercise.id,
-                              {
-                                title:
-                                  event.target
-                                    .value,
-                              },
-                            )
-                          }
-                        />
-                      </label>
-
-                      <div className="rvMobileTwoFields">
-                        <label>
-                          {text.sets}
-                          <input
-                            value={
-                              exercise.sets ??
-                              ''
-                            }
-                            onChange={(
-                              event,
-                            ) =>
-                              updateExercise(
-                                exercise.id,
-                                {
-                                  sets:
-                                    event
-                                      .target
-                                      .value,
-                                },
-                              )
-                            }
-                          />
-                        </label>
-
-                        <label>
-                          {text.reps}
-                          <input
-                            value={
-                              exercise.repetitions ??
-                              ''
-                            }
-                            onChange={(
-                              event,
-                            ) =>
-                              updateExercise(
-                                exercise.id,
-                                {
-                                  repetitions:
-                                    event
-                                      .target
-                                      .value,
-                                },
-                              )
-                            }
-                          />
-                        </label>
-                      </div>
-
-                      <label>
-                        {text.rest}
-                        <input
-                          type="number"
-                          min="0"
-                          value={
-                            exercise.rest_seconds ??
-                            ''
-                          }
-                          onChange={(event) =>
-                            updateExercise(
-                              exercise.id,
-                              {
-                                rest_seconds:
-                                  event.target
-                                    .value
-                                    ? Number(
-                                        event
-                                          .target
-                                          .value,
-                                      )
-                                    : null,
-                              },
-                            )
-                          }
-                        />
-                      </label>
-
-                      <label>
-                        {text.instructions}
-                        <textarea
-                          value={
-                            exercise.instructions ??
-                            ''
-                          }
-                          onChange={(event) =>
-                            updateExercise(
-                              exercise.id,
-                              {
-                                instructions:
-                                  event.target
-                                    .value,
-                              },
-                            )
-                          }
-                        />
-                      </label>
-
-                      <div className="rvMobileVideoBlock">
-                        <div>
-                          <FileVideo
-                            size={19}
-                          />
-                          <span>
-                            <strong>
-                              {text.video}
-                            </strong>
-                            <small>
-                              {exercise.video_path ||
-                              exercise.video_url
-                                ? text.videoReady
-                                : text.noVideo}
-                            </small>
-                          </span>
-                        </div>
-
-                        {previewUrls[
-                          exercise.id
-                        ] && (
-                          <video
-                            controls
-                            playsInline
-                            preload="metadata"
-                            src={
-                              previewUrls[
-                                exercise.id
-                              ]
-                            }
-                          />
-                        )}
-
-                        <div className="rvMobileVideoActions">
-                          {(exercise.video_path ||
-                            exercise.video_url) && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                void previewVideo(
-                                  exercise,
-                                )
-                              }
-                            >
-                              <Play
-                                size={15}
-                              />
-                              {previewUrls[
-                                exercise.id
-                              ]
-                                ? text.closePreview
-                                : text.preview}
-                            </button>
-                          )}
-
-                          <label>
-                            <Upload
-                              size={15}
-                            />
-                            {exercise.video_path ||
-                            exercise.video_url
-                              ? text.changeVideo
-                              : text.selectVideo}
-                            <input
-                              type="file"
-                              accept=".mp4,.mov,.webm,video/mp4,video/quicktime,video/webm"
-                              onChange={(
-                                event,
-                              ) =>
-                                void uploadExerciseVideo(
-                                  exercise,
-                                  event,
-                                )
-                              }
-                            />
-                          </label>
-                        </div>
-
-                        {uploadState?.id ===
-                          exercise.id && (
-                          <div className="rvMobileUploadProgress">
-                            <div>
-                              <span>
-                                {
-                                  uploadState.message
-                                }
-                              </span>
-                              <strong>
-                                {
-                                  uploadState.progress
-                                }
-                                %
-                              </strong>
-                            </div>
-                            <i>
-                              <span
-                                style={{
-                                  width: `${uploadState.progress}%`,
-                                }}
-                              />
-                            </i>
-                          </div>
-                        )}
-                      </div>
-
-                      <details className="rvMobileVideoAdvanced">
-                        <summary>
-                          {text.videoOptions}
-                        </summary>
-
-                        <div className="rvMobileTwoFields">
-                          <label>
-                            {text.ratio}
-                            <select
-                              value={
-                                exercise.video_ratio ||
-                                '9:16'
-                              }
-                              onChange={(
-                                event,
-                              ) =>
-                                updateExercise(
-                                  exercise.id,
-                                  {
-                                    video_ratio:
-                                      event
-                                        .target
-                                        .value as Exercise['video_ratio'],
-                                  },
-                                )
-                              }
-                            >
-                              <option value="9:16">
-                                9:16
-                              </option>
-                              <option value="4:5">
-                                4:5
-                              </option>
-                              <option value="1:1">
-                                1:1
-                              </option>
-                              <option value="16:9">
-                                16:9
-                              </option>
-                            </select>
-                          </label>
-
-                          <label>
-                            {text.fit}
-                            <select
-                              value={
-                                exercise.video_fit ||
-                                'cover'
-                              }
-                              onChange={(
-                                event,
-                              ) =>
-                                updateExercise(
-                                  exercise.id,
-                                  {
-                                    video_fit:
-                                      event
-                                        .target
-                                        .value as Exercise['video_fit'],
-                                  },
-                                )
-                              }
-                            >
-                              <option value="cover">
-                                {text.fill}
-                              </option>
-                              <option value="contain">
-                                {text.full}
-                              </option>
-                            </select>
-                          </label>
-                        </div>
-                      </details>
-
-                      <button
-                        type="button"
-                        className="rvMobilePrimaryAction"
-                        onClick={() =>
-                          void saveExercise(
-                            exercise,
-                          )
-                        }
-                        disabled={saving}
-                      >
-                        <Save size={16} />
-                        {text.saveExercise}
-                      </button>
-
-                      <button
-                        type="button"
-                        className="rvMobileDangerAction"
-                        onClick={() =>
-                          void deleteExercise(
-                            exercise,
-                          )
-                        }
-                        disabled={saving}
-                      >
-                        <Trash2
-                          size={15}
-                        />
-                        {text.deleteExercise}
-                      </button>
-                    </div>
-                  </details>
+                    <ChevronRight
+                      size={20}
+                    />
+                  </button>
                 ),
               )}
             </div>
+          )}
 
-            <button
-              type="button"
-              className="rvMobileAddExerciseButton"
-              onClick={() =>
-                setShowNewExercise(
-                  (current) => !current,
+          <button
+            type="button"
+            className="rvFlowAdd"
+            onClick={() => {
+              resetExerciseForm()
+              setView(
+                'new-exercise',
+              )
+            }}
+          >
+            <Plus size={19} />
+            {text.addExercise}
+          </button>
+        </section>
+
+        <details className="rvFlowAdvanced danger">
+          <summary>
+            {text.advanced}
+          </summary>
+
+          <button
+            type="button"
+            className="rvFlowDanger"
+            disabled={saving}
+            onClick={() =>
+              void deleteLesson()
+            }
+          >
+            <Trash2 size={16} />
+            {text.deleteLesson}
+          </button>
+        </details>
+      </div>
+    )
+  }
+
+  const isNewExercise =
+    view === 'new-exercise'
+
+  if (
+    view === 'exercise' ||
+    isNewExercise
+  ) {
+    const hasExistingVideo =
+      Boolean(
+        selectedExercise?.video_path ||
+        selectedExercise?.video_url,
+      )
+
+    return (
+      <div className="rvFlowEditor">
+        {header(
+          text.backLesson,
+          goLesson,
+          isNewExercise
+            ? text.newExerciseTitle
+            : selectedExercise?.title ||
+              text.exerciseName,
+          undefined,
+        )}
+
+        {feedbackBox()}
+
+        <section className="rvFlowForm">
+          <label>
+            {text.exerciseName}
+            <input
+              autoFocus={
+                isNewExercise
+              }
+              value={exerciseTitle}
+              onChange={(event) =>
+                setExerciseTitle(
+                  event.target.value,
                 )
               }
-            >
-              <Plus size={19} />
-              <span>
-                <strong>
-                  {text.addExercise}
-                </strong>
-                <small>
-                  {text.videoOptional}
-                </small>
-              </span>
-            </button>
+            />
+          </label>
 
-            {showNewExercise && (
-              <div className="rvMobileNewExercise">
-                <label>
-                  {text.exerciseName}
-                  <input
-                    value={
-                      newExerciseTitle
-                    }
-                    onChange={(event) =>
-                      setNewExerciseTitle(
-                        event.target.value,
-                      )
-                    }
-                  />
-                </label>
+          <div className="rvFlowTwo">
+            <label>
+              {text.sets}
+              <input
+                value={exerciseSets}
+                onChange={(event) =>
+                  setExerciseSets(
+                    event.target.value,
+                  )
+                }
+              />
+            </label>
 
-                <div className="rvMobileTwoFields">
-                  <label>
-                    {text.sets}
-                    <input
-                      value={
-                        newExerciseSets
-                      }
-                      onChange={(event) =>
-                        setNewExerciseSets(
-                          event.target.value,
-                        )
-                      }
-                    />
-                  </label>
+            <label>
+              {text.reps}
+              <input
+                value={exerciseReps}
+                onChange={(event) =>
+                  setExerciseReps(
+                    event.target.value,
+                  )
+                }
+              />
+            </label>
+          </div>
 
-                  <label>
-                    {text.reps}
-                    <input
-                      value={
-                        newExerciseReps
-                      }
-                      onChange={(event) =>
-                        setNewExerciseReps(
-                          event.target.value,
-                        )
-                      }
-                    />
-                  </label>
-                </div>
+          <label>
+            {text.rest}
+            <input
+              type="number"
+              min="0"
+              value={exerciseRest}
+              onChange={(event) =>
+                setExerciseRest(
+                  event.target.value,
+                )
+              }
+            />
+          </label>
 
-                <label>
-                  {text.rest}
-                  <input
-                    type="number"
-                    min="0"
-                    value={
-                      newExerciseRest
-                    }
-                    onChange={(event) =>
-                      setNewExerciseRest(
-                        event.target.value,
-                      )
-                    }
-                  />
-                </label>
+          <label>
+            {text.instructions}
+            <textarea
+              value={
+                exerciseInstructions
+              }
+              onChange={(event) =>
+                setExerciseInstructions(
+                  event.target.value,
+                )
+              }
+            />
+          </label>
 
-                <label>
-                  {text.instructions}
-                  <textarea
-                    value={
-                      newExerciseInstructions
-                    }
-                    onChange={(event) =>
-                      setNewExerciseInstructions(
-                        event.target.value,
-                      )
-                    }
-                  />
-                </label>
+          {videoField(
+            hasExistingVideo,
+          )}
 
-                <div className="rvMobileNewVideo">
-                  <div>
-                    <FileVideo
-                      size={20}
-                    />
-                    <span>
-                      <strong>
-                        {text.video}
-                      </strong>
-                      <small>
-                        {newExerciseVideo
-                          ? newExerciseVideo.name
-                          : text.videoOptional}
-                      </small>
-                    </span>
-                  </div>
-
-                  <label>
-                    <Upload size={16} />
-                    {newExerciseVideo
-                      ? text.changeVideo
-                      : text.selectVideo}
-                    <input
-                      ref={newVideoInput}
-                      type="file"
-                      accept=".mp4,.mov,.webm,video/mp4,video/quicktime,video/webm"
-                      onChange={(event) => {
-                        const file =
-                          event.currentTarget
-                            .files?.[0] ??
-                          null
-
-                        if (!file) {
-                          setNewExerciseVideo(
-                            null,
-                          )
-                          return
-                        }
-
-                        try {
-                          getVideoMeta(file)
-                          setNewExerciseVideo(
-                            file,
-                          )
-                        } catch {
-                          setNewExerciseVideo(
-                            null,
-                          )
-                          event.currentTarget.value =
-                            ''
-                          setFeedback(
-                            text.videoError,
-                          )
-                        }
-                      }}
-                    />
-                  </label>
-                </div>
-
-                <details className="rvMobileVideoAdvanced">
-                  <summary>
-                    {text.videoOptions}
-                  </summary>
-
-                  <div className="rvMobileTwoFields">
-                    <label>
-                      {text.ratio}
-                      <select
-                        value={
-                          newExerciseRatio
-                        }
-                        onChange={(event) =>
-                          setNewExerciseRatio(
-                            event.target
-                              .value as typeof newExerciseRatio,
-                          )
-                        }
-                      >
-                        <option value="9:16">
-                          9:16
-                        </option>
-                        <option value="4:5">
-                          4:5
-                        </option>
-                        <option value="1:1">
-                          1:1
-                        </option>
-                        <option value="16:9">
-                          16:9
-                        </option>
-                      </select>
-                    </label>
-
-                    <label>
-                      {text.fit}
-                      <select
-                        value={
-                          newExerciseFit
-                        }
-                        onChange={(event) =>
-                          setNewExerciseFit(
-                            event.target
-                              .value as typeof newExerciseFit,
-                          )
-                        }
-                      >
-                        <option value="cover">
-                          {text.fill}
-                        </option>
-                        <option value="contain">
-                          {text.full}
-                        </option>
-                      </select>
-                    </label>
-                  </div>
-                </details>
-
-                {uploadState?.id ===
-                  'new' && (
-                  <div className="rvMobileUploadProgress">
-                    <div>
-                      <span>
-                        {
-                          uploadState.message
-                        }
-                      </span>
-                      <strong>
-                        {
-                          uploadState.progress
-                        }
-                        %
-                      </strong>
-                    </div>
-                    <i>
-                      <span
-                        style={{
-                          width: `${uploadState.progress}%`,
-                        }}
-                      />
-                    </i>
-                  </div>
-                )}
-
-                <button
-                  type="button"
-                  className="rvMobilePrimaryAction"
-                  onClick={() =>
-                    void addExercise()
-                  }
-                  disabled={
-                    saving ||
-                    !newExerciseTitle.trim()
-                  }
-                >
-                  <Plus size={17} />
-                  {saving
-                    ? text.saving
-                    : text.add}
-                </button>
-              </div>
-            )}
-          </section>
-
-          <details className="rvMobileDangerZone">
+          <details className="rvFlowAdvanced">
             <summary>
               {text.advanced}
             </summary>
-            <button
-              type="button"
-              onClick={() =>
-                void deleteLesson()
-              }
-              disabled={saving}
-            >
-              <Trash2 size={15} />
-              {text.deleteLesson}
-            </button>
+
+            <div className="rvFlowAdvancedBody">
+              <div className="rvFlowTwo">
+                <label>
+                  {text.videoFormat}
+                  <select
+                    value={
+                      exerciseRatio
+                    }
+                    onChange={(event) =>
+                      setExerciseRatio(
+                        event.target
+                          .value as typeof exerciseRatio,
+                      )
+                    }
+                  >
+                    <option value="9:16">
+                      9:16
+                    </option>
+                    <option value="4:5">
+                      4:5
+                    </option>
+                    <option value="1:1">
+                      1:1
+                    </option>
+                    <option value="16:9">
+                      16:9
+                    </option>
+                  </select>
+                </label>
+
+                <label>
+                  {text.videoFit}
+                  <select
+                    value={
+                      exerciseFit
+                    }
+                    onChange={(event) =>
+                      setExerciseFit(
+                        event.target
+                          .value as typeof exerciseFit,
+                      )
+                    }
+                  >
+                    <option value="cover">
+                      {text.fill}
+                    </option>
+                    <option value="contain">
+                      {text.full}
+                    </option>
+                  </select>
+                </label>
+              </div>
+
+              {!isNewExercise && (
+                <button
+                  type="button"
+                  className="rvFlowDanger"
+                  disabled={saving}
+                  onClick={() =>
+                    void deleteExercise()
+                  }
+                >
+                  <Trash2 size={16} />
+                  {text.deleteExercise}
+                </button>
+              )}
+            </div>
           </details>
-        </>
-      ) : selectedWeekId ? (
-        <RvEmptyState
-          compact
-          kind="program"
-          title={text.lesson}
-          text={text.noLesson}
-        />
-      ) : null}
-    </div>
-  )
+
+          <button
+            type="button"
+            className="rvFlowPrimary"
+            disabled={
+              saving ||
+              !exerciseTitle.trim()
+            }
+            onClick={() =>
+              isNewExercise
+                ? void createExercise()
+                : void saveExercise()
+            }
+          >
+            <Save size={17} />
+            {saving
+              ? text.saving
+              : isNewExercise
+                ? text.createExercise
+                : text.saveExercise}
+          </button>
+        </section>
+      </div>
+    )
+  }
+
+  return null
 }
