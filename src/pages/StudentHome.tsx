@@ -122,6 +122,40 @@ type Progress = {
   completed: boolean
 }
 
+function normalizeWeekLabel(
+  value: string,
+) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase()
+    .replace(/[._-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function isGenericWeekTitle(
+  value: string,
+  weekNumber: number,
+) {
+  const normalized =
+    normalizeWeekLabel(value)
+
+  const genericTitles = new Set([
+    `semana ${weekNumber}`,
+    `week ${weekNumber}`,
+    `woche ${weekNumber}`,
+    `semana #${weekNumber}`,
+    `week #${weekNumber}`,
+    `woche #${weekNumber}`,
+    `${weekNumber}周`,
+    `第${weekNumber}周`,
+    `周 ${weekNumber}`,
+  ])
+
+  return genericTitles.has(normalized)
+}
+
 export default function StudentHome({ profile }: { profile: Profile }) {
   const { t, locale, language } = useI18n()
   const firstName = profile.name?.trim().split(' ')[0] || t('studentFallback')
@@ -901,9 +935,8 @@ export default function StudentHome({ profile }: { profile: Profile }) {
   function renderProgram() {
     return (
       <>
-        <section className="studentTabIntro">
+        <section className="studentTabIntro studentProgramIntroCompact">
           <div>
-            <p className="eyebrow">{t('program').toUpperCase()}</p>
             <h1>{activeProgram.title}</h1>
             <p className="muted">
               {activeProgram.description || t('programDescriptionFallback')}
@@ -929,11 +962,28 @@ export default function StudentHome({ profile }: { profile: Profile }) {
                   completedLessonIds.has(lesson.id),
                 ).length
 
+              const weekLabel =
+                t('weekTitle', {
+                  number: week.week_number,
+                })
+
+              const storedWeekTitle =
+                week.title?.trim() ?? ''
+
+              const weekDisplayTitle =
+                !storedWeekTitle ||
+                isGenericWeekTitle(
+                  storedWeekTitle,
+                  week.week_number,
+                )
+                  ? weekLabel
+                  : `${weekLabel} · ${storedWeekTitle}`
+
               return (
                 <SettingsAccordion
                   key={week.id}
                   className="studentProgramWeekAccordion"
-                  title={`${t('week', { number: week.week_number })} · ${week.title || t('weekTitle', { number: week.week_number })}`}
+                  title={weekDisplayTitle}
                   subtitle={t('lessonsShort', {
                     done: weekCompleted,
                     total: week.lessons.length,
