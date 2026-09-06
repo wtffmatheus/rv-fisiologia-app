@@ -1634,3 +1634,2086 @@ button.rvStudentPremiumAction:hover {
     grid-template-columns: 1fr;
   }
 }
+
+/* RV_PREMIUM_REFINEMENT_V13_20260906
+   Pente fino estrutural:
+   - remove dependência visual da antiga camada V10
+   - aumenta legibilidade real
+   - redefine hierarquia de Home, Dashboard, Alunos e Conteúdo
+   - neutraliza regras antigas de tabela no mobile
+*/
+
+:root {
+  --rv13-page-max: 1180px;
+  --rv13-content-max: 860px;
+  --rv13-gap: 14px;
+  --rv13-card: #071b31;
+  --rv13-card-soft: #061729;
+  --rv13-card-hover: #0a233b;
+  --rv13-border: rgba(142, 174, 203, .15);
+  --rv13-border-strong: rgba(142, 174, 203, .24);
+  --rv13-text: #f5f8fb;
+  --rv13-text-2: #dce7f0;
+  --rv13-muted: #91a6ba;
+  --rv13-muted-2: #7189a0;
+  --rv13-accent: #20d6cf;
+  --rv13-danger: #ef8793;
+}
+
+/* =========================
+   RESET DE DENSIDADE ANTIGA
+   ========================= */
+
+.studentPage,
+.adminPage,
+.auth,
+.pendingPage {
+  font-size: 14px;
+}
+
+.adminPage button,
+.studentPage button,
+.auth button,
+.pendingPage button {
+  letter-spacing: 0;
+}
+
+.adminPage small,
+.studentPage small {
+  line-height: 1.45;
+}
+
+.upgradedAdminContent,
+.studentTabContent,
+.lessonPage {
+  min-width: 0;
+}
+
+/* O V10 forçava muita tipografia abaixo de 10px.
+   Esta camada restabelece uma escala vendável/legível. */
+.dashboardAdminPage span,
+.dashboardAdminPage small,
+.dashboardAdminPage p,
+.adminStudentsPage span,
+.adminStudentsPage small,
+.adminStudentsPage p,
+.rvFlowEditor span,
+.rvFlowEditor small,
+.rvFlowEditor p {
+  text-rendering: optimizeLegibility;
+}
+
+.dashboardAdminPage small,
+.adminStudentsPage small,
+.rvFlowEditor small {
+  font-size: 11px;
+}
+
+.dashboardAdminPage p,
+.adminStudentsPage p,
+.rvFlowEditor p {
+  font-size: 12px;
+}
+
+/* =========================
+   SHELLS / ESPAÇAMENTO
+   ========================= */
+
+.studentTabContent {
+  width: min(var(--rv13-page-max), calc(100% - 40px)) !important;
+  padding: 26px 0 44px !important;
+}
+
+.upgradedAdminContent {
+  min-width: 0 !important;
+}
+
+.dashboardAdminPage,
+.adminStudentsPage,
+.adminSettingsShell,
+.contentTabOpen > .rvFlowEditor {
+  width: min(var(--rv13-page-max), 100%) !important;
+  margin-inline: auto !important;
+}
+
+.adminContent > .dashboardAdminPage,
+.adminContent > .adminStudentsPage,
+.adminContent > .adminSettingsShell {
+  padding-top: 18px !important;
+}
+
+/* =========================
+   HOME ALUNO — FOCO REAL
+   ========================= */
+
+.rvStudentHome {
+  display: grid;
+  gap: 14px;
+}
+
+.rvStudentHomeHero {
+  position: relative;
+  overflow: hidden;
+  padding: 28px;
+  border: 1px solid var(--rv13-border);
+  border-radius: 20px;
+  background:
+    linear-gradient(135deg, rgba(11, 40, 65, .98), rgba(5, 21, 38, .98));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(210px, 280px);
+  align-items: stretch;
+  gap: 20px;
+}
+
+.rvStudentHomeHero::after {
+  content: '';
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  right: -130px;
+  top: -150px;
+  border-radius: 50%;
+  background: rgba(32, 214, 207, .06);
+  pointer-events: none;
+}
+
+.rvStudentHomeHeroCopy {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  align-self: center;
+}
+
+.rvStudentHomeHeroCopy .eyebrow {
+  margin: 0 0 8px;
+  font-size: 10px !important;
+}
+
+.rvStudentHomeHeroCopy h1 {
+  max-width: 680px;
+  margin: 0 0 9px;
+  color: var(--rv13-text);
+  font-size: clamp(34px, 5.3vw, 58px);
+  line-height: .98;
+  letter-spacing: -.047em;
+}
+
+.rvStudentHomeHeroCopy > p:last-child {
+  max-width: 520px;
+  margin: 0;
+  color: var(--rv13-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.rvStudentHomeProgress {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  padding: 17px;
+  border: 1px solid rgba(32, 214, 207, .14);
+  border-radius: 16px;
+  background: rgba(3, 17, 32, .48);
+  display: grid;
+  align-content: center;
+  gap: 8px;
+}
+
+.rvStudentHomeProgressTop {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rvStudentHomeProgressTop span {
+  color: var(--rv13-muted);
+  font-size: 11px;
+  font-weight: 720;
+}
+
+.rvStudentHomeProgressTop strong {
+  color: var(--rv13-text);
+  font-size: 31px;
+  line-height: 1;
+  letter-spacing: -.04em;
+}
+
+.rvStudentHomeProgressTrack {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(129, 160, 191, .12);
+}
+
+.rvStudentHomeProgressTrack span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--rv13-accent);
+}
+
+.rvStudentHomeProgress small {
+  color: var(--rv13-muted-2);
+  font-size: 10.5px;
+}
+
+.rvStudentFocusGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, .75fr);
+  gap: 12px;
+}
+
+.rvStudentTodayCard,
+.rvStudentProgramOverview {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--rv13-border);
+  border-radius: 17px;
+  background: var(--rv13-card);
+}
+
+.rvStudentTodayCard {
+  min-height: 232px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 72px;
+  grid-template-areas:
+    "label number"
+    "copy number"
+    "action action";
+  align-content: space-between;
+  gap: 12px;
+}
+
+.rvStudentTodayCardLabel {
+  grid-area: label;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--rv13-accent);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.rvStudentTodayCardCopy {
+  grid-area: copy;
+  min-width: 0;
+}
+
+.rvStudentTodayCardCopy h2 {
+  margin: 0 0 7px;
+  color: var(--rv13-text);
+  font-size: clamp(23px, 3vw, 34px);
+  line-height: 1.03;
+  letter-spacing: -.035em;
+}
+
+.rvStudentTodayCardCopy p {
+  margin: 0;
+  color: var(--rv13-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.rvStudentTodayNumber {
+  grid-area: number;
+  width: 64px;
+  height: 64px;
+  align-self: start;
+  justify-self: end;
+  border: 1px solid rgba(32, 214, 207, .16);
+  border-radius: 15px;
+  background: rgba(32, 214, 207, .06);
+  color: var(--rv13-accent);
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.rvStudentTodayAction {
+  grid-area: action;
+  width: fit-content;
+  min-height: 46px;
+  padding: 0 15px;
+  border: 1px solid var(--rv13-accent);
+  border-radius: 10px;
+  background: var(--rv13-accent);
+  color: #032228;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.rvStudentTodayComplete {
+  grid-area: copy / copy / action / action;
+  display: grid;
+  align-content: center;
+  gap: 7px;
+}
+
+.rvStudentTodayComplete strong {
+  color: var(--rv13-text);
+  font-size: 25px;
+  letter-spacing: -.035em;
+}
+
+.rvStudentTodayComplete span {
+  color: var(--rv13-muted);
+  font-size: 12px;
+}
+
+.rvStudentProgramOverview {
+  display: grid;
+  align-content: space-between;
+  gap: 18px;
+}
+
+.rvStudentProgramOverviewHead {
+  display: grid;
+  gap: 5px;
+}
+
+.rvStudentProgramOverviewHead span {
+  color: var(--rv13-muted-2);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.rvStudentProgramOverviewHead h2 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--rv13-text);
+  font-size: 22px;
+  line-height: 1.08;
+  letter-spacing: -.03em;
+}
+
+.rvStudentProgramFacts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rvStudentProgramFacts > div {
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid var(--rv13-border);
+  border-radius: 11px;
+  background: rgba(3, 17, 32, .42);
+  display: grid;
+  gap: 3px;
+}
+
+.rvStudentProgramFacts span {
+  color: var(--rv13-muted-2);
+  font-size: 9.5px;
+}
+
+.rvStudentProgramFacts strong {
+  overflow: hidden;
+  color: var(--rv13-text-2);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rvStudentProgramLink {
+  min-height: 43px;
+  border: 1px solid var(--rv13-border-strong);
+  border-radius: 10px;
+  background: rgba(4, 20, 37, .64);
+  color: var(--rv13-text-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.rvStudentHomeLinks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.rvStudentHomeLink {
+  min-width: 0;
+  min-height: 74px;
+  padding: 13px;
+  border: 1px solid var(--rv13-border);
+  border-radius: 14px;
+  background: var(--rv13-card-soft);
+  color: inherit;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+}
+
+.rvStudentHomeLink:hover {
+  border-color: rgba(32, 214, 207, .24);
+  background: var(--rv13-card-hover);
+}
+
+.rvStudentHomeLinkIcon {
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(32, 214, 207, .14);
+  border-radius: 10px;
+  background: rgba(32, 214, 207, .055);
+  color: var(--rv13-accent);
+  display: grid;
+  place-items: center;
+}
+
+.rvStudentHomeLinkCopy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.rvStudentHomeLinkCopy strong {
+  color: var(--rv13-text-2);
+  font-size: 12px;
+}
+
+.rvStudentHomeLinkCopy span {
+  overflow: hidden;
+  color: var(--rv13-muted);
+  font-size: 10.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rvStudentHomeLink > svg {
+  color: #718ba2;
+  justify-self: end;
+}
+
+/* =========================
+   PROGRAMA / AULA / PERFIL
+   ========================= */
+
+.studentTabIntro,
+.profileScreenHero,
+.lessonHero {
+  padding: 22px !important;
+  border-radius: 17px !important;
+}
+
+.studentTabIntro h1,
+.profileScreenHero h1,
+.lessonHero h1 {
+  margin-top: 4px !important;
+  font-size: clamp(30px, 4.5vw, 45px) !important;
+  line-height: 1.02 !important;
+}
+
+.programSummaryPill {
+  min-width: 132px !important;
+  padding: 13px 14px !important;
+  text-align: left !important;
+}
+
+.programSummaryPill strong {
+  font-size: 25px !important;
+}
+
+.programSummaryPill span {
+  font-size: 11px !important;
+}
+
+.rvSettingsAccordionTrigger {
+  min-height: 64px !important;
+}
+
+.rvSettingsAccordionHeading strong {
+  font-size: 13px !important;
+  line-height: 1.25 !important;
+}
+
+.rvSettingsAccordionHeading small {
+  margin-top: 3px;
+  font-size: 10.5px !important;
+  line-height: 1.4 !important;
+}
+
+.rvSettingsAccordionChevron {
+  width: 28px !important;
+  height: 28px !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+.lessonItem {
+  min-height: 66px !important;
+  padding: 10px 12px !important;
+}
+
+.lessonCopy strong {
+  font-size: 12.5px !important;
+}
+
+.lessonCopy span {
+  font-size: 10.5px !important;
+}
+
+.lessonNavigator {
+  padding: 8px !important;
+}
+
+.lessonNavigator > span {
+  min-width: 88px;
+  color: var(--rv13-muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+.lessonNavigator .secondary {
+  min-height: 42px !important;
+}
+
+.exerciseCard {
+  padding-bottom: 14px !important;
+}
+
+.exerciseHeader h2 {
+  font-size: clamp(20px, 3vw, 27px) !important;
+}
+
+.exerciseMeta > div {
+  padding: 11px !important;
+}
+
+.exerciseMeta span,
+.exerciseInstructions > span {
+  font-size: 10px !important;
+}
+
+.exerciseMeta strong {
+  font-size: 13px !important;
+}
+
+.exerciseInstructions p {
+  font-size: 12px !important;
+  line-height: 1.6 !important;
+}
+
+/* =========================
+   DASHBOARD PROFISSIONAL
+   ========================= */
+
+.rvAdminDashboard {
+  width: min(var(--rv13-page-max), 100%);
+  margin-inline: auto;
+  display: grid;
+  gap: 13px;
+}
+
+.rvAdminCommandHero {
+  padding: 22px;
+  border: 1px solid var(--rv13-border);
+  border-radius: 19px;
+  background:
+    linear-gradient(135deg, rgba(10, 37, 61, .97), rgba(5, 21, 38, .98));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "copy refresh"
+    "metrics metrics";
+  gap: 18px;
+}
+
+.rvAdminCommandCopy {
+  grid-area: copy;
+  min-width: 0;
+}
+
+.rvAdminCommandCopy .eyebrow {
+  margin: 0 0 7px;
+  font-size: 9.5px !important;
+}
+
+.rvAdminCommandCopy h2 {
+  margin: 0 0 6px;
+  color: var(--rv13-text);
+  font-size: clamp(29px, 4vw, 42px);
+  line-height: 1;
+  letter-spacing: -.04em;
+}
+
+.rvAdminCommandCopy p:last-child {
+  max-width: 650px;
+  margin: 0;
+  color: var(--rv13-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.rvAdminRefresh {
+  grid-area: refresh;
+  align-self: start;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--rv13-border);
+  border-radius: 10px;
+  background: rgba(3, 17, 32, .45);
+  color: var(--rv13-text-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 780;
+}
+
+.rvAdminHeroMetrics {
+  grid-area: metrics;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rvAdminMetric {
+  min-width: 0;
+  min-height: 94px;
+  padding: 13px;
+  border: 1px solid var(--rv13-border);
+  border-radius: 13px;
+  background: rgba(3, 17, 32, .48);
+  color: inherit;
+  display: grid;
+  align-content: space-between;
+  gap: 4px;
+  text-align: left;
+}
+
+button.rvAdminMetric {
+  cursor: pointer;
+}
+
+button.rvAdminMetric:hover {
+  border-color: rgba(32, 214, 207, .22);
+  background: rgba(7, 31, 50, .72);
+}
+
+.rvAdminMetric span {
+  color: var(--rv13-muted);
+  font-size: 10.5px !important;
+  line-height: 1.3;
+}
+
+.rvAdminMetric strong {
+  color: var(--rv13-text);
+  font-size: 28px !important;
+  line-height: 1;
+  letter-spacing: -.04em;
+}
+
+.rvAdminMetric small {
+  color: var(--rv13-muted-2);
+  font-size: 9.5px !important;
+}
+
+.rvAdminActionGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rvAdminActionCard {
+  min-width: 0;
+  min-height: 80px;
+  padding: 12px;
+  border: 1px solid var(--rv13-border);
+  border-radius: 13px;
+  background: var(--rv13-card-soft);
+  color: inherit;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 9px;
+  text-align: left;
+}
+
+.rvAdminActionCard:hover {
+  border-color: rgba(32, 214, 207, .23);
+  background: var(--rv13-card-hover);
+}
+
+.rvAdminActionIcon {
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(32, 214, 207, .14);
+  border-radius: 10px;
+  background: rgba(32, 214, 207, .055);
+  color: var(--rv13-accent);
+  display: grid;
+  place-items: center;
+}
+
+.rvAdminActionCopy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.rvAdminActionCopy strong {
+  color: var(--rv13-text-2);
+  font-size: 11.5px;
+}
+
+.rvAdminActionCopy small {
+  color: var(--rv13-muted);
+  font-size: 9.5px !important;
+  line-height: 1.35;
+}
+
+.rvAdminActionCard > svg {
+  color: #6e879f;
+  justify-self: end;
+}
+
+.rvAdminDashboardGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(300px, .7fr);
+  gap: 10px;
+}
+
+.rvAdminPanel {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--rv13-border);
+  border-radius: 15px;
+  background: var(--rv13-card);
+}
+
+.rvAdminPanelHead {
+  margin-bottom: 12px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid var(--rv13-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rvAdminPanelHead > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.rvAdminPanelHead span {
+  color: var(--rv13-muted-2);
+  font-size: 9px !important;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.rvAdminPanelHead strong {
+  color: var(--rv13-text);
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.rvAdminPanelHead > svg {
+  color: var(--rv13-accent);
+}
+
+.rvAdminActivityList,
+.rvAdminPendingList,
+.rvAdminProgramList {
+  display: grid;
+  gap: 7px;
+}
+
+.rvAdminActivityItem,
+.rvAdminPendingItem,
+.rvAdminProgramItem {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--rv13-border);
+  border-radius: 11px;
+  background: rgba(3, 17, 32, .45);
+}
+
+.rvAdminActivityItem {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+}
+
+.rvAdminActivityAvatar {
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(32, 214, 207, .14);
+  border-radius: 50%;
+  background: rgba(32, 214, 207, .055);
+  color: var(--rv13-accent);
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.rvAdminActivityCopy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.rvAdminActivityCopy strong {
+  overflow: hidden;
+  color: var(--rv13-text-2);
+  font-size: 11.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rvAdminActivityCopy span {
+  overflow: hidden;
+  color: var(--rv13-muted);
+  font-size: 9.5px !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rvAdminActivityItem time {
+  color: var(--rv13-muted-2);
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.rvAdminPendingItem {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 9px;
+  color: inherit;
+  text-align: left;
+}
+
+.rvAdminPendingItem:hover {
+  border-color: rgba(32, 214, 207, .22);
+}
+
+.rvAdminPendingCopy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.rvAdminPendingCopy strong {
+  overflow: hidden;
+  color: var(--rv13-text-2);
+  font-size: 11.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rvAdminPendingCopy span {
+  overflow: hidden;
+  color: var(--rv13-muted);
+  font-size: 9.5px !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rvAdminPendingItem > svg {
+  color: #6d879f;
+}
+
+.rvAdminProgramItem {
+  display: grid;
+  gap: 8px;
+}
+
+.rvAdminProgramTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rvAdminProgramTop > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.rvAdminProgramTop strong {
+  overflow: hidden;
+  color: var(--rv13-text-2);
+  font-size: 11.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rvAdminProgramTop span {
+  color: var(--rv13-muted);
+  font-size: 9.5px !important;
+}
+
+.rvAdminProgramTop b {
+  color: var(--rv13-accent);
+  font-size: 11px;
+}
+
+.rvAdminProgramTrack {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(129, 160, 191, .1);
+}
+
+.rvAdminProgramTrack span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--rv13-accent);
+}
+
+.rvAdminHealthGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.rvAdminHealthItem {
+  min-width: 0;
+  min-height: 82px;
+  padding: 11px;
+  border: 1px solid var(--rv13-border);
+  border-radius: 11px;
+  background: rgba(3, 17, 32, .45);
+  display: grid;
+  align-content: space-between;
+  gap: 4px;
+}
+
+.rvAdminHealthItem span {
+  color: var(--rv13-muted);
+  font-size: 9.5px !important;
+  line-height: 1.35;
+}
+
+.rvAdminHealthItem strong {
+  color: var(--rv13-text);
+  font-size: 22px;
+}
+
+.rvAdminHealthItem.warning strong {
+  color: var(--rv-premium-warning);
+}
+
+/* =========================
+   ADMIN > ALUNOS
+   ========================= */
+
+.rvStudentManagerHero {
+  padding: 18px;
+  border: 1px solid var(--rv13-border);
+  border-radius: 16px;
+  background: var(--rv13-card);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+}
+
+.rvStudentManagerHeroCopy {
+  min-width: 0;
+}
+
+.rvStudentManagerHeroCopy .eyebrow {
+  margin: 0 0 5px;
+  font-size: 9px !important;
+}
+
+.rvStudentManagerHeroCopy h2 {
+  margin: 0 0 5px;
+  color: var(--rv13-text);
+  font-size: 24px;
+  letter-spacing: -.035em;
+}
+
+.rvStudentManagerHeroCopy p {
+  margin: 0;
+  color: var(--rv13-muted);
+  font-size: 11px !important;
+  line-height: 1.5;
+}
+
+.rvStudentManagerStats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(90px, 1fr));
+  gap: 7px;
+}
+
+.rvStudentManagerStats > div {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--rv13-border);
+  border-radius: 10px;
+  background: rgba(3, 17, 32, .42);
+  display: grid;
+  gap: 2px;
+}
+
+.rvStudentManagerStats span {
+  color: var(--rv13-muted-2);
+  font-size: 9px !important;
+}
+
+.rvStudentManagerStats strong {
+  color: var(--rv13-text);
+  font-size: 18px;
+}
+
+.studentManagementToolbar {
+  padding: 10px !important;
+  border: 1px solid var(--rv13-border) !important;
+  border-radius: 13px !important;
+  background: rgba(5, 21, 39, .72) !important;
+}
+
+.studentManagementToolbar .searchBox {
+  min-height: 45px !important;
+  border-radius: 10px !important;
+}
+
+.studentManagementToolbar .searchBox input {
+  font-size: 13px !important;
+}
+
+.studentStatusFilters button {
+  min-height: 38px !important;
+  padding-inline: 10px !important;
+  font-size: 11px !important;
+}
+
+.studentStatusFilters button span {
+  font-size: 9px !important;
+}
+
+.advancedStudentHeader {
+  display: none !important;
+}
+
+.studentRow.enhancedStudentRow.advancedStudentRow.studentAccordionRow {
+  position: relative !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: block !important;
+  overflow: hidden !important;
+  border: 1px solid var(--rv13-border) !important;
+  border-radius: 14px !important;
+  background: var(--rv13-card) !important;
+}
+
+.studentRow.studentAccordionRow[open] {
+  border-color: rgba(32, 214, 207, .19) !important;
+}
+
+.studentAccordionSummary {
+  list-style: none !important;
+  position: relative !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 76px !important;
+  padding: 12px 14px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(170px, auto) 28px !important;
+  grid-template-areas: "identity meta chevron" !important;
+  align-items: center !important;
+  gap: 12px !important;
+  cursor: pointer;
+}
+
+.studentAccordionSummary::-webkit-details-marker {
+  display: none;
+}
+
+.studentAccordionSummary::marker {
+  display: none;
+  content: '';
+}
+
+.studentAccordionSummary .studentIdentity {
+  grid-area: identity !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  grid-template-columns: 42px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.studentAccordionSummary .studentAvatar {
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  border-radius: 50% !important;
+}
+
+.studentAccordionSummary .studentIdentity > div:last-child {
+  min-width: 0 !important;
+}
+
+.studentAccordionSummary .studentIdentity strong {
+  display: block !important;
+  overflow: hidden !important;
+  color: var(--rv13-text-2) !important;
+  font-size: 13px !important;
+  line-height: 1.3 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.studentAccordionSummary .studentIdentity span {
+  display: block !important;
+  margin-top: 2px !important;
+  overflow: hidden !important;
+  color: var(--rv13-muted) !important;
+  font-size: 10.5px !important;
+  line-height: 1.35 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.studentAccordionSummary .studentIdentity small {
+  display: none !important;
+}
+
+.studentAccordionSummaryMeta {
+  grid-area: meta !important;
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  flex-wrap: wrap !important;
+  gap: 6px 8px !important;
+}
+
+.studentAccordionSummaryMeta .statusPill {
+  position: static !important;
+  min-height: 26px !important;
+  padding: 5px 8px !important;
+  font-size: 9.5px !important;
+}
+
+.studentAccordionPlan {
+  max-width: 150px !important;
+  overflow: hidden !important;
+  color: var(--rv13-muted) !important;
+  font-size: 10px !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.studentAccordionProgress {
+  color: var(--rv13-accent) !important;
+  font-size: 11px !important;
+}
+
+.studentAccordionChevron {
+  grid-area: chevron !important;
+  position: static !important;
+  width: 28px !important;
+  height: 38px !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+.studentAccordionChevron::before {
+  content: '›';
+  color: #718aa1;
+  font-size: 25px;
+  line-height: 1;
+  transform: rotate(0deg);
+  transition: transform .16s ease, color .16s ease;
+}
+
+.studentAccordionRow[open] .studentAccordionChevron::before {
+  color: var(--rv13-accent);
+  transform: rotate(90deg);
+}
+
+.studentRow.studentAccordionRow > .studentAccordionBody,
+.studentRow.enhancedStudentRow.advancedStudentRow.studentAccordionRow > div:nth-child(2) {
+  position: static !important;
+  inset: auto !important;
+  z-index: auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 10px !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 8px !important;
+  overflow: visible !important;
+  transform: none !important;
+}
+
+.rvStudentManagementAccordion {
+  margin: 0 !important;
+}
+
+.rvStudentManagementAccordion .rvSettingsAccordionTrigger {
+  min-height: 60px !important;
+}
+
+.rvStudentManagementAccordion .rvSettingsAccordionHeading strong {
+  font-size: 12.5px !important;
+}
+
+.rvStudentManagementAccordion .rvSettingsAccordionHeading small {
+  font-size: 10px !important;
+}
+
+.rvStudentManagementAccordion .rvSettingsAccordionBody {
+  padding: 12px !important;
+}
+
+.studentAccordionBody .rvSettingsAccordionBody .studentPlanCell,
+.studentAccordionBody .rvSettingsAccordionBody .studentProgressCell,
+.studentAccordionBody .rvSettingsAccordionBody .advancedRowActions {
+  position: static !important;
+  inset: auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.rvMethodologyCards {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+.rvMethodologyChoice {
+  min-height: 96px !important;
+}
+
+.rvMethodologyChoice strong {
+  font-size: 11.5px !important;
+}
+
+.rvMethodologyChoice small {
+  font-size: 9.5px !important;
+}
+
+.studentStartDate.rvStudentPlanDate {
+  min-height: 48px !important;
+}
+
+.studentStartDate.rvStudentPlanDate span {
+  font-size: 10.5px !important;
+}
+
+.studentStartDate.rvStudentPlanDate input {
+  min-height: 40px !important;
+  font-size: 16px !important;
+}
+
+.rvStudentPlanSaveArea button,
+.rvStudentAccountActions button {
+  min-height: 44px !important;
+  font-size: 11px !important;
+}
+
+/* =========================
+   CONTEÚDO ADMIN — PASSO A PASSO
+   ========================= */
+
+.rvFlowEditor {
+  width: min(760px, 100%) !important;
+  margin-inline: auto !important;
+  gap: 11px !important;
+}
+
+.rvFlowHeader {
+  padding: 16px !important;
+  border-radius: 15px !important;
+}
+
+.rvFlowHeaderTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rvFlowHeaderCopy {
+  min-width: 0;
+}
+
+.rvFlowHeaderCopy > span {
+  color: var(--rv13-accent);
+  font-size: 9px !important;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.rvFlowHeaderCopy h2 {
+  margin: 5px 0 5px !important;
+  color: var(--rv13-text);
+  font-size: clamp(23px, 4vw, 32px) !important;
+  line-height: 1.04 !important;
+}
+
+.rvFlowHeaderCopy p {
+  max-width: 590px;
+  margin: 0 !important;
+  color: var(--rv13-muted);
+  font-size: 11px !important;
+  line-height: 1.5 !important;
+}
+
+.rvFlowBack {
+  min-height: 38px !important;
+  padding: 0 9px !important;
+  border: 1px solid var(--rv13-border) !important;
+  border-radius: 9px !important;
+  background: rgba(3, 17, 32, .42) !important;
+  font-size: 10px !important;
+}
+
+.rvFlowStepper {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rv13-border);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.rvFlowStep {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+}
+
+.rvFlowStep b {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--rv13-border-strong);
+  border-radius: 50%;
+  background: rgba(3, 17, 32, .52);
+  color: var(--rv13-muted);
+  display: grid;
+  place-items: center;
+  font-size: 9px;
+}
+
+.rvFlowStep span {
+  overflow: hidden;
+  color: var(--rv13-muted-2);
+  font-size: 9px !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rvFlowStep.done b,
+.rvFlowStep.active b {
+  border-color: rgba(32, 214, 207, .38);
+  background: rgba(32, 214, 207, .08);
+  color: var(--rv13-accent);
+}
+
+.rvFlowStep.active span {
+  color: var(--rv13-text-2);
+  font-weight: 800;
+}
+
+.rvFlowContextPath {
+  margin-top: 9px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--rv13-muted);
+  font-size: 9.5px;
+}
+
+.rvFlowContextPath span {
+  min-width: 0;
+  max-width: 230px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rvFlowContextPath svg {
+  flex: 0 0 auto;
+  color: #607b95;
+}
+
+.rvFlowList {
+  gap: 8px !important;
+}
+
+.rvFlowListItem {
+  min-height: 72px !important;
+  padding: 11px 12px !important;
+}
+
+.rvFlowListCopy strong {
+  color: var(--rv13-text-2) !important;
+  font-size: 12px !important;
+}
+
+.rvFlowListCopy small {
+  margin-top: 3px;
+  color: var(--rv13-muted) !important;
+  font-size: 10px !important;
+  line-height: 1.4 !important;
+}
+
+.rvFlowListItem > svg {
+  color: #708aa1 !important;
+}
+
+.rvFlowAdd {
+  min-height: 46px !important;
+  font-size: 11px !important;
+  font-weight: 820 !important;
+}
+
+.rvFlowForm,
+.rvFlowSection {
+  padding: 15px !important;
+  border-radius: 14px !important;
+}
+
+.rvFlowForm label,
+.rvFlowAdvanced label {
+  color: #acbdcc !important;
+  font-size: 10.5px !important;
+  font-weight: 760 !important;
+}
+
+.rvFlowForm input,
+.rvFlowForm textarea,
+.rvFlowForm select,
+.rvFlowAdvanced input,
+.rvFlowAdvanced select {
+  min-height: 46px !important;
+  margin-top: 6px !important;
+  font-size: 14px !important;
+}
+
+.rvFlowForm textarea {
+  min-height: 105px !important;
+}
+
+.rvFlowVideoBox {
+  padding: 13px !important;
+  border-radius: 12px !important;
+}
+
+.rvFlowVideoTitle strong {
+  font-size: 12px !important;
+}
+
+.rvFlowVideoTitle small {
+  font-size: 10px !important;
+}
+
+.rvFlowPrimary,
+.rvFlowSecondary {
+  min-height: 46px !important;
+  font-size: 11.5px !important;
+}
+
+/* =========================
+   LOGIN / AJUSTES / ESTADOS
+   ========================= */
+
+.loginWrap .card {
+  border-radius: 20px !important;
+}
+
+.auth .card form label {
+  font-size: 12px !important;
+}
+
+.auth .card > .muted {
+  font-size: 12px !important;
+  line-height: 1.55 !important;
+}
+
+.settingsIdentityCopy strong {
+  font-size: 13px !important;
+}
+
+.settingsIdentityCopy span,
+.settingsIdentityCopy small,
+.settingsVersionRow span {
+  font-size: 10.5px !important;
+}
+
+.rvUiStateCopy strong {
+  font-size: 12.5px !important;
+}
+
+.rvUiStateCopy span {
+  font-size: 10.5px !important;
+  line-height: 1.5 !important;
+}
+
+/* =========================
+   MOBILE PENTE FINO
+   ========================= */
+
+@media (max-width: 900px) {
+  .adminContent > .dashboardAdminPage,
+  .adminContent > .adminStudentsPage,
+  .adminContent > .adminSettingsShell {
+    padding-top: 10px !important;
+  }
+
+  .rvAdminHeroMetrics,
+  .rvAdminActionGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rvAdminDashboardGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .rvMethodologyCards {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 720px) {
+  /* Corrige o antigo padding duplicado:
+     o page não ganha 14px + o conteúdo mais outro width reduzido. */
+  .studentPage.studentTabbedPage {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-bottom:
+      calc(
+        92px +
+        env(safe-area-inset-bottom, 0px)
+      ) !important;
+  }
+
+  .studentTabContent {
+    width: calc(100% - 24px) !important;
+    max-width: 680px !important;
+    margin-inline: auto !important;
+    padding: 14px 0 24px !important;
+  }
+
+  .studentHeaderMain {
+    min-height: 64px !important;
+    height: auto !important;
+    padding-left:
+      max(12px, env(safe-area-inset-left)) !important;
+    padding-right:
+      max(12px, env(safe-area-inset-right)) !important;
+  }
+
+  .rvStudentHome {
+    gap: 10px;
+  }
+
+  .rvStudentHomeHero {
+    padding: 17px;
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .rvStudentHomeHeroCopy h1 {
+    max-width: 300px;
+    font-size: 31px;
+  }
+
+  .rvStudentHomeHeroCopy > p:last-child {
+    font-size: 11px;
+  }
+
+  .rvStudentHomeProgress {
+    padding: 13px;
+  }
+
+  .rvStudentHomeProgressTop strong {
+    font-size: 26px;
+  }
+
+  .rvStudentFocusGrid {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+
+  .rvStudentTodayCard,
+  .rvStudentProgramOverview {
+    padding: 15px;
+  }
+
+  .rvStudentTodayCard {
+    min-height: 190px;
+    grid-template-columns: minmax(0, 1fr) 54px;
+  }
+
+  .rvStudentTodayNumber {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    font-size: 17px;
+  }
+
+  .rvStudentTodayCardCopy h2 {
+    font-size: 24px;
+  }
+
+  .rvStudentTodayAction {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .rvStudentHomeLinks {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .studentTabIntro {
+    align-items: stretch !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .programSummaryPill {
+    width: 100% !important;
+    min-width: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+
+  .profileScreenHero {
+    align-items: center !important;
+  }
+
+  .profileScreenGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .lessonPage {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .lessonPage .studentHeader {
+    margin-left: -12px !important;
+    margin-right: -12px !important;
+  }
+
+  .lessonNavigator {
+    display: grid !important;
+    grid-template-columns: 1fr auto 1fr !important;
+    gap: 6px !important;
+  }
+
+  .lessonNavigator .secondary {
+    min-width: 0 !important;
+    padding: 7px 8px !important;
+    font-size: 10px !important;
+  }
+
+  .exerciseMeta {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  /* Dock aluno ancorado ao visualViewport.
+     Remove width:100vw rígido que pode causar salto horizontal. */
+  .bottomNav.mobileStudentNav {
+    display: grid !important;
+    position: fixed !important;
+    z-index: 9999 !important;
+    top: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom:
+      var(
+        --rv-student-dock-bottom,
+        0px
+      ) !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    transform: translate3d(0, 0, 0) !important;
+    contain: layout style paint;
+  }
+
+  .bottomNav.mobileStudentNav button {
+    min-height: 58px !important;
+  }
+
+  .bottomNav.mobileStudentNav button span {
+    font-size: 10.5px !important;
+  }
+
+  /* ADMIN */
+  .upgradedAdminContent {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding-left: 11px !important;
+    padding-right: 11px !important;
+    padding-bottom:
+      calc(
+        88px +
+        env(safe-area-inset-bottom, 0px)
+      ) !important;
+  }
+
+  .upgradedAdminTopbar {
+    margin-left: -11px !important;
+    margin-right: -11px !important;
+    padding-left:
+      max(12px, env(safe-area-inset-left)) !important;
+    padding-right:
+      max(12px, env(safe-area-inset-right)) !important;
+  }
+
+  .upgradedAdminTopbar h1 {
+    font-size: 28px !important;
+  }
+
+  .upgradedAdminTopbar > div > p:last-child {
+    max-width: 330px;
+    font-size: 11px !important;
+    line-height: 1.45 !important;
+  }
+
+  .adminStats {
+    display: none !important;
+  }
+
+  .rvAdminCommandHero {
+    padding: 16px;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "copy"
+      "metrics"
+      "refresh";
+    gap: 13px;
+  }
+
+  .rvAdminCommandCopy h2 {
+    font-size: 29px;
+  }
+
+  .rvAdminRefresh {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .rvAdminHeroMetrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rvAdminMetric {
+    min-height: 87px;
+    padding: 11px;
+  }
+
+  .rvAdminMetric strong {
+    font-size: 25px !important;
+  }
+
+  .rvAdminActionGrid {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .rvAdminActionCard {
+    min-height: 70px;
+  }
+
+  .rvAdminPanel {
+    padding: 13px;
+  }
+
+  .rvAdminActivityItem {
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+
+  .rvAdminActivityItem time {
+    grid-column: 2;
+    margin-top: 2px;
+  }
+
+  .rvStudentManagerHero {
+    padding: 14px;
+    grid-template-columns: 1fr;
+    gap: 11px;
+  }
+
+  .rvStudentManagerHeroCopy h2 {
+    font-size: 22px;
+  }
+
+  .rvStudentManagerStats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .studentManagementToolbar {
+    padding: 8px !important;
+  }
+
+  .studentManagementToolbar .searchBox {
+    width: 100% !important;
+    min-height: 46px !important;
+  }
+
+  .studentManagementToolbar .searchBox input {
+    font-size: 16px !important;
+  }
+
+  .studentStatusFilters {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      ) !important;
+    gap: 6px !important;
+    overflow: visible !important;
+  }
+
+  .studentStatusFilters button {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 40px !important;
+    justify-content: center !important;
+    font-size: 11px !important;
+  }
+
+  .studentManagementToolbar .adminRefresh {
+    width: 100% !important;
+    min-height: 42px !important;
+    justify-content: center !important;
+    font-size: 11px !important;
+  }
+
+  .advancedStudentTable {
+    width: 100% !important;
+    min-width: 0 !important;
+    display: grid !important;
+    gap: 8px !important;
+    overflow: visible !important;
+  }
+
+  .studentAccordionSummary {
+    min-height: 82px !important;
+    padding: 11px !important;
+    grid-template-columns: minmax(0, 1fr) 26px !important;
+    grid-template-areas:
+      "identity chevron"
+      "meta chevron" !important;
+    gap: 7px 8px !important;
+  }
+
+  .studentAccordionSummary .studentIdentity {
+    grid-template-columns: 40px minmax(0, 1fr) !important;
+    gap: 9px !important;
+  }
+
+  .studentAccordionSummary .studentAvatar {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+  }
+
+  .studentAccordionSummary .studentIdentity strong {
+    font-size: 12.5px !important;
+  }
+
+  .studentAccordionSummary .studentIdentity span {
+    font-size: 10px !important;
+  }
+
+  .studentAccordionSummaryMeta {
+    justify-content: flex-start !important;
+    gap: 5px 7px !important;
+  }
+
+  .studentAccordionSummaryMeta .statusPill {
+    min-height: 25px !important;
+    font-size: 9px !important;
+  }
+
+  .studentAccordionPlan {
+    max-width: 145px !important;
+    font-size: 9.5px !important;
+  }
+
+  .studentAccordionProgress {
+    font-size: 10px !important;
+  }
+
+  .studentRow.studentAccordionRow > .studentAccordionBody,
+  .studentRow.enhancedStudentRow.advancedStudentRow.studentAccordionRow > div:nth-child(2) {
+    padding: 8px !important;
+    gap: 7px !important;
+  }
+
+  .rvStudentManagementAccordion .rvSettingsAccordionTrigger {
+    min-height: 58px !important;
+    padding: 10px 11px !important;
+  }
+
+  .rvStudentManagementAccordion .rvSettingsAccordionHeading strong {
+    font-size: 12px !important;
+  }
+
+  .rvStudentManagementAccordion .rvSettingsAccordionHeading small {
+    font-size: 9.5px !important;
+  }
+
+  .rvStudentManagementAccordion .rvSettingsAccordionBody {
+    padding: 10px !important;
+  }
+
+  .rvMethodologyCards {
+    grid-template-columns: 1fr !important;
+  }
+
+  .rvMethodologyChoice {
+    min-height: 74px !important;
+  }
+
+  .rvStudentAccountActions {
+    grid-template-columns: 1fr !important;
+  }
+
+  .rvStudentAccountActions .deleteStudentButton {
+    grid-column: 1 !important;
+  }
+
+  .adminMobileDock {
+    padding-bottom:
+      env(safe-area-inset-bottom, 0px) !important;
+  }
+
+  /* Conteúdo */
+  .rvFlowEditor {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .rvFlowHeader {
+    padding: 14px !important;
+  }
+
+  .rvFlowHeaderTop {
+    display: grid;
+    gap: 10px;
+  }
+
+  .rvFlowBack {
+    width: fit-content;
+  }
+
+  .rvFlowStepper {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .rvFlowStep {
+    grid-template-columns: 22px minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .rvFlowStep b {
+    width: 22px;
+    height: 22px;
+  }
+
+  .rvFlowStep span {
+    font-size: 8px !important;
+  }
+
+  .rvFlowForm,
+  .rvFlowSection {
+    padding: 13px !important;
+  }
+
+  .rvFlowForm input,
+  .rvFlowForm textarea,
+  .rvFlowForm select,
+  .rvFlowAdvanced input,
+  .rvFlowAdvanced select {
+    font-size: 16px !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .rvAdminHeroMetrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rvAdminHealthGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .rvStudentProgramFacts,
+  .profileScreenGrid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .exerciseMeta {
+    grid-template-columns: 1fr !important;
+  }
+
+  .rvFlowStepper {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .rvFlowStep {
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 4px;
+    text-align: center;
+  }
+
+  .rvFlowStep span {
+    width: 100%;
+    font-size: 7.5px !important;
+  }
+}
+/* END_RV_PREMIUM_REFINEMENT_V13_20260906 */

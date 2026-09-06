@@ -1951,34 +1951,115 @@ export default function AdminContentMobile() {
     setFeedback(text.saved)
   }
 
+  function flowStepIndex() {
+    if (
+      view === 'programs' ||
+      view === 'new-program'
+    ) {
+      return 0
+    }
+
+    if (
+      view === 'lessons' ||
+      view === 'new-lesson'
+    ) {
+      return 1
+    }
+
+    if (view === 'lesson') {
+      return 2
+    }
+
+    return 3
+  }
+
   function header(
     backLabel?: string,
     onBack?: () => void,
     title?: string,
     subtitle?: string,
   ) {
+    const currentStep =
+      flowStepIndex()
+
+    const steps = [
+      text.activeMethods,
+      text.lessons,
+      text.exercises,
+      text.video,
+    ]
+
     return (
       <header className="rvFlowHeader">
-        {onBack && (
-          <button
-            type="button"
-            className="rvFlowBack"
-            onClick={onBack}
-          >
-            <ArrowLeft size={18} />
-            {backLabel}
-          </button>
-        )}
+        <div className="rvFlowHeaderTop">
+          <div className="rvFlowHeaderCopy">
+            <span>{text.content}</span>
+            <h2>{title}</h2>
+            {subtitle && (
+              <p>{subtitle}</p>
+            )}
+          </div>
 
-        <div>
-          <span>
-            {text.content}
-          </span>
-          <h2>{title}</h2>
-          {subtitle && (
-            <p>{subtitle}</p>
+          {onBack && (
+            <button
+              type="button"
+              className="rvFlowBack"
+              onClick={onBack}
+            >
+              <ArrowLeft size={16} />
+              {backLabel}
+            </button>
           )}
         </div>
+
+        <div
+          className="rvFlowStepper"
+          aria-label={text.stepHelp}
+        >
+          {steps.map(
+            (step, index) => (
+              <div
+                className={[
+                  'rvFlowStep',
+                  index < currentStep
+                    ? 'done'
+                    : '',
+                  index === currentStep
+                    ? 'active'
+                    : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                key={step}
+              >
+                <b>{index + 1}</b>
+                <span>{step}</span>
+              </div>
+            ),
+          )}
+        </div>
+
+        {(selectedProgram ||
+          selectedLesson) && (
+          <div className="rvFlowContextPath">
+            {selectedProgram && (
+              <span>
+                {selectedProgram.title}
+              </span>
+            )}
+
+            {selectedProgram &&
+              selectedLesson && (
+                <ChevronRight size={13} />
+              )}
+
+            {selectedLesson && (
+              <span>
+                {selectedLesson.title}
+              </span>
+            )}
+          </div>
+        )}
       </header>
     )
   }

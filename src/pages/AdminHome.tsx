@@ -923,238 +923,354 @@ export default function AdminHome({ profile }: { profile: Profile }) {
   function renderDashboard() {
     const maxProgramStudents = Math.max(
       1,
-      ...dashboardMetrics.programDistribution.map((item) => item.students),
+      ...dashboardMetrics.programDistribution.map(
+        (item) => item.students,
+      ),
     )
 
     return (
-      <div className="dashboardAdminPage dashboardAdminV2">
-        <section className="dashboardOverviewHero">
-          <div>
-            <p className="eyebrow">VISÃO GERAL</p>
-            <h2>Operação da RV em um só lugar</h2>
+      <div className="rvAdminDashboard">
+        <section className="rvAdminCommandHero">
+          <div className="rvAdminCommandCopy">
+            <p className="eyebrow">
+              VISÃO GERAL
+            </p>
+            <h2>Área do profissional</h2>
             <p>
-              Acompanhe acessos, andamento dos alunos e metodologias sem precisar
-              abrir cada cadastro individualmente.
+              O que precisa de atenção, os acessos
+              principais e o andamento da operação
+              sem poluir a tela.
             </p>
           </div>
 
           <button
             type="button"
-            className="adminRefresh dashboardRefreshButton"
-            onClick={() => loadData(false)}
+            className="rvAdminRefresh"
+            onClick={() =>
+              loadData(false)
+            }
             disabled={refreshing}
           >
-            <RefreshCw size={16} className={refreshing ? 'rvUiSpin' : ''} />
-            {refreshing ? 'Atualizando...' : 'Atualizar dados'}
+            <RefreshCw
+              size={15}
+              className={
+                refreshing
+                  ? 'rvUiSpin'
+                  : ''
+              }
+            />
+            {refreshing
+              ? 'Atualizando...'
+              : 'Atualizar'}
           </button>
+
+          <div className="rvAdminHeroMetrics">
+            <button
+              type="button"
+              className="rvAdminMetric"
+              onClick={() =>
+                openStudentsWithFilter(
+                  'active',
+                )
+              }
+            >
+              <span>Alunos ativos</span>
+              <strong>{activeCount}</strong>
+              <small>
+                {dashboardMetrics.inProgress}{' '}
+                em andamento
+              </small>
+            </button>
+
+            <button
+              type="button"
+              className="rvAdminMetric"
+              onClick={() =>
+                openStudentsWithFilter(
+                  'pending',
+                )
+              }
+            >
+              <span>Aguardando</span>
+              <strong>{pendingCount}</strong>
+              <small>
+                {pendingCount
+                  ? 'Requer análise'
+                  : 'Tudo em dia'}
+              </small>
+            </button>
+
+            <button
+              type="button"
+              className="rvAdminMetric"
+              onClick={() =>
+                setActiveTab('content')
+              }
+            >
+              <span>Metodologias</span>
+              <strong>
+                {activeProgramCount}
+              </strong>
+              <small>
+                {programs.length}{' '}
+                cadastrada(s)
+              </small>
+            </button>
+
+            <article className="rvAdminMetric">
+              <span>Progresso médio</span>
+              <strong>
+                {dashboardMetrics.averageProgress}%
+              </strong>
+              <small>
+                Alunos ativos com plano
+              </small>
+            </article>
+          </div>
         </section>
 
         <section
-          className="rvAdminQuickLinks"
+          className="rvAdminActionGrid"
           aria-label="Acessos rápidos"
         >
           <button
             type="button"
-            className="rvAdminQuickLink"
+            className="rvAdminActionCard"
             onClick={() =>
               openStudentsWithFilter('all')
             }
           >
-            <span className="rvAdminQuickLinkIcon">
+            <span className="rvAdminActionIcon">
               <UsersRound size={17} />
             </span>
-            <span className="rvAdminQuickLinkCopy">
+
+            <span className="rvAdminActionCopy">
               <strong>Meus alunos</strong>
-              <small>Acessos, planos e progresso</small>
+              <small>
+                Acessos, planos e progresso
+              </small>
             </span>
+
             <ChevronRight size={17} />
           </button>
 
           <button
             type="button"
-            className="rvAdminQuickLink"
+            className="rvAdminActionCard"
             onClick={() =>
               setActiveTab('content')
             }
           >
-            <span className="rvAdminQuickLinkIcon">
+            <span className="rvAdminActionIcon">
               <BookOpen size={17} />
             </span>
-            <span className="rvAdminQuickLinkCopy">
-              <strong>Conteúdo e aulas</strong>
-              <small>Monte e publique os treinos</small>
+
+            <span className="rvAdminActionCopy">
+              <strong>
+                Conteúdo e aulas
+              </strong>
+              <small>
+                Criar e publicar treinos
+              </small>
             </span>
+
             <ChevronRight size={17} />
           </button>
 
           <button
             type="button"
-            className="rvAdminQuickLink"
+            className="rvAdminActionCard"
             onClick={() =>
-              openStudentsWithFilter('pending')
+              openStudentsWithFilter(
+                'pending',
+              )
             }
           >
-            <span className="rvAdminQuickLinkIcon">
+            <span className="rvAdminActionIcon">
               <UserPlus size={17} />
             </span>
-            <span className="rvAdminQuickLinkCopy">
+
+            <span className="rvAdminActionCopy">
               <strong>Aprovações</strong>
               <small>
                 {pendingCount
-                  ? `${pendingCount} aguardando análise`
-                  : 'Nenhum cadastro pendente'}
+                  ? `${pendingCount} aguardando`
+                  : 'Nenhum pendente'}
               </small>
             </span>
+
             <ChevronRight size={17} />
           </button>
 
           <button
             type="button"
-            className="rvAdminQuickLink"
+            className="rvAdminActionCard"
             onClick={() =>
               setActiveTab('settings')
             }
           >
-            <span className="rvAdminQuickLinkIcon">
+            <span className="rvAdminActionIcon">
               <Settings size={17} />
             </span>
-            <span className="rvAdminQuickLinkCopy">
+
+            <span className="rvAdminActionCopy">
               <strong>Ajustes</strong>
-              <small>Conta, notificações e aplicativo</small>
+              <small>
+                Conta e preferências
+              </small>
             </span>
+
             <ChevronRight size={17} />
           </button>
         </section>
 
-        <div className="dashboardAdminCards dashboardAdminCardsV2">
-          <button onClick={() => openStudentsWithFilter('active')}>
-            <span>Alunos ativos</span>
-            <strong>{activeCount}</strong>
-            <small>{dashboardMetrics.inProgress} em andamento</small>
-          </button>
-
-          <button
-            className={pendingCount > 0 ? 'needsAttention' : ''}
-            onClick={() => openStudentsWithFilter('pending')}
-          >
-            <span>Aguardando aprovação</span>
-            <strong>{pendingCount}</strong>
-            <small>{pendingCount ? 'Requer sua análise' : 'Nenhum pendente'}</small>
-          </button>
-
-          <button onClick={() => setActiveTab('content')}>
-            <span>Metodologias ativas</span>
-            <strong>{activeProgramCount}</strong>
-            <small>{programs.length} cadastrada(s)</small>
-          </button>
-
-          <button onClick={() => openStudentsWithFilter('blocked')}>
-            <span>Bloqueados</span>
-            <strong>{blockedCount}</strong>
-            <small>Gerenciar acessos</small>
-          </button>
-
-          <article className="dashboardMetricCard accentMetric">
-            <span>Progresso médio</span>
-            <strong>{dashboardMetrics.averageProgress}%</strong>
-            <div className="dashboardMetricTrack">
-              <i style={{ width: dashboardMetrics.averageProgress + '%' }} />
-            </div>
-            <small>Entre alunos ativos com plano</small>
-          </article>
-
-          <article className="dashboardMetricCard">
-            <span>Programa concluído</span>
-            <strong>{dashboardMetrics.completedPrograms}</strong>
-            <small>Aluno(s) em 100%</small>
-          </article>
-
-          <article
-            className={
-              dashboardMetrics.withoutProgram > 0
-                ? 'dashboardMetricCard warningMetric'
-                : 'dashboardMetricCard'
-            }
-          >
-            <span>Ativos sem plano</span>
-            <strong>{dashboardMetrics.withoutProgram}</strong>
-            <small>
-              {dashboardMetrics.withoutProgram > 0
-                ? 'Precisa de correção'
-                : 'Tudo vinculado'}
-            </small>
-          </article>
-
-          <article className="dashboardMetricCard">
-            <span>Ainda não iniciaram</span>
-            <strong>{dashboardMetrics.notStarted}</strong>
-            <small>Com plano, 0 aulas concluídas</small>
-          </article>
-        </div>
-
-        <div className="dashboardOperationsGrid">
-          <section className="dashboardPanel">
-            <header className="dashboardPanelHeader">
+        <section className="rvAdminDashboardGrid">
+          <article className="rvAdminPanel">
+            <header className="rvAdminPanelHead">
               <div>
-                <p className="eyebrow">ATIVIDADE</p>
-                <h3>Últimas conclusões</h3>
+                <span>ATIVIDADE</span>
+                <strong>
+                  Últimas conclusões
+                </strong>
               </div>
-              <BarChart3 size={19} />
+              <BarChart3 size={18} />
             </header>
 
-            {dashboardMetrics.recentActivity.length === 0 ? (
+            {dashboardMetrics.recentActivity.length ===
+            0 ? (
               <RvEmptyState
                 compact
                 kind="program"
                 title="Nenhuma atividade ainda"
-                text="As aulas concluídas pelos alunos aparecerão aqui."
+                text="As aulas concluídas aparecerão aqui."
               />
             ) : (
-              <div className="dashboardActivityList">
-                {dashboardMetrics.recentActivity.map((activity, index) => (
-                  <div
-                    className="dashboardActivityItem"
-                    key={
-                      activity.student_id +
-                      '-' +
-                      activity.lesson_id +
-                      '-' +
-                      activity.completed_at +
-                      '-' +
-                      index
-                    }
-                  >
-                    <div className="dashboardActivityAvatar">
-                      {activity.student?.name?.charAt(0)?.toUpperCase() || 'A'}
-                    </div>
-
-                    <div className="dashboardActivityCopy">
-                      <strong>{activity.student?.name || 'Aluno'}</strong>
-                      <span>
-                        Concluiu uma aula
-                        {activity.program?.title
-                          ? ' · ' + activity.program.title
-                          : ''}
+              <div className="rvAdminActivityList">
+                {dashboardMetrics.recentActivity.map(
+                  (activity, index) => (
+                    <div
+                      className="rvAdminActivityItem"
+                      key={
+                        activity.student_id +
+                        '-' +
+                        activity.lesson_id +
+                        '-' +
+                        activity.completed_at +
+                        '-' +
+                        index
+                      }
+                    >
+                      <span className="rvAdminActivityAvatar">
+                        {activity.student?.name
+                          ?.charAt(0)
+                          ?.toUpperCase() ||
+                          'A'}
                       </span>
-                    </div>
 
-                    <time>{formatDateTime(activity.completed_at)}</time>
-                  </div>
-                ))}
+                      <span className="rvAdminActivityCopy">
+                        <strong>
+                          {activity.student
+                            ?.name ||
+                            'Aluno'}
+                        </strong>
+                        <span>
+                          Concluiu uma aula
+                          {activity.program
+                            ?.title
+                            ? ` · ${activity.program.title}`
+                            : ''}
+                        </span>
+                      </span>
+
+                      <time>
+                        {formatDateTime(
+                          activity.completed_at,
+                        )}
+                      </time>
+                    </div>
+                  ),
+                )}
               </div>
             )}
-          </section>
+          </article>
 
-          <section className="dashboardPanel">
-            <header className="dashboardPanelHeader">
+          <article className="rvAdminPanel">
+            <header className="rvAdminPanelHead">
               <div>
-                <p className="eyebrow">METODOLOGIAS</p>
-                <h3>Distribuição dos alunos</h3>
+                <span>APROVAÇÕES</span>
+                <strong>Novos cadastros</strong>
               </div>
-              <BookOpen size={19} />
+              <UserPlus size={18} />
             </header>
 
-            {dashboardMetrics.programDistribution.length === 0 ? (
+            {dashboardMetrics.recentPending.length ===
+            0 ? (
+              <RvEmptyState
+                compact
+                kind="search"
+                title="Nenhum pendente"
+                text="Todos os cadastros foram revisados."
+              />
+            ) : (
+              <div className="rvAdminPendingList">
+                {dashboardMetrics.recentPending.map(
+                  (student) => (
+                    <button
+                      type="button"
+                      className="rvAdminPendingItem"
+                      key={student.id}
+                      onClick={() => {
+                        setStudentFilter(
+                          'pending',
+                        )
+                        setSelectedStudentId(
+                          student.id,
+                        )
+                        setActiveTab(
+                          'students',
+                        )
+                      }}
+                    >
+                      <span className="rvAdminActivityAvatar">
+                        {student.name
+                          ?.charAt(0)
+                          ?.toUpperCase() ||
+                          'A'}
+                      </span>
+
+                      <span className="rvAdminPendingCopy">
+                        <strong>
+                          {student.name ||
+                            'Sem nome'}
+                        </strong>
+                        <span>
+                          {student.email}
+                        </span>
+                      </span>
+
+                      <ChevronRight
+                        size={16}
+                      />
+                    </button>
+                  ),
+                )}
+              </div>
+            )}
+          </article>
+
+          <article className="rvAdminPanel">
+            <header className="rvAdminPanelHead">
+              <div>
+                <span>METODOLOGIAS</span>
+                <strong>
+                  Distribuição dos alunos
+                </strong>
+              </div>
+              <BookOpen size={18} />
+            </header>
+
+            {dashboardMetrics.programDistribution.length ===
+            0 ? (
               <RvEmptyState
                 compact
                 kind="program"
@@ -1162,128 +1278,113 @@ export default function AdminHome({ profile }: { profile: Profile }) {
                 text="Crie uma metodologia para começar."
               />
             ) : (
-              <div className="dashboardProgramList">
-                {dashboardMetrics.programDistribution.map((item) => (
-                  <div className="dashboardProgramItem" key={item.id}>
-                    <div className="dashboardProgramTop">
-                      <div>
-                        <strong>{item.title}</strong>
-                        <span>
-                          {item.students} aluno(s) · média {item.average}%
-                        </span>
+              <div className="rvAdminProgramList">
+                {dashboardMetrics.programDistribution.map(
+                  (item) => (
+                    <div
+                      className="rvAdminProgramItem"
+                      key={item.id}
+                    >
+                      <div className="rvAdminProgramTop">
+                        <div>
+                          <strong>
+                            {item.title}
+                          </strong>
+                          <span>
+                            {item.students}{' '}
+                            aluno(s) · média{' '}
+                            {item.average}%
+                          </span>
+                        </div>
+                        <b>{item.students}</b>
                       </div>
-                      <b>{item.students}</b>
-                    </div>
 
-                    <div className="dashboardProgramTrack">
-                      <i
-                        style={{
-                          width:
-                            Math.max(
-                              item.students > 0 ? 7 : 0,
-                              Math.round(
-                                (item.students / maxProgramStudents) * 100,
-                              ),
-                            ) + '%',
-                        }}
-                      />
+                      <div className="rvAdminProgramTrack">
+                        <span
+                          style={{
+                            width:
+                              Math.max(
+                                item.students >
+                                  0
+                                  ? 7
+                                  : 0,
+                                Math.round(
+                                  (item.students /
+                                    maxProgramStudents) *
+                                    100,
+                                ),
+                              ) + '%',
+                          }}
+                        />
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ),
+                )}
               </div>
             )}
+          </article>
 
-            <button
-              type="button"
-              className="dashboardPanelAction"
-              onClick={() => setActiveTab('content')}
-            >
-              Gerenciar metodologias
-            </button>
-          </section>
-        </div>
-
-        <div className="dashboardSecondaryGrid">
-          <section className="dashboardPanel">
-            <header className="dashboardPanelHeader">
+          <article className="rvAdminPanel">
+            <header className="rvAdminPanelHead">
               <div>
-                <p className="eyebrow">NOVOS CADASTROS</p>
-                <h3>Aguardando sua aprovação</h3>
+                <span>SAÚDE DA BASE</span>
+                <strong>
+                  O que merece atenção
+                </strong>
               </div>
-              <UsersRound size={19} />
+              <UsersRound size={18} />
             </header>
 
-            {dashboardMetrics.recentPending.length === 0 ? (
-              <div className="dashboardEverythingOk">
-                <Check size={18} />
-                <div>
-                  <strong>Nenhum cadastro pendente</strong>
-                  <span>Todos os novos alunos já foram revisados.</span>
-                </div>
+            <div className="rvAdminHealthGrid">
+              <div className="rvAdminHealthItem">
+                <span>
+                  Total cadastrados
+                </span>
+                <strong>
+                  {dashboardMetrics.totalStudents}
+                </strong>
               </div>
-            ) : (
-              <div className="dashboardPendingList">
-                {dashboardMetrics.recentPending.map((student) => (
-                  <button
-                    key={student.id}
-                    type="button"
-                    onClick={() => openStudentsWithFilter('pending')}
-                  >
-                    <div className="dashboardActivityAvatar">
-                      {student.name?.charAt(0)?.toUpperCase() || 'A'}
-                    </div>
-                    <div>
-                      <strong>{student.name || 'Sem nome'}</strong>
-                      <span>{student.email}</span>
-                    </div>
-                    <small>
-                      {new Intl.DateTimeFormat('pt-BR', {
-                        dateStyle: 'short',
-                      }).format(new Date(student.created_at))}
-                    </small>
-                  </button>
-                ))}
-              </div>
-            )}
-          </section>
 
-          <section className="dashboardPanel">
-            <header className="dashboardPanelHeader">
-              <div>
-                <p className="eyebrow">RESUMO</p>
-                <h3>Base de alunos</h3>
+              <div className="rvAdminHealthItem">
+                <span>
+                  Programas concluídos
+                </span>
+                <strong>
+                  {
+                    dashboardMetrics.completedPrograms
+                  }
+                </strong>
               </div>
-              <UsersRound size={19} />
-            </header>
 
-            <div className="dashboardSummaryRows">
-              <div>
-                <span>Total cadastrados</span>
-                <strong>{dashboardMetrics.totalStudents}</strong>
+              <div
+                className={
+                  dashboardMetrics.withoutProgram >
+                  0
+                    ? 'rvAdminHealthItem warning'
+                    : 'rvAdminHealthItem'
+                }
+              >
+                <span>
+                  Ativos sem plano
+                </span>
+                <strong>
+                  {
+                    dashboardMetrics.withoutProgram
+                  }
+                </strong>
               </div>
-              <div>
-                <span>Ativos</span>
-                <strong>{dashboardMetrics.activeStudents}</strong>
-              </div>
-              <div>
-                <span>Em andamento</span>
-                <strong>{dashboardMetrics.inProgress}</strong>
-              </div>
-              <div>
-                <span>100% concluído</span>
-                <strong>{dashboardMetrics.completedPrograms}</strong>
+
+              <div className="rvAdminHealthItem">
+                <span>
+                  Ainda não iniciaram
+                </span>
+                <strong>
+                  {dashboardMetrics.notStarted}
+                </strong>
               </div>
             </div>
-
-            <button
-              type="button"
-              className="dashboardPanelAction"
-              onClick={() => openStudentsWithFilter('all')}
-            >
-              Abrir gestão de alunos
-            </button>
-          </section>
-        </div>
+          </article>
+        </section>
       </div>
     )
   }
@@ -1302,6 +1403,34 @@ export default function AdminHome({ profile }: { profile: Profile }) {
 
     return (
       <div className="adminStudentsPage">
+        <section className="rvStudentManagerHero">
+          <div className="rvStudentManagerHeroCopy">
+            <p className="eyebrow">
+              GESTÃO DE ALUNOS
+            </p>
+            <h2>
+              {filteredStudents.length}{' '}
+              aluno(s) nesta visão
+            </h2>
+            <p>
+              Abra um cadastro apenas quando precisar.
+              Plano, progresso e ações ficam separados.
+            </p>
+          </div>
+
+          <div className="rvStudentManagerStats">
+            <div>
+              <span>Ativos</span>
+              <strong>{activeCount}</strong>
+            </div>
+
+            <div>
+              <span>Aguardando</span>
+              <strong>{pendingCount}</strong>
+            </div>
+          </div>
+        </section>
+
         <div className="adminToolbar strongToolbar studentManagementToolbar">
           <div className="searchBox">
             <Search size={17} />
@@ -1885,7 +2014,7 @@ export default function AdminHome({ profile }: { profile: Profile }) {
     <main className="adminPage upgradedAdminPage">
       <aside className="adminSidebar upgradedAdminSidebar">
         <div className="adminBrand">
-          <img src="/logo-rv.png" className="adminLogo" alt="RV Fisiologia" />
+          <img src="/logo-rv-app.png" className="adminLogo" alt="RV Fisiologia" />
           <div>
             <strong>RV Fisiologia</strong>
             <span>Administração</span>

@@ -710,9 +710,9 @@ export default function StudentHome({ profile }: { profile: Profile }) {
 
   function renderHome() {
     return (
-      <>
-        <section className="rvStudentPremiumHero">
-          <div className="rvStudentPremiumHeroCopy">
+      <div className="rvStudentHome">
+        <section className="rvStudentHomeHero">
+          <div className="rvStudentHomeHeroCopy">
             <p className="eyebrow">
               {t('tracking')}
             </p>
@@ -728,65 +728,72 @@ export default function StudentHome({ profile }: { profile: Profile }) {
             </p>
           </div>
 
-          <div
-            className="rvStudentProgressDial"
-            style={{
-              background:
-                `conic-gradient(#20d6cf ${percentage * 3.6}deg, rgba(121, 158, 191, .12) 0deg)`,
-            }}
-          >
-            <div>
-              <strong>
-                {percentage}%
-              </strong>
-              <span>
-                {t('progress')}
-              </span>
+          <div className="rvStudentHomeProgress">
+            <div className="rvStudentHomeProgressTop">
+              <span>{t('progress')}</span>
+              <strong>{percentage}%</strong>
             </div>
+
+            <div className="rvStudentHomeProgressTrack">
+              <span
+                style={{
+                  width: `${percentage}%`,
+                }}
+              />
+            </div>
+
+            <small>
+              {t('lessonsCompletedTemplate', {
+                done: completedCount,
+                total: lessons.length,
+              })}
+            </small>
           </div>
         </section>
 
-        <section className="rvStudentPremiumMenu">
-          {nextLesson ? (
-            <button
-              type="button"
-              className="rvStudentPremiumAction"
-              onClick={() =>
-                openLesson(nextLesson.id)
-              }
-            >
-              <span className="rvStudentPremiumActionIcon">
-                <Play size={18} />
-              </span>
-
-              <span className="rvStudentPremiumActionCopy">
-                <small>
+        <section className="rvStudentFocusGrid">
+          <article className="rvStudentTodayCard">
+            {nextLesson ? (
+              <>
+                <div className="rvStudentTodayCardLabel">
+                  <Play size={14} />
                   {t('nextIncomplete')}
-                </small>
-                <strong>
-                  {nextLesson.title}
-                </strong>
-                <span>
+                </div>
+
+                <div className="rvStudentTodayCardCopy">
+                  <h2>{nextLesson.title}</h2>
+                  <p>
+                    {t('exercisesCount', {
+                      count:
+                        nextLesson.exercises.length,
+                    })}
+                  </p>
+                </div>
+
+                <span className="rvStudentTodayNumber">
+                  {String(
+                    nextLesson.lesson_number,
+                  ).padStart(2, '0')}
+                </span>
+
+                <button
+                  type="button"
+                  className="rvStudentTodayAction"
+                  onClick={() =>
+                    openLesson(nextLesson.id)
+                  }
+                >
                   {t('continueLesson', {
                     number: String(
                       nextLesson.lesson_number,
                     ).padStart(2, '0'),
                   })}
-                </span>
-              </span>
-
-              <ChevronRight size={18} />
-            </button>
-          ) : (
-            <article className="rvStudentPremiumAction static">
-              <span className="rvStudentPremiumActionIcon">
-                <CheckCircle2 size={18} />
-              </span>
-
-              <span className="rvStudentPremiumActionCopy">
-                <small>
-                  {t('progress')}
-                </small>
+                  <ChevronRight size={17} />
+                </button>
+              </>
+            ) : (
+              <div className="rvStudentTodayComplete">
+                <CheckCircle2 size={25} />
                 <strong>
                   {t('programCompleted')}
                 </strong>
@@ -796,119 +803,98 @@ export default function StudentHome({ profile }: { profile: Profile }) {
                     total: lessons.length,
                   })}
                 </span>
-              </span>
-            </article>
-          )}
+              </div>
+            )}
+          </article>
 
+          <article className="rvStudentProgramOverview">
+            <div className="rvStudentProgramOverviewHead">
+              <span>
+                {t('methodology')}
+              </span>
+              <h2>{activeProgram.title}</h2>
+            </div>
+
+            <div className="rvStudentProgramFacts">
+              <div>
+                <span>
+                  {t('lessonsCompletedLabel')}
+                </span>
+                <strong>
+                  {t('lessonsShort', {
+                    done: completedCount,
+                    total: lessons.length,
+                  })}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  {t('programStart')}
+                </span>
+                <strong>{startDate}</strong>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="rvStudentProgramLink"
+              onClick={() =>
+                changeTab('program')
+              }
+            >
+              <span>{t('viewProgram')}</span>
+              <ChevronRight size={16} />
+            </button>
+          </article>
+        </section>
+
+        <section className="rvStudentHomeLinks">
           <button
             type="button"
-            className="rvStudentPremiumAction"
+            className="rvStudentHomeLink"
             onClick={() =>
               changeTab('program')
             }
           >
-            <span className="rvStudentPremiumActionIcon">
-              <BookOpen size={18} />
+            <span className="rvStudentHomeLinkIcon">
+              <BookOpen size={17} />
             </span>
 
-            <span className="rvStudentPremiumActionCopy">
-              <small>
-                {t('program')}
-              </small>
+            <span className="rvStudentHomeLinkCopy">
               <strong>
-                {activeProgram.title}
+                {t('allWeeksTitle')}
               </strong>
               <span>
-                {t('allWeeksTitle')}
+                {t('fullMethodologyText', {
+                  name: activeProgram.title,
+                })}
               </span>
             </span>
 
-            <ChevronRight size={18} />
+            <ChevronRight size={17} />
           </button>
 
           <button
             type="button"
-            className="rvStudentPremiumAction"
+            className="rvStudentHomeLink"
             onClick={() =>
               changeTab('profile')
             }
           >
-            <span className="rvStudentPremiumActionIcon">
-              <UserRound size={18} />
+            <span className="rvStudentHomeLinkIcon">
+              <UserRound size={17} />
             </span>
 
-            <span className="rvStudentPremiumActionCopy">
-              <small>
-                {t('myProfile')}
-              </small>
-              <strong>
-                {profile.name ||
-                  t('studentFallback')}
-              </strong>
-              <span>
-                {t('profileHelp')}
-              </span>
+            <span className="rvStudentHomeLinkCopy">
+              <strong>{t('myProfile')}</strong>
+              <span>{t('profileHelp')}</span>
             </span>
 
-            <ChevronRight size={18} />
+            <ChevronRight size={17} />
           </button>
-
-          <article className="rvStudentPremiumAction static">
-            <span className="rvStudentPremiumActionIcon">
-              <CheckCircle2 size={18} />
-            </span>
-
-            <span className="rvStudentPremiumActionCopy">
-              <small>
-                {t('progress')}
-              </small>
-              <strong>
-                {t('completedPercent', {
-                  percent: percentage,
-                })}
-              </strong>
-              <span>
-                {t('lessonsCompletedTemplate', {
-                  done: completedCount,
-                  total: lessons.length,
-                })}
-              </span>
-            </span>
-          </article>
         </section>
-
-        <section className="rvStudentPremiumSnapshot">
-          <div>
-            <span>
-              {t('methodology')}
-            </span>
-            <strong>
-              {activeProgram.title}
-            </strong>
-          </div>
-
-          <div>
-            <span>
-              {t('lessonsCompletedLabel')}
-            </span>
-            <strong>
-              {t('lessonsShort', {
-                done: completedCount,
-                total: lessons.length,
-              })}
-            </strong>
-          </div>
-
-          <div>
-            <span>
-              {t('programStart')}
-            </span>
-            <strong>
-              {startDate}
-            </strong>
-          </div>
-        </section>
-      </>
+      </div>
     )
   }
 
