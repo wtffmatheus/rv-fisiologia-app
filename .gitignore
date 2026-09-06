@@ -12,3 +12,16 @@ rv-updates/
 *.tsbuildinfo
 my-react-app/
 arquivos-estabilizacao-final/
+
+# RV - auxiliares de atualizacao ficam fora da raiz versionada
+/aplicar-*.cjs
+/corrigir-*.cjs
+/fix-*.cjs
+/organizar-*.cjs
+/*.zip
+/LEIA-ME*.txt
+/arquivos-*/
+/dependencia-*/
+/base-*/
+/sexta/
+/sabado/
