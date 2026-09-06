@@ -26,6 +26,8 @@ import AdminPushControl from '../components/AdminPushControl'
 import LanguagePreferenceCard from '../components/LanguagePreferenceCard'
 import AdminNotificationCenter from '../components/AdminNotificationCenter'
 import SettingsAccordion from '../components/SettingsAccordion'
+import AdminPlanChangeModal, { type AdminPlanChangeRequest } from '../components/AdminPlanChangeModal'
+import '../styles/admin-student-plan.css'
 import { useI18n } from '../i18n'
 
 const AdminContentManager = lazy(
@@ -187,6 +189,7 @@ export default function AdminHome({ profile }: { profile: Profile }) {
   const [notifications, setNotifications] = useState<AdminNotification[]>([])
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [notificationsLoading, setNotificationsLoading] = useState(true)
+  const [planChangeRequest, setPlanChangeRequest] = useState<AdminPlanChangeRequest | null>(null)
 
   async function loadNotifications() {
     setNotificationsLoading(true)
@@ -710,6 +713,32 @@ export default function AdminHome({ profile }: { profile: Profile }) {
     setSavingStudentId(null)
   }
 
+  async function applyStudentPlan(
+    studentId: string,
+    programId: number,
+    startDate: string,
+  ) {
+    setSavingStudentId(studentId)
+    setMessage('')
+
+    const { error } = await supabase.rpc('assign_program_to_student', {
+      p_student_id: studentId,
+      p_program_id: programId,
+      p_starts_at: startDate,
+    })
+
+    if (error) {
+      setMessage(`Erro ao atualizar o plano: ${error.message}`)
+      setSavingStudentId(null)
+      return false
+    }
+
+    setMessage('Plano do aluno atualizado.')
+    await loadData()
+    setSavingStudentId(null)
+    return true
+  }
+
   async function saveStudentPlan(studentId: string) {
     const assignment = getAssignment(studentId)
     const programId = getSelectedProgramId(studentId)
@@ -724,36 +753,48 @@ export default function AdminHome({ profile }: { profile: Profile }) {
       const student = students.find((item) => item.id === studentId)
       const nextProgram = programs.find((item) => item.id === programId)
 
-      const accepted = window.confirm(
-        `Trocar ${student?.name || 'este aluno'} de "${assignment.programs?.title || 'metodologia atual'}" para "${nextProgram?.title || 'nova metodologia'}"?`,
-      )
+      setPlanChangeRequest({
+        studentId,
+        programId,
+        startDate,
+        studentName: student?.name || 'este aluno',
+        currentProgram: assignment.programs?.title || 'Metodologia atual',
+        nextProgram: nextProgram?.title || 'Nova metodologia',
+      })
+      return
+    }
 
-      if (!accepted) {
+    await applyStudentPlan(studentId, programId, startDate)
+  }
+
+  function cancelPlanChange() {
+    if (planChangeRequest) {
+      const assignment = getAssignment(planChangeRequest.studentId)
+
+      if (assignment) {
         setSelectedPrograms((current) => ({
           ...current,
-          [studentId]: assignment.program_id,
+          [planChangeRequest.studentId]: assignment.program_id,
         }))
-        return
       }
     }
 
-    setSavingStudentId(studentId)
-    setMessage('')
+    setPlanChangeRequest(null)
+  }
 
-    const { error } = await supabase.rpc('assign_program_to_student', {
-      p_student_id: studentId,
-      p_program_id: programId,
-      p_starts_at: startDate,
-    })
+  async function confirmPlanChange() {
+    if (!planChangeRequest) return
 
-    if (error) {
-      setMessage(`Erro ao atualizar o plano: ${error.message}`)
-    } else {
-      setMessage('Plano do aluno atualizado.')
-      await loadData()
+    const request = planChangeRequest
+    const saved = await applyStudentPlan(
+      request.studentId,
+      request.programId,
+      request.startDate,
+    )
+
+    if (saved) {
+      setPlanChangeRequest(null)
     }
-
-    setSavingStudentId(null)
   }
 
   async function blockStudent(studentId: string) {
@@ -1303,7 +1344,21 @@ export default function AdminHome({ profile }: { profile: Profile }) {
                   </summary>
 
                   <div className="studentAccordionBody">
-                    <div className="studentPlanCell">
+                    <div className="studentPlanCell rvStudentPlanPanel">
+                      <div className="rvStudentPlanHead">
+                        <span className="rvStudentPlanHeadIcon">
+                          <BookOpen size={18} />
+                        </span>
+                        <div>
+                          <strong>Plano do aluno</strong>
+                          <span>Defina a metodologia e acompanhe a evolução.</span>
+                        </div>
+                      </div>
+
+                      <div className="rvStudentPlanStep">
+                        <b>1</b>
+                        <span>Selecionar metodologia</span>
+                      </div>
                     {student.status === 'pending' && (
                       <p className="pendingApprovalHint">
                         <strong>Aprovação rápida:</strong> escolha a metodologia.
@@ -1311,31 +1366,57 @@ export default function AdminHome({ profile }: { profile: Profile }) {
                       </p>
                     )}
 
-                    <select
-                      value={selectedProgramId || ''}
-                      onChange={(event) =>
-                        setSelectedPrograms((current) => ({
-                          ...current,
-                          [student.id]: Number(event.target.value),
-                        }))
-                      }
-                      disabled={savingStudentId === student.id}
+                    <div
+                      className="rvMethodologyCards"
+                      role="radiogroup"
+                      aria-label="Selecionar metodologia"
                     >
-                      <option value="">Escolher metodologia</option>
                       {programs
                         .filter(
                           (program) =>
                             program.is_active || program.id === currentProgramId,
                         )
                         .map((program) => (
-                          <option key={program.id} value={program.id}>
-                            {program.title}
-                            {!program.is_active ? ' · inativa' : ''}
-                          </option>
-                        ))}
-                    </select>
+                          <label
+                            className="rvMethodologyChoice"
+                            key={program.id}
+                          >
+                            <input
+                              type="radio"
+                              name={`student-program-${student.id}`}
+                              value={program.id}
+                              checked={selectedProgramId === program.id}
+                              onChange={() =>
+                                setSelectedPrograms((current) => ({
+                                  ...current,
+                                  [student.id]: program.id,
+                                }))
+                              }
+                              disabled={savingStudentId === student.id}
+                            />
 
-                    <label className="studentStartDate">
+                            <span className="rvMethodologyChoiceTop">
+                              <span className="rvMethodologyChoiceIcon">
+                                <BookOpen size={16} />
+                              </span>
+                              <span className="rvMethodologyChoiceCheck" />
+                            </span>
+
+                            <strong>{program.title}</strong>
+                            <small>
+                              {program.description ||
+                                (!program.is_active ? 'Metodologia inativa' : 'Metodologia disponível')}
+                            </small>
+                          </label>
+                        ))}
+                    </div>
+
+                    <div className="rvStudentPlanStep">
+                      <b>2</b>
+                      <span>Definir data de início</span>
+                    </div>
+
+                    <label className="studentStartDate rvStudentPlanDate">
                       <CalendarDays size={14} />
                       <span>Início</span>
                       <input
@@ -1352,14 +1433,18 @@ export default function AdminHome({ profile }: { profile: Profile }) {
                     </label>
 
                     {assignment && (
-                      <small>
+                      <small className="rvStudentCurrentPlan">
                         Atual: {getProgramName(student.id)} · início{' '}
                         {formatDateOnly(assignment.starts_at)}
                       </small>
                     )}
                   </div>
 
-                  <div className="studentProgressCell">
+                  <div className="studentProgressCell rvStudentProgressPanel">
+                    <div className="rvStudentPlanStep">
+                      <b>3</b>
+                      <span>Progresso do aluno</span>
+                    </div>
                     {assignment ? (
                       <>
                         <div className="studentProgressTop">
@@ -1383,6 +1468,10 @@ export default function AdminHome({ profile }: { profile: Profile }) {
                   </div>
 
                   <div className="rowActions advancedRowActions">
+                    <div className="rvStudentPlanStep rvStudentSaveStep">
+                      <b>4</b>
+                      <span>Salvar alterações</span>
+                    </div>
                     {student.status === 'pending' && (
                       <button
                         className="approveButton"
@@ -1459,6 +1548,15 @@ export default function AdminHome({ profile }: { profile: Profile }) {
               )
             })}
         </div>
+
+        {planChangeRequest && (
+          <AdminPlanChangeModal
+            request={planChangeRequest}
+            saving={savingStudentId === planChangeRequest.studentId}
+            onCancel={cancelPlanChange}
+            onConfirm={() => void confirmPlanChange()}
+          />
+        )}
 
         {selectedStudent && selectedStudentProgress && (
           <div
