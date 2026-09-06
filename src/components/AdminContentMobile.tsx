@@ -1982,12 +1982,41 @@ export default function AdminContentMobile() {
     const currentStep =
       flowStepIndex()
 
-    const steps = [
-      text.activeMethods,
-      text.lessons,
-      text.exercises,
-      text.video,
-    ]
+    const shortSteps = {
+      'pt-BR': [
+        'Método',
+        'Aulas',
+        'Exercícios',
+        'Vídeo',
+      ],
+      en: [
+        'Method',
+        'Lessons',
+        'Exercises',
+        'Video',
+      ],
+      es: [
+        'Método',
+        'Clases',
+        'Ejercicios',
+        'Video',
+      ],
+      'zh-CN': [
+        '方案',
+        '课程',
+        '练习',
+        '视频',
+      ],
+      de: [
+        'Methode',
+        'Lektionen',
+        'Übungen',
+        'Video',
+      ],
+    } as const
+
+    const steps =
+      shortSteps[language]
 
     return (
       <header className="rvFlowHeader">

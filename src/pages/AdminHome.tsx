@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   BarChart3,
   Bell,
@@ -164,6 +165,16 @@ function formatDateTime(value?: string | null) {
     dateStyle: 'short',
     timeStyle: 'short',
   }).format(new Date(value))
+}
+
+function normalizeStudentSearch(
+  value: unknown,
+) {
+  return String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase('pt-BR')
+    .trim()
 }
 
 export default function AdminHome({ profile }: { profile: Profile }) {
@@ -387,7 +398,7 @@ export default function AdminHome({ profile }: { profile: Profile }) {
   }, [])
 
   const filteredStudents = useMemo(() => {
-    const normalized = query.trim().toLowerCase()
+    const normalized = normalizeStudentSearch(query)
 
     return students.filter((student) => {
       const matchesStatus =
@@ -395,7 +406,7 @@ export default function AdminHome({ profile }: { profile: Profile }) {
 
       const matchesQuery =
         !normalized ||
-        `${student.name} ${student.email}`.toLowerCase().includes(normalized)
+        normalizeStudentSearch(`${student.name ?? ''} ${student.email ?? ''}`).includes(normalized)
 
       return matchesStatus && matchesQuery
     })
@@ -1410,11 +1421,13 @@ export default function AdminHome({ profile }: { profile: Profile }) {
             </p>
             <h2>
               {filteredStudents.length}{' '}
-              aluno(s) nesta visão
+              {filteredStudents.length === 1
+                ? 'aluno'
+                : 'alunos'}
             </h2>
             <p>
-              Abra um cadastro apenas quando precisar.
-              Plano, progresso e ações ficam separados.
+              Cadastros, planos e progresso organizados
+              em uma única visão.
             </p>
           </div>
 
@@ -2079,11 +2092,23 @@ export default function AdminHome({ profile }: { profile: Profile }) {
                 )}
               </button>
 
-              {notificationsOpen && (
-                <section
-                  className="adminNotificationPanel"
-                  aria-label="Central de notificações"
-                >
+              {notificationsOpen &&
+                createPortal(
+                  <div
+                    className="rvAdminNotificationLayer"
+                    onMouseDown={(event) => {
+                      if (
+                        event.currentTarget ===
+                        event.target
+                      ) {
+                        setNotificationsOpen(false)
+                      }
+                    }}
+                  >
+                    <section
+                      className="adminNotificationPanel rvAdminNotificationPanelPortal"
+                      aria-label="Central de notificações"
+                    >
                   <header className="adminNotificationHeader">
                     <div>
                       <span>NOTIFICAÇÕES</span>
@@ -2163,8 +2188,10 @@ export default function AdminHome({ profile }: { profile: Profile }) {
                       ))
                     )}
                   </div>
-                </section>
-              )}
+                    </section>
+                  </div>,
+                  document.body,
+                )}
             </div>
 
             <div className="adminStats">

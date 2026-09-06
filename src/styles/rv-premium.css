@@ -3717,3 +3717,609 @@ button.rvAdminMetric:hover {
   }
 }
 /* END_RV_PREMIUM_REFINEMENT_V13_20260906 */
+
+/* RV_PREMIUM_STABILIZATION_V13_1_20260906
+   Correções pós-V13: busca, notificações, topbar, stepper e harmonia visual.
+*/
+
+:root {
+  --bg: #020c17;
+  --bg-deep: #020914;
+  --surface: #071a2d;
+  --surface-soft: #092137;
+  --surface-hover: #0b2943;
+  --border: rgba(126, 163, 195, .16);
+  --border-strong: rgba(126, 163, 195, .25);
+  --text: #f4f8fb;
+  --muted: #8fa5b9;
+  --accent: #20d6cf;
+  --accent-soft: #63e4de;
+}
+
+html,
+body,
+#root {
+  background: #020c17 !important;
+}
+
+body {
+  background:
+    radial-gradient(
+      circle at 50% -220px,
+      rgba(22, 89, 105, .10),
+      transparent 440px
+    ),
+    #020c17 !important;
+}
+
+.upgradedAdminContent {
+  background: #020c17 !important;
+}
+
+.upgradedAdminTopbar {
+  overflow: visible !important;
+  background: rgba(3, 17, 31, .97) !important;
+  border-bottom-color: rgba(126, 163, 195, .13) !important;
+}
+
+.rvStudentManagerHero,
+.rvAdminPanel,
+.rvAdminCommandHero,
+.rvFlowHeader {
+  border-color: rgba(126, 163, 195, .16) !important;
+}
+
+.rvStudentManagerHero,
+.rvAdminPanel {
+  background: #071a2d !important;
+}
+
+.rvAdminCommandHero {
+  background:
+    linear-gradient(
+      135deg,
+      #09243a,
+      #061829
+    ) !important;
+}
+
+.rvFlowHeader {
+  background:
+    linear-gradient(
+      180deg,
+      #071d31,
+      #061725
+    ) !important;
+}
+
+.rvFlowListItem,
+.rvFlowForm,
+.rvFlowSection,
+.rvFlowEmpty,
+.rvFlowVideoBox,
+.rvFlowAdvanced {
+  border-color: rgba(126, 163, 195, .15) !important;
+  background: #061729 !important;
+}
+
+.rvFlowListItem:hover {
+  border-color: rgba(32, 214, 207, .24) !important;
+  background: #092238 !important;
+}
+
+/* =========================
+   BUSCA — UMA ÚNICA CAIXA
+   ========================= */
+
+.studentManagementToolbar {
+  width: 100% !important;
+  margin-bottom: 12px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  display: grid !important;
+  grid-template-columns:
+    minmax(250px, 1fr)
+    auto
+    auto !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.studentManagementToolbar .searchBox {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 46px !important;
+  margin: 0 !important;
+  padding: 0 13px !important;
+  border: 1px solid rgba(126, 163, 195, .20) !important;
+  border-radius: 11px !important;
+  background: #061729 !important;
+  color: #718ba2 !important;
+  box-shadow: none !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+}
+
+.studentManagementToolbar .searchBox:focus-within {
+  border-color: rgba(32, 214, 207, .42) !important;
+  box-shadow:
+    0 0 0 3px
+    rgba(32, 214, 207, .055) !important;
+}
+
+.adminPage
+  .studentManagementToolbar
+  .searchBox
+  input {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 44px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  color: #e5edf4 !important;
+  -webkit-text-fill-color: #e5edf4 !important;
+  box-shadow: none !important;
+  appearance: none;
+}
+
+.adminPage
+  .studentManagementToolbar
+  .searchBox
+  input:focus {
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.adminPage
+  .studentManagementToolbar
+  .searchBox
+  input::placeholder {
+  color: #647f99 !important;
+  -webkit-text-fill-color: #647f99 !important;
+  opacity: 1 !important;
+}
+
+.studentStatusFilters {
+  margin: 0 !important;
+  border-color: rgba(126, 163, 195, .16) !important;
+  background: #061729 !important;
+}
+
+.studentManagementToolbar .adminRefresh {
+  margin: 0 !important;
+  border-color: rgba(126, 163, 195, .18) !important;
+  background: #061729 !important;
+}
+
+/* =========================
+   GESTÃO DE ALUNOS
+   ========================= */
+
+.rvStudentManagerHeroCopy .eyebrow {
+  color: #20d6cf !important;
+}
+
+.rvStudentManagerHeroCopy h2 {
+  color: #f4f8fb !important;
+}
+
+.rvStudentManagerHeroCopy p {
+  color: #91a6b9 !important;
+}
+
+.rvStudentManagerStats > div {
+  border-color: rgba(126, 163, 195, .14) !important;
+  background: #051522 !important;
+}
+
+/* =========================
+   NOTIFICAÇÕES — PORTAL
+   ========================= */
+
+.rvAdminNotificationLayer {
+  position: fixed !important;
+  z-index: 20000 !important;
+  inset: 0 !important;
+  padding: 0 !important;
+  background: rgba(0, 7, 15, .12);
+  display: block !important;
+}
+
+.rvAdminNotificationLayer
+  .rvAdminNotificationPanelPortal {
+  position: absolute !important;
+  z-index: 1 !important;
+  top:
+    max(
+      72px,
+      calc(
+        62px +
+        env(safe-area-inset-top, 0px)
+      )
+    ) !important;
+  right:
+    max(
+      16px,
+      env(safe-area-inset-right, 0px)
+    ) !important;
+  bottom: auto !important;
+  left: auto !important;
+  width: min(420px, calc(100vw - 32px)) !important;
+  max-width: 420px !important;
+  max-height:
+    calc(
+      100dvh -
+      92px -
+      env(safe-area-inset-bottom, 0px)
+    ) !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(126, 163, 195, .22) !important;
+  border-radius: 15px !important;
+  background: #071a2d !important;
+  box-shadow:
+    0 24px 70px
+    rgba(0, 0, 0, .52) !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  transform: none !important;
+  isolation: isolate;
+}
+
+.rvAdminNotificationLayer
+  .adminNotificationHeader {
+  min-width: 0 !important;
+  padding: 13px !important;
+  border-bottom: 1px solid rgba(126, 163, 195, .14) !important;
+  background: #081d31 !important;
+}
+
+.rvAdminNotificationLayer
+  .adminNotificationHeader
+  > div {
+  min-width: 0 !important;
+}
+
+.rvAdminNotificationLayer
+  .adminNotificationHeader
+  span {
+  color: #20d6cf !important;
+  font-size: 8.5px !important;
+}
+
+.rvAdminNotificationLayer
+  .adminNotificationHeader
+  strong {
+  color: #edf4f8 !important;
+  font-size: 12px !important;
+}
+
+.rvAdminNotificationLayer
+  .adminNotificationReadAll {
+  min-height: 34px !important;
+  border-color: rgba(126, 163, 195, .16) !important;
+  background: #051522 !important;
+  color: #b8c7d4 !important;
+  font-size: 9.5px !important;
+}
+
+.rvAdminNotificationLayer
+  .adminNotificationClose {
+  width: 34px !important;
+  height: 34px !important;
+  border-color: rgba(126, 163, 195, .14) !important;
+  background: #051522 !important;
+  color: #8da3b7 !important;
+}
+
+.rvAdminNotificationLayer
+  .adminNotificationList {
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.rvAdminNotificationLayer
+  .adminNotificationItem {
+  min-width: 0 !important;
+  padding: 12px 13px !important;
+  border-bottom-color: rgba(126, 163, 195, .11) !important;
+  background: #071a2d !important;
+}
+
+.rvAdminNotificationLayer
+  .adminNotificationItem:hover,
+.rvAdminNotificationLayer
+  .adminNotificationItem.unread {
+  background: #092238 !important;
+}
+
+.rvAdminNotificationLayer
+  .adminNotificationCopy {
+  min-width: 0 !important;
+}
+
+.rvAdminNotificationLayer
+  .adminNotificationCopy
+  strong {
+  color: #edf4f8 !important;
+  font-size: 11.5px !important;
+}
+
+.rvAdminNotificationLayer
+  .adminNotificationCopy
+  span {
+  color: #91a6b9 !important;
+  font-size: 10px !important;
+  line-height: 1.45 !important;
+}
+
+.rvAdminNotificationLayer
+  .adminNotificationCopy
+  time {
+  color: #667f97 !important;
+  font-size: 9px !important;
+}
+
+.adminNotificationButton {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* =========================
+   EDITOR — STEPPER LEGÍVEL
+   ========================= */
+
+.rvFlowStepper {
+  gap: 8px !important;
+}
+
+.rvFlowStep {
+  min-width: 0 !important;
+  grid-template-columns:
+    24px
+    minmax(0, 1fr) !important;
+}
+
+.rvFlowStep span {
+  min-width: 0 !important;
+  overflow: visible !important;
+  color: #718aa1 !important;
+  font-size: 9px !important;
+  line-height: 1.2 !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
+}
+
+.rvFlowStep.active span {
+  color: #dbe7ef !important;
+}
+
+.rvFlowStep.active b,
+.rvFlowStep.done b {
+  border-color: rgba(32, 214, 207, .38) !important;
+  background: rgba(32, 214, 207, .08) !important;
+  color: #20d6cf !important;
+}
+
+.rvFlowHeaderCopy > span {
+  color: #20d6cf !important;
+}
+
+.rvFlowHeaderCopy h2 {
+  color: #f4f8fb !important;
+}
+
+.rvFlowHeaderCopy p {
+  color: #8fa5b9 !important;
+}
+
+.rvFlowListCopy strong {
+  color: #eef4f8 !important;
+}
+
+.rvFlowListCopy small {
+  color: #8aa1b5 !important;
+}
+
+/* =========================
+   MOBILE
+   ========================= */
+
+@media (max-width: 720px) {
+  .upgradedAdminTopbar {
+    min-height: 67px !important;
+    margin-bottom: 10px !important;
+    padding-top:
+      max(
+        10px,
+        env(safe-area-inset-top, 0px)
+      ) !important;
+    padding-bottom: 10px !important;
+    align-items: center !important;
+  }
+
+  /* No mobile o card abaixo já explica a seção.
+     Mantemos no topbar só o nome da área + sino. */
+  .upgradedAdminTopbar
+    > div:first-child
+    > .eyebrow,
+  .upgradedAdminTopbar
+    > div:first-child
+    > p:last-child {
+    display: none !important;
+  }
+
+  .upgradedAdminTopbar h1 {
+    margin: 0 !important;
+    font-size: 27px !important;
+    line-height: 1 !important;
+  }
+
+  .adminTopbarActions {
+    position: static !important;
+    width: auto !important;
+    min-width: 46px !important;
+    margin-left: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+  }
+
+  .adminNotificationWrap {
+    position: static !important;
+  }
+
+  .adminNotificationButton {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  .rvAdminNotificationLayer {
+    padding:
+      max(
+        72px,
+        calc(
+          62px +
+          env(safe-area-inset-top, 0px)
+        )
+      )
+      10px
+      calc(
+        78px +
+        env(safe-area-inset-bottom, 0px)
+      ) !important;
+    background: rgba(0, 7, 15, .48);
+  }
+
+  .rvAdminNotificationLayer
+    .rvAdminNotificationPanelPortal {
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    max-width: 520px !important;
+    max-height: 100% !important;
+    margin: 0 auto !important;
+    border-radius: 14px !important;
+  }
+
+  .rvAdminNotificationLayer
+    .adminNotificationHeader {
+    display: grid !important;
+    grid-template-columns:
+      minmax(0, 1fr)
+      auto !important;
+    gap: 8px !important;
+  }
+
+  .rvAdminNotificationLayer
+    .adminNotificationReadAll {
+    grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
+    width: 100% !important;
+  }
+
+  .rvAdminNotificationLayer
+    .adminNotificationClose {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+  }
+
+  .studentManagementToolbar {
+    grid-template-columns: 1fr !important;
+    gap: 7px !important;
+  }
+
+  .studentManagementToolbar .searchBox {
+    min-height: 48px !important;
+  }
+
+  .adminPage
+    .studentManagementToolbar
+    .searchBox
+    input {
+    min-height: 46px !important;
+    font-size: 16px !important;
+  }
+
+  .studentStatusFilters {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      ) !important;
+    gap: 6px !important;
+  }
+
+  .rvStudentManagerHero {
+    padding: 14px !important;
+    gap: 10px !important;
+  }
+
+  .rvStudentManagerHeroCopy h2 {
+    font-size: 21px !important;
+  }
+
+  .rvStudentManagerHeroCopy p {
+    font-size: 10.5px !important;
+  }
+
+  .rvFlowHeader {
+    padding: 14px !important;
+  }
+
+  .rvFlowStepper {
+    grid-template-columns:
+      repeat(
+        4,
+        minmax(0, 1fr)
+      ) !important;
+    gap: 4px !important;
+  }
+
+  .rvFlowStep {
+    grid-template-columns: 1fr !important;
+    justify-items: center !important;
+    gap: 5px !important;
+    text-align: center !important;
+  }
+
+  .rvFlowStep b {
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  .rvFlowStep span {
+    width: 100% !important;
+    overflow: visible !important;
+    font-size: 8.5px !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+  }
+
+  .rvFlowListItem {
+    min-height: 72px !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .rvFlowStep span {
+    font-size: 8px !important;
+  }
+}
+
+/* END_RV_PREMIUM_STABILIZATION_V13_1_20260906 */
