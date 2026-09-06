@@ -3,6 +3,7 @@ import {
   CheckCheck,
   CircleCheckBig,
   Megaphone,
+  Watch,
   X,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
@@ -323,6 +324,16 @@ export default function StudentNotificationBell({
           </section>
         )}
       </div>
+
+      <span
+        className="studentNotificationButton rvWatchEntry"
+        role="img"
+        aria-label="Apple Watch"
+        title="Apple Watch"
+        data-rv-watch-entry="placeholder"
+      >
+        <Watch size={18} />
+      </span>
 
       {toast && (
         <div className="studentApprovalToast" role="status">
