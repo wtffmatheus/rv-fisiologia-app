@@ -7,6 +7,7 @@ import './styles.css'
 import './feature.css'
 import './ui-fixes.css'
 import './styles/admin-mobile-polish.css'
+import './styles/rv-premium.css'
 
 // RV_PWA_SERVICE_WORKER_V3
 if ('serviceWorker' in navigator) {

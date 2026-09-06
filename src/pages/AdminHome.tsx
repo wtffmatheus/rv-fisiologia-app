@@ -6,6 +6,7 @@ import {
   CalendarDays,
   Check,
   CheckCheck,
+  ChevronRight,
   Eye,
   LayoutDashboard,
   LogOut,
@@ -27,6 +28,7 @@ import LanguagePreferenceCard from '../components/LanguagePreferenceCard'
 import AdminNotificationCenter from '../components/AdminNotificationCenter'
 import SettingsAccordion from '../components/SettingsAccordion'
 import AdminPlanChangeModal, { type AdminPlanChangeRequest } from '../components/AdminPlanChangeModal'
+import RvConfirmModal from '../components/RvConfirmModal'
 import '../styles/admin-student-plan.css'
 import { useI18n } from '../i18n'
 
@@ -190,6 +192,7 @@ export default function AdminHome({ profile }: { profile: Profile }) {
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [notificationsLoading, setNotificationsLoading] = useState(true)
   const [planChangeRequest, setPlanChangeRequest] = useState<AdminPlanChangeRequest | null>(null)
+  const [studentRemovalRequest, setStudentRemovalRequest] = useState<Profile | null>(null)
 
   async function loadNotifications() {
     setNotificationsLoading(true)
@@ -816,39 +819,52 @@ export default function AdminHome({ profile }: { profile: Profile }) {
     setSavingStudentId(null)
   }
 
-  async function removeStudent(student: Profile) {
+  function removeStudent(student: Profile) {
+    setStudentRemovalRequest(student)
+  }
+
+  async function confirmRemoveStudent() {
+    const student =
+      studentRemovalRequest
+
+    if (!student) return
+
     const displayName =
       student.name?.trim() ||
       student.email ||
       'este aluno'
 
-    const accepted = window.confirm(
-      `Remover definitivamente ${displayName}?\n\nIsso apaga o cadastro, login, plano, progresso e notificações deste aluno. Esta ação não pode ser desfeita.`,
-    )
-
-    if (!accepted) return
-
     setSavingStudentId(student.id)
     setMessage('')
 
     try {
-      const { data, error } = await supabase.functions.invoke(
-        'admin-student-management',
-        {
-          body: {
-            action: 'delete_student',
-            student_id: student.id,
+      const { data, error } =
+        await supabase.functions.invoke(
+          'admin-student-management',
+          {
+            body: {
+              action: 'delete_student',
+              student_id: student.id,
+            },
           },
-        },
-      )
+        )
 
       if (error || !data?.ok) {
-        throw error ?? new Error(
-          String(data?.error || 'delete_failed'),
+        throw (
+          error ??
+          new Error(
+            String(
+              data?.error ||
+                'delete_failed',
+            ),
+          )
         )
       }
 
-      if (selectedStudentId === student.id) {
+      if (
+        selectedStudentId ===
+        student.id
+      ) {
         setSelectedStudentId(null)
       }
 
@@ -856,12 +872,18 @@ export default function AdminHome({ profile }: { profile: Profile }) {
         `Cadastro de ${displayName} removido definitivamente.`,
       )
 
+      setStudentRemovalRequest(null)
+
       await Promise.all([
         loadData(false),
         loadNotifications(),
       ])
     } catch (error) {
-      console.error('Falha ao remover aluno:', error)
+      console.error(
+        'Falha ao remover aluno:',
+        error,
+      )
+
       setMessage(
         'Não foi possível remover o cadastro do aluno agora.',
       )
@@ -924,6 +946,83 @@ export default function AdminHome({ profile }: { profile: Profile }) {
           >
             <RefreshCw size={16} className={refreshing ? 'rvUiSpin' : ''} />
             {refreshing ? 'Atualizando...' : 'Atualizar dados'}
+          </button>
+        </section>
+
+        <section
+          className="rvAdminQuickLinks"
+          aria-label="Acessos rápidos"
+        >
+          <button
+            type="button"
+            className="rvAdminQuickLink"
+            onClick={() =>
+              openStudentsWithFilter('all')
+            }
+          >
+            <span className="rvAdminQuickLinkIcon">
+              <UsersRound size={17} />
+            </span>
+            <span className="rvAdminQuickLinkCopy">
+              <strong>Meus alunos</strong>
+              <small>Acessos, planos e progresso</small>
+            </span>
+            <ChevronRight size={17} />
+          </button>
+
+          <button
+            type="button"
+            className="rvAdminQuickLink"
+            onClick={() =>
+              setActiveTab('content')
+            }
+          >
+            <span className="rvAdminQuickLinkIcon">
+              <BookOpen size={17} />
+            </span>
+            <span className="rvAdminQuickLinkCopy">
+              <strong>Conteúdo e aulas</strong>
+              <small>Monte e publique os treinos</small>
+            </span>
+            <ChevronRight size={17} />
+          </button>
+
+          <button
+            type="button"
+            className="rvAdminQuickLink"
+            onClick={() =>
+              openStudentsWithFilter('pending')
+            }
+          >
+            <span className="rvAdminQuickLinkIcon">
+              <UserPlus size={17} />
+            </span>
+            <span className="rvAdminQuickLinkCopy">
+              <strong>Aprovações</strong>
+              <small>
+                {pendingCount
+                  ? `${pendingCount} aguardando análise`
+                  : 'Nenhum cadastro pendente'}
+              </small>
+            </span>
+            <ChevronRight size={17} />
+          </button>
+
+          <button
+            type="button"
+            className="rvAdminQuickLink"
+            onClick={() =>
+              setActiveTab('settings')
+            }
+          >
+            <span className="rvAdminQuickLinkIcon">
+              <Settings size={17} />
+            </span>
+            <span className="rvAdminQuickLinkCopy">
+              <strong>Ajustes</strong>
+              <small>Conta, notificações e aplicativo</small>
+            </span>
+            <ChevronRight size={17} />
           </button>
         </section>
 
@@ -1343,211 +1442,293 @@ export default function AdminHome({ profile }: { profile: Profile }) {
                     />
                   </summary>
 
-                  <div className="studentAccordionBody">
-                    <div className="studentPlanCell rvStudentPlanPanel">
-                      <div className="rvStudentPlanHead">
-                        <span className="rvStudentPlanHeadIcon">
-                          <BookOpen size={18} />
-                        </span>
-                        <div>
-                          <strong>Plano do aluno</strong>
-                          <span>Defina a metodologia e acompanhe a evolução.</span>
-                        </div>
-                      </div>
-
-                      <div className="rvStudentPlanStep">
-                        <b>1</b>
-                        <span>Selecionar metodologia</span>
-                      </div>
-                    {student.status === 'pending' && (
-                      <p className="pendingApprovalHint">
-                        <strong>Aprovação rápida:</strong> escolha a metodologia.
-                        A data de início já vem preenchida com hoje e pode ser alterada se necessário.
-                      </p>
-                    )}
-
-                    <div
-                      className="rvMethodologyCards"
-                      role="radiogroup"
-                      aria-label="Selecionar metodologia"
+                  <div className="studentAccordionBody rvStudentManagementSections">
+                    <SettingsAccordion
+                      className="rvStudentManagementAccordion"
+                      title={
+                        student.status === 'pending'
+                          ? 'Liberar acesso'
+                          : student.status === 'blocked'
+                            ? 'Reativar / alterar plano'
+                            : 'Alterar plano'
+                      }
+                      subtitle={
+                        assignment
+                          ? `${getProgramName(student.id)} · início ${formatDateOnly(assignment.starts_at)}`
+                          : 'Escolha metodologia e data de início'
+                      }
+                      icon={<BookOpen size={18} />}
                     >
-                      {programs
-                        .filter(
-                          (program) =>
-                            program.is_active || program.id === currentProgramId,
-                        )
-                        .map((program) => (
-                          <label
-                            className="rvMethodologyChoice"
-                            key={program.id}
-                          >
-                            <input
-                              type="radio"
-                              name={`student-program-${student.id}`}
-                              value={program.id}
-                              checked={selectedProgramId === program.id}
-                              onChange={() =>
-                                setSelectedPrograms((current) => ({
+                      <div className="studentPlanCell rvStudentPlanPanel">
+                        {student.status === 'pending' && (
+                          <p className="pendingApprovalHint">
+                            <strong>Aprovação rápida:</strong>{' '}
+                            escolha a metodologia. A data de início
+                            já vem preenchida com hoje e pode ser
+                            alterada se necessário.
+                          </p>
+                        )}
+
+                        <div
+                          className="rvMethodologyCards"
+                          role="radiogroup"
+                          aria-label="Selecionar metodologia"
+                        >
+                          {programs
+                            .filter(
+                              (program) =>
+                                program.is_active ||
+                                program.id === currentProgramId,
+                            )
+                            .map((program) => (
+                              <label
+                                className="rvMethodologyChoice"
+                                key={program.id}
+                              >
+                                <input
+                                  type="radio"
+                                  name={`student-program-${student.id}`}
+                                  value={program.id}
+                                  checked={
+                                    selectedProgramId ===
+                                    program.id
+                                  }
+                                  onChange={() =>
+                                    setSelectedPrograms(
+                                      (current) => ({
+                                        ...current,
+                                        [student.id]:
+                                          program.id,
+                                      }),
+                                    )
+                                  }
+                                  disabled={
+                                    savingStudentId ===
+                                    student.id
+                                  }
+                                />
+
+                                <span className="rvMethodologyChoiceTop">
+                                  <span className="rvMethodologyChoiceIcon">
+                                    <BookOpen size={16} />
+                                  </span>
+                                  <span className="rvMethodologyChoiceCheck" />
+                                </span>
+
+                                <strong>
+                                  {program.title}
+                                </strong>
+
+                                <small>
+                                  {program.description ||
+                                    (!program.is_active
+                                      ? 'Metodologia inativa'
+                                      : 'Metodologia disponível')}
+                                </small>
+                              </label>
+                            ))}
+                        </div>
+
+                        <label className="studentStartDate rvStudentPlanDate">
+                          <CalendarDays size={14} />
+                          <span>Início</span>
+                          <input
+                            type="date"
+                            value={startDate}
+                            onChange={(event) =>
+                              setSelectedStartDates(
+                                (current) => ({
                                   ...current,
-                                  [student.id]: program.id,
-                                }))
+                                  [student.id]:
+                                    event.target.value,
+                                }),
+                              )
+                            }
+                            disabled={
+                              savingStudentId ===
+                              student.id
+                            }
+                          />
+                        </label>
+
+                        <div className="rvStudentPlanSaveArea">
+                          {student.status === 'pending' && (
+                            <button
+                              className="approveButton"
+                              onClick={() =>
+                                approveStudent(student.id)
                               }
-                              disabled={savingStudentId === student.id}
-                            />
+                              disabled={
+                                savingStudentId ===
+                                  student.id ||
+                                !selectedProgramId
+                              }
+                            >
+                              <Check size={16} />
+                              Liberar acesso
+                            </button>
+                          )}
 
-                            <span className="rvMethodologyChoiceTop">
-                              <span className="rvMethodologyChoiceIcon">
-                                <BookOpen size={16} />
+                          {student.status === 'active' && (
+                            <button
+                              className="savePlanButton"
+                              onClick={() =>
+                                saveStudentPlan(student.id)
+                              }
+                              disabled={
+                                savingStudentId ===
+                                  student.id ||
+                                !selectedProgramId ||
+                                !planDirty
+                              }
+                            >
+                              <Check size={15} />
+                              Salvar alterações
+                            </button>
+                          )}
+
+                          {student.status === 'blocked' && (
+                            <button
+                              className="approveButton"
+                              onClick={() =>
+                                reactivateStudent(student.id)
+                              }
+                              disabled={
+                                savingStudentId ===
+                                  student.id ||
+                                !selectedProgramId
+                              }
+                            >
+                              <Check size={16} />
+                              Reativar acesso
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </SettingsAccordion>
+
+                    <SettingsAccordion
+                      className="rvStudentManagementAccordion"
+                      title="Progresso"
+                      subtitle={
+                        assignment
+                          ? `${progress.percentage}% · ${progress.completed}/${progress.total} aulas`
+                          : 'Sem plano ativo'
+                      }
+                      icon={<BarChart3 size={18} />}
+                    >
+                      <div className="studentProgressCell rvStudentProgressPanel">
+                        {assignment ? (
+                          <>
+                            <div className="studentProgressTop">
+                              <strong>
+                                {progress.percentage}%
+                              </strong>
+                              <span>
+                                {progress.completed}/
+                                {progress.total} aulas
                               </span>
-                              <span className="rvMethodologyChoiceCheck" />
-                            </span>
+                            </div>
 
-                            <strong>{program.title}</strong>
+                            <div className="studentProgressTrack">
+                              <span
+                                style={{
+                                  width:
+                                    `${progress.percentage}%`,
+                                }}
+                              />
+                            </div>
+
                             <small>
-                              {program.description ||
-                                (!program.is_active ? 'Metodologia inativa' : 'Metodologia disponível')}
+                              {progress.lastCompletedAt
+                                ? `Última conclusão: ${formatDateTime(progress.lastCompletedAt)}`
+                                : 'Nenhuma aula concluída'}
                             </small>
-                          </label>
-                        ))}
-                    </div>
-
-                    <div className="rvStudentPlanStep">
-                      <b>2</b>
-                      <span>Definir data de início</span>
-                    </div>
-
-                    <label className="studentStartDate rvStudentPlanDate">
-                      <CalendarDays size={14} />
-                      <span>Início</span>
-                      <input
-                        type="date"
-                        value={startDate}
-                        onChange={(event) =>
-                          setSelectedStartDates((current) => ({
-                            ...current,
-                            [student.id]: event.target.value,
-                          }))
-                        }
-                        disabled={savingStudentId === student.id}
-                      />
-                    </label>
-
-                    {assignment && (
-                      <small className="rvStudentCurrentPlan">
-                        Atual: {getProgramName(student.id)} · início{' '}
-                        {formatDateOnly(assignment.starts_at)}
-                      </small>
-                    )}
-                  </div>
-
-                  <div className="studentProgressCell rvStudentProgressPanel">
-                    <div className="rvStudentPlanStep">
-                      <b>3</b>
-                      <span>Progresso do aluno</span>
-                    </div>
-                    {assignment ? (
-                      <>
-                        <div className="studentProgressTop">
-                          <strong>{progress.percentage}%</strong>
-                          <span>
-                            {progress.completed}/{progress.total} aulas
+                          </>
+                        ) : (
+                          <span className="noProgressYet">
+                            Sem plano ativo
                           </span>
-                        </div>
-                        <div className="studentProgressTrack">
-                          <span style={{ width: `${progress.percentage}%` }} />
-                        </div>
-                        <small>
-                          {progress.lastCompletedAt
-                            ? `Última conclusão: ${formatDateTime(progress.lastCompletedAt)}`
-                            : 'Nenhuma aula concluída'}
-                        </small>
-                      </>
-                    ) : (
-                      <span className="noProgressYet">Sem plano ativo</span>
-                    )}
-                  </div>
+                        )}
+                      </div>
+                    </SettingsAccordion>
 
-                  <div className="rowActions advancedRowActions">
-                    <div className="rvStudentPlanStep rvStudentSaveStep">
-                      <b>4</b>
-                      <span>Salvar alterações</span>
-                    </div>
-                    {student.status === 'pending' && (
-                      <button
-                        className="approveButton"
-                        onClick={() => approveStudent(student.id)}
-                        disabled={
-                          savingStudentId === student.id || !selectedProgramId
-                        }
-                      >
-                        <Check size={16} /> Liberar
-                      </button>
-                    )}
-
-                    {student.status === 'active' && (
-                      <button
-                        className="savePlanButton"
-                        onClick={() => saveStudentPlan(student.id)}
-                        disabled={
-                          savingStudentId === student.id ||
-                          !selectedProgramId ||
-                          !planDirty
-                        }
-                        title={
-                          planDirty
-                            ? 'Salvar metodologia/data'
-                            : 'O plano já está salvo'
-                        }
-                      >
-                        <Check size={15} /> Salvar plano
-                      </button>
-                    )}
-
-                    {student.status === 'blocked' && (
-                      <button
-                        className="approveButton"
-                        onClick={() => reactivateStudent(student.id)}
-                        disabled={
-                          savingStudentId === student.id || !selectedProgramId
-                        }
-                      >
-                        <Check size={16} /> Reativar
-                      </button>
-                    )}
-
-                    <button
-                      className="studentDetailsButton"
-                      type="button"
-                      onClick={() => setSelectedStudentId(student.id)}
+                    <SettingsAccordion
+                      className="rvStudentManagementAccordion"
+                      title="Ações da conta"
+                      subtitle="Detalhes, acesso e cadastro"
+                      icon={<Settings size={18} />}
                     >
-                      <Eye size={15} /> Detalhes
-                    </button>
+                      <div className="rowActions advancedRowActions rvStudentAccountActions">
+                        <button
+                          className="studentDetailsButton"
+                          type="button"
+                          onClick={() =>
+                            setSelectedStudentId(student.id)
+                          }
+                        >
+                          <Eye size={15} />
+                          Detalhes
+                        </button>
 
-                    {student.status !== 'blocked' && (
-                      <button
-                        className="blockButton"
-                        onClick={() => blockStudent(student.id)}
-                        disabled={savingStudentId === student.id}
-                      >
-                        <ShieldX size={16} /> Bloquear
-                      </button>
-                    )}
+                        {student.status !== 'blocked' && (
+                          <button
+                            className="blockButton"
+                            onClick={() =>
+                              blockStudent(student.id)
+                            }
+                            disabled={
+                              savingStudentId ===
+                              student.id
+                            }
+                          >
+                            <ShieldX size={16} />
+                            Bloquear
+                          </button>
+                        )}
 
-                    <button
-                      className="deleteStudentButton"
-                      type="button"
-                      onClick={() => void removeStudent(student)}
-                      disabled={savingStudentId === student.id}
-                      title="Apagar cadastro e dados deste aluno"
-                    >
-                      <Trash2 size={15} /> Remover cadastro
-                    </button>
-                  </div>
+                        <button
+                          className="deleteStudentButton"
+                          type="button"
+                          onClick={() =>
+                            removeStudent(student)
+                          }
+                          disabled={
+                            savingStudentId ===
+                            student.id
+                          }
+                        >
+                          <Trash2 size={15} />
+                          Remover cadastro
+                        </button>
+                      </div>
+                    </SettingsAccordion>
                   </div>
                 </details>
               )
             })}
         </div>
+
+        {studentRemovalRequest && (
+          <RvConfirmModal
+            eyebrow="AÇÃO DEFINITIVA"
+            title="Remover cadastro?"
+            text={`Isso apaga cadastro, login, plano, progresso e notificações de ${studentRemovalRequest.name || studentRemovalRequest.email || 'este aluno'}. Esta ação não pode ser desfeita.`}
+            confirmLabel="Remover definitivamente"
+            cancelLabel="Cancelar"
+            danger
+            busy={
+              savingStudentId ===
+              studentRemovalRequest.id
+            }
+            onCancel={() =>
+              setStudentRemovalRequest(null)
+            }
+            onConfirm={() =>
+              void confirmRemoveStudent()
+            }
+          />
+        )}
 
         {planChangeRequest && (
           <AdminPlanChangeModal
@@ -1680,8 +1861,8 @@ export default function AdminHome({ profile }: { profile: Profile }) {
   const tabInfo: Record<AdminTab, { eyebrow: string; title: string; subtitle: string }> = {
     dashboard: {
       eyebrow: 'VISÃO GERAL',
-      title: 'Dashboard',
-      subtitle: 'Acompanhe alunos, acessos e conteúdo da plataforma.',
+      title: 'Área do profissional',
+      subtitle: 'Acompanhe alunos, conteúdo e evolução em um só lugar.',
     },
     students: {
       eyebrow: 'GESTÃO DE ALUNOS',

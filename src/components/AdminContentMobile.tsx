@@ -22,6 +22,7 @@ import {
   RvEmptyState,
   RvLoadingState,
 } from './PlatformState'
+import RvConfirmModal from './RvConfirmModal'
 
 type Program = {
   id: number
@@ -1078,6 +1079,9 @@ export default function AdminContentMobile() {
     setPreviewUrl,
   ] = useState('')
 
+  const [deleteRequest, setDeleteRequest] =
+    useState<'lesson' | 'exercise' | null>(null)
+
   const videoInputRef =
     useRef<HTMLInputElement | null>(null)
 
@@ -1858,14 +1862,7 @@ export default function AdminContentMobile() {
   }
 
   async function deleteExercise() {
-    if (
-      !selectedExercise ||
-      !window.confirm(
-        text.confirmDeleteExercise,
-      )
-    ) {
-      return
-    }
+    if (!selectedExercise) return
 
     setSaving(true)
 
@@ -1908,14 +1905,7 @@ export default function AdminContentMobile() {
   }
 
   async function deleteLesson() {
-    if (
-      !selectedLesson ||
-      !window.confirm(
-        text.confirmDeleteLesson,
-      )
-    ) {
-      return
-    }
+    if (!selectedLesson) return
 
     setSaving(true)
 
@@ -2105,6 +2095,57 @@ export default function AdminContentMobile() {
     )
   }
 
+  async function confirmDeleteRequest() {
+    const request = deleteRequest
+
+    if (!request) return
+
+    if (request === 'lesson') {
+      await deleteLesson()
+    } else {
+      await deleteExercise()
+    }
+
+    setDeleteRequest(null)
+  }
+
+  function deleteConfirmModal() {
+    if (!deleteRequest) return null
+
+    const lessonDelete =
+      deleteRequest === 'lesson'
+
+    return (
+      <RvConfirmModal
+        eyebrow={text.advanced}
+        title={
+          lessonDelete
+            ? text.deleteLesson
+            : text.deleteExercise
+        }
+        text={
+          lessonDelete
+            ? text.confirmDeleteLesson
+            : text.confirmDeleteExercise
+        }
+        confirmLabel={
+          lessonDelete
+            ? text.deleteLesson
+            : text.deleteExercise
+        }
+        cancelLabel="Cancelar"
+        danger
+        busy={saving}
+        onCancel={() =>
+          setDeleteRequest(null)
+        }
+        onConfirm={() =>
+          void confirmDeleteRequest()
+        }
+      />
+    )
+  }
+
   if (loading) {
     return (
       <RvLoadingState
@@ -2125,6 +2166,7 @@ export default function AdminContentMobile() {
         )}
 
         {feedbackBox()}
+        {deleteConfirmModal()}
 
         {programs.length === 0 ? (
           <RvEmptyState
@@ -2202,6 +2244,7 @@ export default function AdminContentMobile() {
         )}
 
         {feedbackBox()}
+        {deleteConfirmModal()}
 
         <section className="rvFlowForm">
           <label>
@@ -2264,6 +2307,7 @@ export default function AdminContentMobile() {
         )}
 
         {feedbackBox()}
+        {deleteConfirmModal()}
 
         {lessons.length === 0 ? (
           <div className="rvFlowEmpty">
@@ -2350,6 +2394,7 @@ export default function AdminContentMobile() {
         )}
 
         {feedbackBox()}
+        {deleteConfirmModal()}
 
         <section className="rvFlowForm">
           <label>
@@ -2450,6 +2495,7 @@ export default function AdminContentMobile() {
         )}
 
         {feedbackBox()}
+        {deleteConfirmModal()}
 
         <section className="rvFlowForm rvFlowLessonInfo">
           <label>
@@ -2588,7 +2634,7 @@ export default function AdminContentMobile() {
             className="rvFlowDanger"
             disabled={saving}
             onClick={() =>
-              void deleteLesson()
+              setDeleteRequest('lesson')
             }
           >
             <Trash2 size={16} />
@@ -2625,6 +2671,7 @@ export default function AdminContentMobile() {
         )}
 
         {feedbackBox()}
+        {deleteConfirmModal()}
 
         <section className="rvFlowForm">
           <label>
@@ -2764,7 +2811,7 @@ export default function AdminContentMobile() {
                   className="rvFlowDanger"
                   disabled={saving}
                   onClick={() =>
-                    void deleteExercise()
+                    setDeleteRequest('exercise')
                   }
                 >
                   <Trash2 size={16} />
