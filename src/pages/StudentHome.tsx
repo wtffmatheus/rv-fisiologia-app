@@ -18,9 +18,10 @@ import { useI18n } from '../i18n'
 import LanguagePreferenceCard from '../components/LanguagePreferenceCard'
 import StudentPushControl from '../components/StudentPushControl'
 import StudentNotificationBell from '../components/StudentNotificationBell'
+import StudentWatchHub from '../components/StudentWatchHub'
 import SettingsAccordion from '../components/SettingsAccordion'
 
-type StudentNav = 'home' | 'program' | 'profile'
+type StudentNav = 'home' | 'program' | 'profile' | 'watch'
 
 function readStudentRoute(): {
   tab: StudentNav
@@ -39,7 +40,11 @@ function readStudentRoute(): {
     return { tab: 'program', lessonId }
   }
 
-  if (rawView === 'program' || rawView === 'profile') {
+  if (
+    rawView === 'program' ||
+    rawView === 'profile' ||
+    rawView === 'watch'
+  ) {
     return { tab: rawView, lessonId: null }
   }
 
@@ -1395,6 +1400,27 @@ export default function StudentHome({ profile }: { profile: Profile }) {
     )
   }
 
+  function renderWatch() {
+    return (
+      <StudentWatchHub
+        studentName={firstName}
+        programTitle={activeProgram.title}
+        progress={percentage}
+        completedLessons={completedCount}
+        totalLessons={lessons.length}
+        nextLesson={
+          nextLesson
+            ? {
+                number: nextLesson.lesson_number,
+                title: nextLesson.title,
+                exercises: nextLesson.exercises.length,
+              }
+            : null
+        }
+      />
+    )
+  }
+
   return (
     <main className={`studentPage studentTabbedPage tab-${activeNav}`}>
       <header className="studentHeader studentHeaderMain">
@@ -1424,7 +1450,11 @@ export default function StudentHome({ profile }: { profile: Profile }) {
         </nav>
 
         <div className="studentHeaderActions">
-          <StudentNotificationBell studentId={profile.id} />
+          <StudentNotificationBell
+            studentId={profile.id}
+            onWatchOpen={() => changeTab('watch')}
+            watchActive={activeNav === 'watch'}
+          />
 
           <button
             className="iconButton"
@@ -1442,6 +1472,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
         {activeNav === 'home' && renderHome()}
         {activeNav === 'program' && renderProgram()}
         {activeNav === 'profile' && renderProfile()}
+        {activeNav === 'watch' && renderWatch()}
       </div>
 
       <nav className="bottomNav mobileStudentNav" aria-label="Navegação do aluno">

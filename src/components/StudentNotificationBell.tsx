@@ -23,8 +23,12 @@ type StudentNotification = {
 
 export default function StudentNotificationBell({
   studentId,
+  onWatchOpen,
+  watchActive = false,
 }: {
   studentId: string
+  onWatchOpen?: () => void
+  watchActive?: boolean
 }) {
   const { locale, language } = useI18n()
   const [notifications, setNotifications] = useState<StudentNotification[]>([])
@@ -325,15 +329,22 @@ export default function StudentNotificationBell({
         )}
       </div>
 
-      <span
-        className="studentNotificationButton rvWatchEntry"
-        role="img"
+      <button
+        type="button"
+        className={
+          watchActive
+            ? 'studentNotificationButton rvWatchEntry active'
+            : 'studentNotificationButton rvWatchEntry'
+        }
+        onClick={onWatchOpen}
+        disabled={!onWatchOpen}
         aria-label="Apple Watch"
+        aria-current={watchActive ? 'page' : undefined}
         title="Apple Watch"
-        data-rv-watch-entry="placeholder"
+        data-rv-watch-entry="hub"
       >
         <Watch size={18} />
-      </span>
+      </button>
 
       {toast && (
         <div className="studentApprovalToast" role="status">

@@ -1,0 +1,614 @@
+.rvWatchPage {
+  width: min(1160px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 14px;
+}
+
+.rvWatchHero,
+.rvWatchConnectionCard,
+.rvWatchFeaturesSection,
+.rvWatchArchitecture {
+  border: 1px solid rgba(126, 163, 195, .16);
+  border-radius: 18px;
+  background: #071a2d;
+}
+
+.rvWatchHero {
+  min-height: 330px;
+  padding: 28px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(260px, .85fr);
+  gap: 26px;
+  align-items: center;
+}
+
+.rvWatchHeroCopy {
+  min-width: 0;
+}
+
+.rvWatchEyebrow {
+  width: fit-content;
+  margin-bottom: 14px;
+  color: #20d6cf;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.6px;
+}
+
+.rvWatchHero h1 {
+  max-width: 640px;
+  margin: 0;
+  color: #f4f8fb;
+  font-size: clamp(30px, 4.3vw, 50px);
+  line-height: 1.03;
+  letter-spacing: -1.4px;
+}
+
+.rvWatchHeroCopy > p {
+  max-width: 650px;
+  margin: 14px 0 0;
+  color: #94a9bc;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.rvWatchConnectionState {
+  width: fit-content;
+  min-height: 34px;
+  margin-top: 20px;
+  padding: 0 12px;
+  border: 1px solid rgba(126, 163, 195, .15);
+  border-radius: 999px;
+  background: #051522;
+  color: #9eb0c1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+}
+
+.rvWatchConnectionDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #72879a;
+}
+
+.rvWatchConnectionState.state-checking .rvWatchConnectionDot {
+  background: #20d6cf;
+  box-shadow: 0 0 0 4px rgba(32, 214, 207, .08);
+}
+
+.rvWatchConnectionState.state-bridge {
+  border-color: rgba(32, 214, 207, .28);
+  color: #bcecea;
+}
+
+.rvWatchConnectionState.state-bridge .rvWatchConnectionDot {
+  background: #20d6cf;
+}
+
+.rvWatchConnectionState.state-limited .rvWatchConnectionDot,
+.rvWatchConnectionState.state-error .rvWatchConnectionDot {
+  background: #d7a85f;
+}
+
+.rvWatchConnectButton {
+  min-height: 44px;
+  margin-top: 12px;
+  padding: 0 16px;
+  border: 1px solid rgba(32, 214, 207, .28);
+  border-radius: 11px;
+  background: #0a2b3a;
+  color: #dff9f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.rvWatchConnectButton:hover:not(:disabled) {
+  border-color: rgba(32, 214, 207, .46);
+  background: #0c3344;
+}
+
+.rvWatchConnectButton:disabled {
+  cursor: wait;
+  opacity: .78;
+}
+
+.rvWatchAttemptTime {
+  margin-top: 8px;
+  color: #667f97;
+  display: block;
+  font-size: 9px;
+}
+
+.rvWatchSpin {
+  animation: rvWatchSpin .8s linear infinite;
+}
+
+@keyframes rvWatchSpin {
+  to { transform: rotate(360deg); }
+}
+
+.rvWatchPreviewWrap {
+  min-width: 0;
+  display: grid;
+  place-items: center;
+  gap: 12px;
+}
+
+.rvWatchDevice {
+  position: relative;
+  width: 206px;
+  height: 244px;
+  padding: 13px;
+  border: 1px solid #304a60;
+  border-radius: 50px;
+  background: #020914;
+  box-shadow: 0 22px 50px rgba(0, 0, 0, .32);
+}
+
+.rvWatchDeviceCrown {
+  position: absolute;
+  top: 66px;
+  right: -10px;
+  width: 9px;
+  height: 31px;
+  border: 1px solid #304a60;
+  border-left: 0;
+  border-radius: 0 8px 8px 0;
+  background: #061322;
+}
+
+.rvWatchDeviceScreen {
+  width: 100%;
+  height: 100%;
+  padding: 18px 15px;
+  border: 1px solid rgba(126, 163, 195, .12);
+  border-radius: 38px;
+  background: #04111f;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.rvWatchDeviceTop {
+  margin-bottom: 21px;
+  color: #20d6cf;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1.3px;
+}
+
+.rvWatchDeviceScreen > small {
+  color: #718aa1;
+  font-size: 9px;
+}
+
+.rvWatchDeviceScreen > strong {
+  min-height: 46px;
+  margin-top: 4px;
+  color: #f4f8fb;
+  font-size: 14px;
+  line-height: 1.32;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.rvWatchDeviceProgress {
+  height: 5px;
+  margin-top: 14px;
+  border-radius: 999px;
+  background: #10273b;
+  overflow: hidden;
+}
+
+.rvWatchDeviceProgress span {
+  height: 100%;
+  border-radius: inherit;
+  background: #20d6cf;
+  display: block;
+}
+
+.rvWatchDeviceMetrics {
+  margin-top: 8px;
+  color: #9aafc1;
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.rvWatchDeviceAction {
+  min-height: 36px;
+  margin-top: auto;
+  padding: 0 10px;
+  border: 1px solid rgba(32, 214, 207, .18);
+  border-radius: 10px;
+  background: #072333;
+  color: #bdece9;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 8.5px;
+  font-weight: 800;
+}
+
+.rvWatchPreviewCopy {
+  text-align: center;
+}
+
+.rvWatchPreviewCopy span {
+  color: #6f879f;
+  display: block;
+  font-size: 9px;
+}
+
+.rvWatchPreviewCopy strong {
+  margin-top: 2px;
+  color: #dce8f0;
+  display: block;
+  font-size: 11px;
+}
+
+.rvWatchDataGrid {
+  display: grid;
+  grid-template-columns: 1.2fr .6fr 1.35fr .6fr;
+  gap: 10px;
+}
+
+.rvWatchDataGrid article {
+  min-width: 0;
+  min-height: 78px;
+  padding: 14px;
+  border: 1px solid rgba(126, 163, 195, .14);
+  border-radius: 14px;
+  background: #061729;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.rvWatchDataGrid span {
+  color: #6f879f;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+}
+
+.rvWatchDataGrid strong {
+  margin-top: 5px;
+  color: #eaf2f7;
+  font-size: 12px;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rvWatchConnectionCard,
+.rvWatchFeaturesSection,
+.rvWatchArchitecture {
+  padding: 20px;
+}
+
+.rvWatchSectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.rvWatchSectionHead > div > span {
+  color: #20d6cf;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+}
+
+.rvWatchSectionHead h2 {
+  margin: 3px 0 0;
+  color: #f1f6f9;
+  font-size: 18px;
+}
+
+.rvWatchSectionHead > svg {
+  color: #6f879f;
+}
+
+.rvWatchConnectionHelp,
+.rvWatchFeaturesSection > p {
+  max-width: 760px;
+  margin: 9px 0 0;
+  color: #849bb0;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.rvWatchChecks {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rvWatchChecks > div {
+  min-width: 0;
+  min-height: 92px;
+  padding: 12px;
+  border: 1px solid rgba(126, 163, 195, .12);
+  border-radius: 12px;
+  background: #051522;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.rvWatchChecks > div.is-ok {
+  border-color: rgba(32, 214, 207, .18);
+}
+
+.rvWatchCheckIcon {
+  color: #d7a85f;
+  flex: 0 0 auto;
+}
+
+.rvWatchChecks > div.is-ok .rvWatchCheckIcon {
+  color: #20d6cf;
+}
+
+.rvWatchChecks strong {
+  color: #dbe7ef;
+  display: block;
+  font-size: 10px;
+}
+
+.rvWatchChecks small {
+  margin-top: 4px;
+  color: #718aa1;
+  display: block;
+  font-size: 8.5px;
+  line-height: 1.4;
+}
+
+.rvWatchChecksPlaceholder {
+  min-height: 82px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px dashed rgba(126, 163, 195, .16);
+  border-radius: 12px;
+  background: #051522;
+  color: #718aa1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.rvWatchFeatureGrid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.rvWatchFeatureGrid article {
+  min-height: 128px;
+  padding: 15px;
+  border: 1px solid rgba(126, 163, 195, .12);
+  border-radius: 13px;
+  background: #051522;
+}
+
+.rvWatchFeatureIcon {
+  width: 34px;
+  height: 34px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(32, 214, 207, .18);
+  border-radius: 10px;
+  background: #082333;
+  color: #20d6cf;
+  display: grid;
+  place-items: center;
+}
+
+.rvWatchFeatureGrid strong {
+  color: #e7f0f5;
+  display: block;
+  font-size: 11px;
+}
+
+.rvWatchFeatureGrid p {
+  margin: 6px 0 0;
+  color: #718aa1;
+  font-size: 9.5px;
+  line-height: 1.5;
+}
+
+.rvWatchRoadmapList {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rvWatchRoadmapList > div {
+  min-height: 66px;
+  padding: 12px;
+  border: 1px solid rgba(126, 163, 195, .12);
+  border-radius: 12px;
+  background: #051522;
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+}
+
+.rvWatchRoadmapList > div > span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #586f84;
+}
+
+.rvWatchRoadmapList > div.done > span {
+  background: #20d6cf;
+}
+
+.rvWatchRoadmapList strong {
+  color: #dce8ef;
+  font-size: 10px;
+}
+
+.rvWatchRoadmapList small {
+  color: #718aa1;
+  font-size: 8.5px;
+}
+
+.rvWatchTruthNote {
+  margin: 14px 0 0;
+  padding: 11px 12px;
+  border: 1px solid rgba(32, 214, 207, .12);
+  border-radius: 11px;
+  background: #06202d;
+  color: #8fa8b9;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 9.5px;
+  line-height: 1.5;
+}
+
+.rvWatchTruthNote svg {
+  margin-top: 1px;
+  color: #20d6cf;
+  flex: 0 0 auto;
+}
+
+.studentNotificationButton.rvWatchEntry {
+  appearance: none;
+  cursor: pointer;
+}
+
+.studentNotificationButton.rvWatchEntry.active {
+  border-color: rgba(32, 214, 207, .32) !important;
+  background: rgba(32, 214, 207, .08) !important;
+  color: #20d6cf !important;
+}
+
+@media (max-width: 900px) {
+  .rvWatchHero {
+    grid-template-columns: 1fr;
+  }
+
+  .rvWatchDataGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rvWatchChecks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .rvWatchPage {
+    gap: 10px;
+  }
+
+  .rvWatchHero,
+  .rvWatchConnectionCard,
+  .rvWatchFeaturesSection,
+  .rvWatchArchitecture {
+    border-radius: 15px;
+  }
+
+  .rvWatchHero {
+    min-height: 0;
+    padding: 18px 14px;
+    gap: 22px;
+  }
+
+  .rvWatchHero h1 {
+    font-size: 31px;
+  }
+
+  .rvWatchHeroCopy > p {
+    font-size: 11px;
+  }
+
+  .rvWatchConnectButton {
+    width: 100%;
+    min-height: 46px;
+  }
+
+  .rvWatchDevice {
+    width: 188px;
+    height: 224px;
+    border-radius: 46px;
+  }
+
+  .rvWatchDeviceScreen {
+    border-radius: 34px;
+  }
+
+  .rvWatchDataGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+  }
+
+  .rvWatchDataGrid article {
+    min-height: 72px;
+    padding: 12px;
+  }
+
+  .rvWatchConnectionCard,
+  .rvWatchFeaturesSection,
+  .rvWatchArchitecture {
+    padding: 15px;
+  }
+
+  .rvWatchChecks {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .rvWatchChecks > div {
+    min-height: 72px;
+  }
+
+  .rvWatchFeatureGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+  }
+
+  .rvWatchFeatureGrid article {
+    min-height: 120px;
+    padding: 13px;
+  }
+
+  .rvWatchRoadmapList {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 390px) {
+  .rvWatchFeatureGrid {
+    grid-template-columns: 1fr;
+  }
+}
