@@ -40,15 +40,8 @@ export default function SettingsAccordion({
           {subtitle && <small>{subtitle}</small>}
         </span>
 
-        <span
-          className="rvSettingsAccordionChevron"
-          aria-hidden="true"
-        >
-          {open ? (
-            <ChevronDown size={18} />
-          ) : (
-            <ChevronRight size={18} />
-          )}
+        <span className="rvSettingsAccordionChevron" aria-hidden="true">
+          {open ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
         </span>
       </button>
 

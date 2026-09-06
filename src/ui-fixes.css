@@ -3849,3 +3849,460 @@ html[lang="zh-CN"] .authLanguageCurrent {
   }
 }
 
+
+
+/* RV_ACCORDION_SETTINGS_NOTIFICATION_RECIPIENTS_20260905 */
+
+.rvSettingsAccordion {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(6, 24, 55, .78);
+}
+
+.rvSettingsAccordion + .rvSettingsAccordion {
+  margin-top: 10px;
+}
+
+.rvSettingsAccordionTrigger {
+  width: 100%;
+  min-height: 64px;
+  padding: 13px 15px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+}
+
+.rvSettingsAccordionTrigger:hover {
+  background: rgba(35, 200, 191, .025);
+}
+
+.rvSettingsAccordion.open > .rvSettingsAccordionTrigger {
+  border-bottom: 1px solid rgba(159, 187, 225, .1);
+  background: rgba(35, 200, 191, .025);
+}
+
+.rvSettingsAccordionTrigger:has(.rvSettingsAccordionIcon) {
+  grid-template-columns: 38px minmax(0, 1fr) 28px;
+}
+
+.rvSettingsAccordionIcon {
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(35, 200, 191, .16);
+  border-radius: 10px;
+  background: rgba(35, 200, 191, .055);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+}
+
+.rvSettingsAccordionHeading {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.rvSettingsAccordionHeading strong {
+  color: #edf5fd;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.rvSettingsAccordionHeading small {
+  color: #7f96b5;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.rvSettingsAccordionChevron {
+  width: 28px;
+  height: 28px;
+  color: #7890ad;
+  display: grid;
+  place-items: center;
+  justify-self: end;
+}
+
+.rvSettingsAccordion.open .rvSettingsAccordionChevron {
+  color: var(--accent);
+}
+
+.rvSettingsAccordionBody {
+  padding: 13px 15px 15px;
+  animation: rvSettingsAccordionIn .16s ease;
+}
+
+@keyframes rvSettingsAccordionIn {
+  from {
+    opacity: .45;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ALUNO */
+
+.studentProfileAccordions {
+  margin-top: 14px;
+}
+
+.studentProfileAccordions .languagePreference {
+  padding: 2px 0 !important;
+  border-bottom: 0 !important;
+}
+
+.studentProfileAccordions .studentPushControl {
+  padding: 2px 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.studentSecurityStack {
+  display: grid;
+  gap: 16px;
+}
+
+.studentSecurityIdentity {
+  padding: 12px;
+  border: 1px solid rgba(159, 187, 225, .12);
+  border-radius: 11px;
+  background: rgba(4, 20, 47, .42);
+  display: grid;
+  gap: 10px;
+}
+
+.studentSecurityIdentity > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.studentSecurityIdentity > div + div {
+  padding-top: 10px;
+  border-top: 1px solid rgba(159, 187, 225, .09);
+}
+
+.studentSecurityIdentity span {
+  color: #7189a8;
+  font-size: 8.5px;
+  font-weight: 750;
+}
+
+.studentSecurityIdentity strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: #edf5fd;
+  font-size: 10.5px;
+  line-height: 1.4;
+}
+
+.studentSecurityBlock {
+  min-width: 0;
+}
+
+.studentSecurityBlock + .studentSecurityBlock {
+  padding-top: 16px;
+  border-top: 1px solid rgba(159, 187, 225, .1);
+}
+
+.studentSecurityBlockHeader {
+  margin-bottom: 11px;
+  display: grid;
+  gap: 3px;
+}
+
+.studentSecurityBlockHeader strong {
+  font-size: 11px;
+}
+
+.studentSecurityBlockHeader span {
+  color: #7f96b5;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.studentSecurityBlock .accountEmailForm,
+.studentSecurityBlock .accountPasswordForm {
+  margin: 0 !important;
+}
+
+/* ADMIN */
+
+.adminSettingsShell > .rvSettingsAccordion {
+  width: min(720px, 100%);
+}
+
+.adminSettingsShell .languagePreference,
+.adminSettingsShell .preferenceRow {
+  border-bottom: 0 !important;
+}
+
+.adminSettingsShell .rvSettingsAccordionBody > .preferenceRow,
+.adminSettingsShell .rvSettingsAccordionBody > .languagePreference {
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
+}
+
+/* DESTINATÁRIOS */
+
+.adminNotificationAccordion .rvSettingsAccordionBody {
+  padding-top: 12px;
+}
+
+.adminStudentNotificationCenter {
+  padding: 0 !important;
+}
+
+.notificationRecipients {
+  display: grid;
+  gap: 8px;
+}
+
+.notificationRecipients > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.notificationRecipients > header strong {
+  color: #b7c8db;
+  font-size: 9px;
+}
+
+.notificationRecipients > header span {
+  color: var(--accent);
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.notificationRecipientAll,
+.notificationRecipientItem {
+  position: relative;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.notificationRecipientAll > input,
+.notificationRecipientItem > input {
+  position: absolute;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.notificationRecipientAll {
+  min-height: 48px;
+  padding: 9px 11px;
+  border: 1px solid rgba(35, 200, 191, .18);
+  border-radius: 10px;
+  background: rgba(35, 200, 191, .045);
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+}
+
+.notificationRecipientItem {
+  min-height: 52px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #061837;
+  display: grid;
+  grid-template-columns: 22px 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+}
+
+.notificationRecipientAll:has(input:checked),
+.notificationRecipientItem:has(input:checked) {
+  border-color: rgba(35, 200, 191, .36);
+  background: rgba(35, 200, 191, .07);
+}
+
+.notificationCustomCheck {
+  width: 20px;
+  height: 20px;
+  border: 1px solid rgba(159, 187, 225, .28);
+  border-radius: 6px;
+  background: #05152f;
+  display: grid;
+  place-items: center;
+}
+
+input:checked + .notificationCustomCheck {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+input:checked + .notificationCustomCheck::after {
+  content: '';
+  width: 8px;
+  height: 4px;
+  border-left: 2px solid #03252a;
+  border-bottom: 2px solid #03252a;
+  transform: translateY(-1px) rotate(-45deg);
+}
+
+.notificationRecipientAvatar {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(35, 200, 191, .16);
+  border-radius: 10px;
+  background: rgba(35, 200, 191, .055);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.notificationRecipientCopy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.notificationRecipientCopy strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #edf5fd;
+  font-size: 10px;
+}
+
+.notificationRecipientCopy small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #738ba9;
+  font-size: 8px;
+}
+
+.notificationRecipientList {
+  max-height: 252px;
+  padding-right: 2px;
+  overflow-y: auto;
+  display: grid;
+  gap: 6px;
+}
+
+.notificationRecipientEmpty {
+  margin: 0;
+  padding: 13px;
+  border: 1px dashed var(--border);
+  border-radius: 9px;
+  color: #748cab;
+  font-size: 9px;
+  text-align: center;
+}
+
+/* AGENDAMENTOS */
+
+.scheduledNotificationsAccordion {
+  margin-top: 2px;
+  background: rgba(4, 20, 47, .42);
+}
+
+.scheduledNotificationsAccordion .rvSettingsAccordionTrigger {
+  min-height: 54px;
+  padding: 10px 12px;
+}
+
+.scheduledNotificationsAccordion .rvSettingsAccordionBody {
+  padding: 8px 12px 12px;
+}
+
+.scheduledNotifications {
+  padding: 0 !important;
+  border-top: 0 !important;
+}
+
+.scheduledNotificationsToolbar {
+  min-height: 28px;
+  margin-bottom: 7px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.scheduledNotificationsToolbar button {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.scheduledNotificationItem {
+  grid-template-columns: minmax(0, 1fr) 34px !important;
+}
+
+.scheduledNotificationCancel {
+  width: 34px !important;
+  height: 34px !important;
+  border: 1px solid rgba(255, 133, 146, .2) !important;
+  border-radius: 9px !important;
+  background: rgba(255, 133, 146, .04) !important;
+  color: #ff9da6 !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+/* substitui botões antigos de público */
+.notificationAudiencePicker {
+  display: none !important;
+}
+
+@media (max-width: 720px) {
+  .rvSettingsAccordionTrigger {
+    min-height: 58px;
+    padding: 11px 12px;
+  }
+
+  .rvSettingsAccordionBody {
+    padding: 11px 12px 13px;
+  }
+
+  .rvSettingsAccordionHeading strong {
+    font-size: 11px;
+  }
+
+  .studentProfileAccordions {
+    margin-top: 12px;
+  }
+
+  .notificationRecipientList {
+    max-height: 230px;
+  }
+
+  .notificationSchedulePicker {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .notificationSchedulePicker button {
+    min-width: 0;
+    padding-inline: 4px !important;
+    font-size: 8.5px !important;
+  }
+}
+
+@media (max-width: 370px) {
+  .notificationSchedulePicker {
+    grid-template-columns: 1fr !important;
+  }
+}
+

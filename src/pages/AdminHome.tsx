@@ -25,6 +25,7 @@ import { RvEmptyState, RvLoadingState } from '../components/PlatformState'
 import AdminPushControl from '../components/AdminPushControl'
 import LanguagePreferenceCard from '../components/LanguagePreferenceCard'
 import AdminNotificationCenter from '../components/AdminNotificationCenter'
+import SettingsAccordion from '../components/SettingsAccordion'
 import { useI18n } from '../i18n'
 
 const AdminContentManager = lazy(
@@ -1780,8 +1781,11 @@ export default function AdminHome({ profile }: { profile: Profile }) {
           <div className="adminSettingsShell">
             <section className="settingsIdentity">
               <div className="settingsIdentityAvatar">
-                {(profile.name || 'R').charAt(0).toUpperCase()}
+                {(profile.name || 'R')
+                  .charAt(0)
+                  .toUpperCase()}
               </div>
+
               <div className="settingsIdentityCopy">
                 <strong>{profile.name}</strong>
                 <span>{profile.email}</span>
@@ -1789,47 +1793,67 @@ export default function AdminHome({ profile }: { profile: Profile }) {
               </div>
             </section>
 
-            <section className="settingsGroup">
-              <div className="settingsGroupTitle">{t('preferences')}</div>
-              <LanguagePreferenceCard profileId={profile.id} />
-            </section>
+            <SettingsAccordion
+              title={t('preferences')}
+            >
+              <LanguagePreferenceCard
+                profileId={profile.id}
+              />
+            </SettingsAccordion>
 
-            <section className="settingsGroup">
-              <div className="settingsGroupTitle">{t('notifications')}</div>
-              <AdminPushControl adminId={profile.id} />
-            </section>
+            <SettingsAccordion
+              title={t('notifications')}
+            >
+              <AdminPushControl
+                adminId={profile.id}
+              />
+            </SettingsAccordion>
 
-            <section className="settingsGroup notificationCenterSettingsGroup">
-              <div className="settingsGroupTitle">Envios aos alunos</div>
-              <AdminNotificationCenter students={students} />
-            </section>
+            <AdminNotificationCenter
+              students={students}
+            />
 
-            <section className="settingsGroup">
-              <div className="settingsGroupTitle">{t('app')}</div>
+            <SettingsAccordion
+              title={t('app')}
+            >
               <div className="settingsVersionRow">
                 <div>
-                  <strong>{t('version')}</strong>
+                  <strong>
+                    {t('version')}
+                  </strong>
+
                   <span>
-                    {new Intl.DateTimeFormat(locale, {
-                      dateStyle: 'short',
-                      timeStyle: 'medium',
-                    }).format(new Date(__RV_BUILD_AT__))}
+                    {new Intl.DateTimeFormat(
+                      locale,
+                      {
+                        dateStyle: 'short',
+                        timeStyle: 'medium',
+                      },
+                    ).format(
+                      new Date(
+                        __RV_BUILD_AT__,
+                      ),
+                    )}
                   </span>
                 </div>
+
                 <small>RV App</small>
               </div>
-            </section>
+            </SettingsAccordion>
 
-            <section className="settingsGroup">
-              <div className="settingsGroupTitle">{t('session')}</div>
+            <SettingsAccordion
+              title={t('session')}
+            >
               <button
                 type="button"
                 className="settingsLogoutButton"
-                onClick={() => void supabase.auth.signOut()}
+                onClick={() =>
+                  void supabase.auth.signOut()
+                }
               >
                 {t('logout')}
               </button>
-            </section>
+            </SettingsAccordion>
           </div>
         )}
       </section>

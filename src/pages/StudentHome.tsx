@@ -18,6 +18,7 @@ import { useI18n } from '../i18n'
 import LanguagePreferenceCard from '../components/LanguagePreferenceCard'
 import StudentPushControl from '../components/StudentPushControl'
 import StudentNotificationBell from '../components/StudentNotificationBell'
+import SettingsAccordion from '../components/SettingsAccordion'
 
 type StudentNav = 'home' | 'program' | 'profile'
 
@@ -971,158 +972,252 @@ export default function StudentHome({ profile }: { profile: Profile }) {
           <div className="studentProfileAvatar studentProfileAvatarLarge">
             {(profile.name || 'A').charAt(0).toUpperCase()}
           </div>
+
           <div>
             <p className="eyebrow">{t('myProfile')}</p>
-            <h1>{profile.name || 'Aluno RV'}</h1>
+            <h1>{profile.name || t('studentFallback')}</h1>
             <p className="muted">{t('profileHelp')}</p>
           </div>
         </div>
 
         <div className="studentProfileGrid profileScreenGrid">
           <div>
-            <span>{t('email')}</span>
-            <strong>{accountEmail || profile.email}</strong>
-          </div>
-          <div>
             <span>{t('methodology')}</span>
             <strong>{activeProgram.title}</strong>
           </div>
+
           <div>
             <span>{t('programStart')}</span>
             <strong>{startDate}</strong>
           </div>
+
           <div>
             <span>{t('progress')}</span>
-            <strong>{t('completedPercent', { percent: percentage })}</strong>
+            <strong>
+              {t('completedPercent', {
+                percent: percentage,
+              })}
+            </strong>
           </div>
+
           <div>
             <span>{t('lessonsCompletedLabel')}</span>
-            <strong>{completedCount} de {lessons.length}</strong>
-          </div>
-          <div>
-            <span>{t('status')}</span>
-            <strong>{t('activeAccess')}</strong>
+            <strong>
+              {t('lessonsShort', {
+                done: completedCount,
+                total: lessons.length,
+              })}
+            </strong>
           </div>
         </div>
 
-        <LanguagePreferenceCard profileId={profile.id} />
+        <div className="studentProfileAccordions">
+          <SettingsAccordion
+            title={t('languageTitle')}
+            subtitle={t('languageHelp')}
+          >
+            <LanguagePreferenceCard
+              profileId={profile.id}
+            />
+          </SettingsAccordion>
 
-        <section className="accountSettingsCard studentNotificationSettingsCard">
-          <StudentPushControl studentId={profile.id} />
-        </section>
+          <SettingsAccordion
+            title={t('notifications')}
+          >
+            <StudentPushControl
+              studentId={profile.id}
+            />
+          </SettingsAccordion>
 
-        <section className="accountSettingsCard">
-          <div className="accountSettingsHeader">
-            <div>
-              <span className="miniLabel">{t('account')}</span>
-              <h2>{t('changeEmail')}</h2>
-              <p className="muted">
-                {t('changeEmailHelp')}
-              </p>
+          <SettingsAccordion
+            title={t('security')}
+            subtitle={`${t('email')} · ${t('status')} · ${t('changePassword')}`}
+            icon={<KeyRound size={18} />}
+          >
+            <div className="studentSecurityStack">
+              <section className="studentSecurityIdentity">
+                <div>
+                  <span>{t('email')}</span>
+                  <strong>
+                    {accountEmail || profile.email}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>{t('status')}</span>
+                  <strong>
+                    {t('activeAccess')}
+                  </strong>
+                </div>
+              </section>
+
+              <section className="studentSecurityBlock">
+                <div className="studentSecurityBlockHeader">
+                  <strong>
+                    {t('changeEmail')}
+                  </strong>
+                  <span>
+                    {t('changeEmailHelp')}
+                  </span>
+                </div>
+
+                <form
+                  className="accountEmailForm"
+                  onSubmit={requestEmailChange}
+                >
+                  <label>
+                    {t('newEmail')}
+                    <input
+                      type="email"
+                      value={newEmail}
+                      onChange={(event) =>
+                        setNewEmail(
+                          event.target.value,
+                        )
+                      }
+                      placeholder="novoemail@exemplo.com"
+                      autoComplete="email"
+                      required
+                    />
+                  </label>
+
+                  <button
+                    className="secondary"
+                    disabled={emailLoading}
+                  >
+                    {emailLoading
+                      ? t('sending')
+                      : t('requestChange')}
+                  </button>
+                </form>
+
+                {emailMessage && (
+                  <div
+                    className="accountInlineMessage"
+                    role="status"
+                  >
+                    {emailMessage}
+                  </div>
+                )}
+              </section>
+
+              <section className="studentSecurityBlock">
+                <div className="studentSecurityBlockHeader">
+                  <strong>
+                    {t('changePassword')}
+                  </strong>
+                  <span>
+                    {t('changePasswordHelp')}
+                  </span>
+                </div>
+
+                <form
+                  className="accountPasswordForm"
+                  onSubmit={changePassword}
+                >
+                  <label>
+                    {t('currentPassword')}
+                    <input
+                      type="password"
+                      value={currentPassword}
+                      onChange={(event) =>
+                        setCurrentPassword(
+                          event.target.value,
+                        )
+                      }
+                      placeholder={t(
+                        'currentPasswordPlaceholder',
+                      )}
+                      autoComplete="current-password"
+                      required
+                    />
+                  </label>
+
+                  <label>
+                    {t('newPassword')}
+                    <input
+                      type="password"
+                      value={newPassword}
+                      onChange={(event) =>
+                        setNewPassword(
+                          event.target.value,
+                        )
+                      }
+                      placeholder={t(
+                        'min8Placeholder',
+                      )}
+                      minLength={8}
+                      autoComplete="new-password"
+                      required
+                    />
+                  </label>
+
+                  <label>
+                    {t('confirmNewPassword')}
+                    <input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(event) =>
+                        setConfirmPassword(
+                          event.target.value,
+                        )
+                      }
+                      placeholder={t(
+                        'repeatPlaceholder',
+                      )}
+                      minLength={8}
+                      autoComplete="new-password"
+                      required
+                    />
+                  </label>
+
+                  <button
+                    className="secondary passwordSaveButton"
+                    disabled={passwordLoading}
+                  >
+                    {passwordLoading
+                      ? t('changing')
+                      : t('changePassword')}
+                  </button>
+                </form>
+
+                {passwordMessage && (
+                  <div
+                    className={
+                      passwordMessage ===
+                      t('passwordChangedSuccess')
+                        ? 'accountInlineMessage success'
+                        : 'accountInlineMessage'
+                    }
+                    role="status"
+                  >
+                    {passwordMessage}
+                  </div>
+                )}
+              </section>
             </div>
-          </div>
-
-          <form className="accountEmailForm" onSubmit={requestEmailChange}>
-            <label>
-              {t('newEmail')}
-              <input
-                type="email"
-                value={newEmail}
-                onChange={(event) => setNewEmail(event.target.value)}
-                placeholder="novoemail@exemplo.com"
-                autoComplete="email"
-                required
-              />
-            </label>
-
-            <button className="secondary" disabled={emailLoading}>
-              {emailLoading ? t('sending') : t('requestChange')}
-            </button>
-          </form>
-
-          {emailMessage && (
-            <div className="accountInlineMessage" role="status">
-              {emailMessage}
-            </div>
-          )}
-        </section>
-
-        <section className="accountSettingsCard passwordSettingsCard">
-          <div className="accountSettingsHeader">
-            <div>
-              <span className="miniLabel">{t('security')}</span>
-              <h2>{t('changePassword')}</h2>
-              <p className="muted">
-                {t('changePasswordHelp')}
-              </p>
-            </div>
-            <KeyRound size={20} />
-          </div>
-
-          <form className="accountPasswordForm" onSubmit={changePassword}>
-            <label>
-              {t('currentPassword')}
-              <input
-                type="password"
-                value={currentPassword}
-                onChange={(event) => setCurrentPassword(event.target.value)}
-                placeholder={t('currentPasswordPlaceholder')}
-                autoComplete="current-password"
-                required
-              />
-            </label>
-
-            <label>
-              {t('newPassword')}
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(event) => setNewPassword(event.target.value)}
-                placeholder={t('min8Placeholder')}
-                minLength={8}
-                autoComplete="new-password"
-                required
-              />
-            </label>
-
-            <label>
-              {t('confirmNewPassword')}
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(event) => setConfirmPassword(event.target.value)}
-                placeholder={t('repeatPlaceholder')}
-                minLength={8}
-                autoComplete="new-password"
-                required
-              />
-            </label>
-
-            <button className="secondary passwordSaveButton" disabled={passwordLoading}>
-              {passwordLoading ? t('changing') : t('changePassword')}
-            </button>
-          </form>
-
-          {passwordMessage && (
-            <div
-              className={
-                passwordMessage === t('passwordChangedSuccess')
-                  ? 'accountInlineMessage success'
-                  : 'accountInlineMessage'
-              }
-              role="status"
-            >
-              {passwordMessage}
-            </div>
-          )}
-        </section>
+          </SettingsAccordion>
+        </div>
 
         <div className="profileActions">
-          <button className="secondary" onClick={() => changeTab('program')}>
-            <BookOpen size={17} /> {t('viewMyProgram')}
+          <button
+            className="secondary"
+            onClick={() =>
+              changeTab('program')
+            }
+          >
+            <BookOpen size={17} />
+            {t('viewMyProgram')}
           </button>
-          <button className="studentProfileLogout" onClick={() => supabase.auth.signOut()}>
-            <LogOut size={17} /> {t('logout')}
+
+          <button
+            className="studentProfileLogout"
+            onClick={() =>
+              supabase.auth.signOut()
+            }
+          >
+            <LogOut size={17} />
+            {t('logout')}
           </button>
         </div>
       </section>
