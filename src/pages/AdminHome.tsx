@@ -1252,37 +1252,58 @@ export default function AdminHome({ profile }: { profile: Profile }) {
                   startDate !== assignment?.starts_at)
 
               return (
-                <article
-                  className={`studentRow enhancedStudentRow advancedStudentRow ${student.status === 'pending' ? 'pendingApprovalRow' : ''}`}
+                <details
+                  className={`studentRow enhancedStudentRow advancedStudentRow studentAccordionRow ${student.status === 'pending' ? 'pendingApprovalRow' : ''}`}
                   key={student.id}
                 >
-                  <div className="studentIdentity">
-                    <div className="studentAvatar">
-                      {student.name?.charAt(0)?.toUpperCase() || 'A'}
-                    </div>
-                    <div>
-                      <strong>{student.name || 'Sem nome'}</strong>
-                      <span>{student.email}</span>
-                      <small>
-                        Cadastro em{' '}
-                        {new Intl.DateTimeFormat('pt-BR', {
-                          dateStyle: 'short',
-                        }).format(new Date(student.created_at))}
-                      </small>
-                    </div>
-                  </div>
+                  <summary className="studentAccordionSummary">
+                    <div className="studentIdentity">
+                      <div className="studentAvatar">
+                        {student.name?.charAt(0)?.toUpperCase() || 'A'}
+                      </div>
 
-                  <div>
-                    <span className={`statusPill ${student.status}`}>
-                      {student.status === 'pending'
-                        ? 'Aguardando'
-                        : student.status === 'active'
-                          ? 'Ativo'
-                          : 'Bloqueado'}
-                    </span>
-                  </div>
+                      <div>
+                        <strong>{student.name || 'Sem nome'}</strong>
+                        <span>{student.email}</span>
+                        <small>
+                          Cadastro em{' '}
+                          {new Intl.DateTimeFormat('pt-BR', {
+                            dateStyle: 'short',
+                          }).format(new Date(student.created_at))}
+                        </small>
+                      </div>
+                    </div>
 
-                  <div className="studentPlanCell">
+                    <div className="studentAccordionSummaryMeta">
+                      <span className={`statusPill ${student.status}`}>
+                        {student.status === 'pending'
+                          ? 'Aguardando'
+                          : student.status === 'active'
+                            ? 'Ativo'
+                            : 'Bloqueado'}
+                      </span>
+
+                      <span className="studentAccordionPlan">
+                        {assignment
+                          ? getProgramName(student.id)
+                          : 'Sem plano'}
+                      </span>
+
+                      {assignment && (
+                        <strong className="studentAccordionProgress">
+                          {progress.percentage}%
+                        </strong>
+                      )}
+                    </div>
+
+                    <span
+                      className="studentAccordionChevron"
+                      aria-hidden="true"
+                    />
+                  </summary>
+
+                  <div className="studentAccordionBody">
+                    <div className="studentPlanCell">
                     {student.status === 'pending' && (
                       <p className="pendingApprovalHint">
                         <strong>Aprovação rápida:</strong> escolha a metodologia.
@@ -1433,7 +1454,8 @@ export default function AdminHome({ profile }: { profile: Profile }) {
                       <Trash2 size={15} /> Remover cadastro
                     </button>
                   </div>
-                </article>
+                  </div>
+                </details>
               )
             })}
         </div>

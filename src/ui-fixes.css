@@ -5421,3 +5421,248 @@ input:checked + .notificationCustomCheck::after {
   }
 }
 
+
+
+/* RV_STUDENTS_AND_PROGRAM_ACCORDIONS_V9_20260906 */
+
+/* ADMIN > ALUNOS */
+
+.advancedStudentTable {
+  display: grid !important;
+  gap: 10px !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.advancedStudentHeader {
+  display: none !important;
+}
+
+.studentAccordionRow {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+  border: 1px solid rgba(123, 164, 202, .17) !important;
+  border-radius: 14px !important;
+  background: rgba(6, 25, 55, .78) !important;
+}
+
+.studentAccordionRow[open] {
+  border-color: rgba(40, 216, 210, .24) !important;
+}
+
+.studentAccordionSummary {
+  min-height: 76px;
+  padding: 11px 13px;
+  cursor: pointer;
+  list-style: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 28px;
+  align-items: center;
+  gap: 11px;
+}
+
+.studentAccordionSummary::-webkit-details-marker {
+  display: none;
+}
+
+.studentAccordionRow[open] > .studentAccordionSummary {
+  border-bottom: 1px solid rgba(123, 164, 202, .11);
+  background: rgba(40, 216, 210, .025);
+}
+
+.studentAccordionSummary .studentIdentity {
+  min-width: 0;
+}
+
+.studentAccordionSummary .studentIdentity > div:last-child {
+  min-width: 0;
+}
+
+.studentAccordionSummary .studentIdentity strong,
+.studentAccordionSummary .studentIdentity span,
+.studentAccordionSummary .studentIdentity small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.studentAccordionSummaryMeta {
+  min-width: 112px;
+  display: grid;
+  justify-items: end;
+  gap: 5px;
+}
+
+.studentAccordionSummaryMeta .statusPill {
+  margin: 0;
+}
+
+.studentAccordionPlan {
+  max-width: 170px;
+  overflow: hidden;
+  color: #7f96b2;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.studentAccordionProgress {
+  color: var(--accent);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.studentAccordionChevron {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  justify-self: end;
+  color: #7890ad;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.studentAccordionChevron::before {
+  content: '›';
+}
+
+.studentAccordionRow[open] .studentAccordionChevron {
+  color: var(--accent);
+}
+
+.studentAccordionRow[open] .studentAccordionChevron::before {
+  content: '⌄';
+  transform: translateY(-2px);
+}
+
+.studentAccordionBody {
+  padding: 13px;
+  display: grid;
+  grid-template-columns: minmax(250px, 1.15fr) minmax(210px, .85fr) minmax(210px, auto);
+  align-items: start;
+  gap: 14px;
+}
+
+.studentAccordionBody .studentPlanCell,
+.studentAccordionBody .studentProgressCell,
+.studentAccordionBody .advancedRowActions {
+  min-width: 0;
+}
+
+.studentAccordionBody .advancedRowActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.studentAccordionBody .advancedRowActions .deleteStudentButton {
+  grid-column: 1 / -1;
+}
+
+/* ALUNO > PROGRAMA */
+
+.studentProgramAccordions {
+  display: grid;
+  gap: 10px;
+}
+
+.studentProgramWeekAccordion {
+  margin: 0 !important;
+}
+
+.studentProgramWeekAccordion .rvSettingsAccordionTrigger {
+  min-height: 68px;
+}
+
+.studentProgramWeekAccordion .rvSettingsAccordionHeading strong {
+  font-size: 12px;
+}
+
+.studentProgramWeekAccordion .rvSettingsAccordionHeading small {
+  font-size: 9px;
+}
+
+.studentProgramWeekAccordion .rvSettingsAccordionBody {
+  padding: 10px 12px 13px;
+}
+
+.studentProgramWeekAccordion .lessonList {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+@media (max-width: 920px) {
+  .studentAccordionBody {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .studentAccordionBody .advancedRowActions {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 720px) {
+  .advancedStudentTable {
+    gap: 8px !important;
+  }
+
+  .studentAccordionSummary {
+    min-height: 70px;
+    padding: 10px 11px;
+    grid-template-columns: minmax(0, 1fr) auto 24px;
+    gap: 8px;
+  }
+
+  .studentAccordionSummary .studentAvatar {
+    width: 38px;
+    height: 38px;
+  }
+
+  .studentAccordionSummary .studentIdentity span {
+    display: none;
+  }
+
+  .studentAccordionSummary .studentIdentity small {
+    display: none;
+  }
+
+  .studentAccordionSummaryMeta {
+    min-width: 90px;
+    gap: 4px;
+  }
+
+  .studentAccordionPlan {
+    max-width: 105px;
+  }
+
+  .studentAccordionChevron {
+    width: 24px;
+    height: 24px;
+  }
+
+  .studentAccordionBody {
+    padding: 11px;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .studentAccordionBody .advancedRowActions {
+    grid-column: auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .studentAccordionBody .advancedRowActions .approveButton,
+  .studentAccordionBody .advancedRowActions .savePlanButton {
+    grid-column: 1 / -1;
+  }
+
+  .studentProgramAccordions {
+    gap: 8px;
+  }
+}
+

@@ -812,16 +812,25 @@ export default function StudentHome({ profile }: { profile: Profile }) {
             title={t('programPreparing')}
             text={t('programPreparingText')}
           />
-        ) : activeProgram.weeks.map((week) => (
-          <section className="lessonsSection" key={week.id}>
-            <div className="sectionHeading">
-              <div>
-                <span className="miniLabel">{t('week', { number: week.week_number })}</span>
-                <h2>{week.title || t('weekTitle', { number: week.week_number })}</h2>
-              </div>
-            </div>
+        ) : (
+          <div className="studentProgramAccordions">
+            {activeProgram.weeks.map((week) => {
+              const weekCompleted =
+                week.lessons.filter((lesson) =>
+                  completedLessonIds.has(lesson.id),
+                ).length
 
-            <div className="lessonList">
+              return (
+                <SettingsAccordion
+                  key={week.id}
+                  className="studentProgramWeekAccordion"
+                  title={`${t('week', { number: week.week_number })} · ${week.title || t('weekTitle', { number: week.week_number })}`}
+                  subtitle={t('lessonsShort', {
+                    done: weekCompleted,
+                    total: week.lessons.length,
+                  })}
+                >
+                  <div className="lessonList">
               {week.lessons.length === 0 ? (
                 <div className="weekEmptyState">
                   {t('noLessonsWeek')}
@@ -852,9 +861,12 @@ export default function StudentHome({ profile }: { profile: Profile }) {
                   </button>
                 )
               })}
-            </div>
-          </section>
-        ))}
+                  </div>
+                </SettingsAccordion>
+              )
+            })}
+          </div>
+        )}
       </>
     )
   }
