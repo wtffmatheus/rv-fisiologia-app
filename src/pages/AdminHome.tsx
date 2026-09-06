@@ -29,7 +29,7 @@ import SettingsAccordion from '../components/SettingsAccordion'
 import { useI18n } from '../i18n'
 
 const AdminContentManager = lazy(
-  () => import('../components/AdminContentManager'),
+  () => import('../components/AdminContentEntry'),
 )
 
 type AdminTab = 'dashboard' | 'students' | 'content' | 'settings'

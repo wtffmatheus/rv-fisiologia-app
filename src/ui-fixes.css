@@ -4306,3 +4306,666 @@ input:checked + .notificationCustomCheck::after {
   }
 }
 
+
+
+/* RV_SIMPLE_MOBILE_CONTENT_EDITOR_V7_2_20260906 */
+
+/* EDITOR SIMPLES MOBILE */
+
+.rvMobileContentEditor {
+  width: min(680px, 100%);
+  margin: 0 auto;
+  padding-bottom: 22px;
+  display: grid;
+  gap: 11px;
+}
+
+.rvMobileContentHero {
+  padding: 18px;
+  border: 1px solid rgba(40, 216, 210, .17);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 92% 0, rgba(40, 216, 210, .13), transparent 34%),
+    #071c3b;
+}
+
+.rvMobileContentHero > span {
+  color: var(--rv-cyan);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .15em;
+}
+
+.rvMobileContentHero h2 {
+  margin: 7px 0 5px;
+  color: var(--rv-text);
+  font-size: 21px;
+  letter-spacing: -.035em;
+}
+
+.rvMobileContentHero p {
+  margin: 0;
+  color: var(--rv-muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.rvMobileContentFeedback {
+  min-height: 42px;
+  padding: 9px 10px 9px 12px;
+  border: 1px solid rgba(40, 216, 210, .18);
+  border-radius: 11px;
+  background: rgba(40, 216, 210, .045);
+  color: #bde7e5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 9px;
+}
+
+.rvMobileContentFeedback button {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  background: transparent;
+  color: #7790aa;
+  display: grid;
+  place-items: center;
+}
+
+.rvMobileContentStep,
+.rvMobileLessonEditor,
+.rvMobileExercisesSection,
+.rvMobileDangerZone {
+  padding: 13px;
+  border: 1px solid var(--rv-line);
+  border-radius: 14px;
+  background: rgba(7, 28, 59, .86);
+}
+
+.rvMobileContentStep {
+  display: grid;
+  gap: 10px;
+}
+
+.rvMobileContentStep > header {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 9px;
+  align-items: center;
+}
+
+.rvMobileStepNumber {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(40, 216, 210, .22);
+  border-radius: 10px;
+  background: rgba(40, 216, 210, .055);
+  color: var(--rv-cyan);
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.rvMobileContentStep header > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.rvMobileContentStep header strong {
+  color: var(--rv-text);
+  font-size: 11px;
+}
+
+.rvMobileContentStep header small {
+  overflow: hidden;
+  color: var(--rv-muted);
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rvMobileContentEditor input,
+.rvMobileContentEditor select,
+.rvMobileContentEditor textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  padding: 10px 11px;
+  border: 1px solid rgba(116, 164, 203, .2);
+  border-radius: 10px;
+  background: #051831;
+  color: #eef7ff;
+  font: inherit;
+  font-size: 16px;
+  outline: none;
+}
+
+.rvMobileContentEditor textarea {
+  min-height: 84px;
+  resize: vertical;
+}
+
+.rvMobileContentEditor input:focus,
+.rvMobileContentEditor select:focus,
+.rvMobileContentEditor textarea:focus {
+  border-color: rgba(40, 216, 210, .5);
+  box-shadow: 0 0 0 3px rgba(40, 216, 210, .055);
+}
+
+.rvMobileContentEditor label {
+  min-width: 0;
+  color: #a7b9cc;
+  display: grid;
+  gap: 6px;
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.rvMobileSecondaryAction,
+.rvMobilePrimaryAction,
+.rvMobileAddExerciseButton,
+.rvMobileDangerAction {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.rvMobileSecondaryAction {
+  border: 1px solid rgba(40, 216, 210, .18);
+  background: rgba(40, 216, 210, .045);
+  color: var(--rv-cyan);
+}
+
+.rvMobilePrimaryAction {
+  border: 1px solid var(--rv-cyan);
+  background: var(--rv-cyan);
+  color: #03252b;
+}
+
+.rvMobilePrimaryAction:disabled,
+.rvMobileSecondaryAction:disabled {
+  opacity: .48;
+}
+
+.rvMobileInlineForm,
+.rvMobileNewExercise {
+  padding: 11px;
+  border: 1px solid rgba(116, 164, 203, .13);
+  border-radius: 11px;
+  background: rgba(3, 18, 39, .55);
+  display: grid;
+  gap: 10px;
+}
+
+.rvMobileLessonEditor {
+  display: grid;
+  gap: 10px;
+}
+
+.rvMobileSectionTitle {
+  display: grid;
+  grid-template-columns: 35px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+}
+
+.rvMobileSectionTitle > span {
+  width: 35px;
+  height: 35px;
+  border-radius: 10px;
+  background: rgba(40, 216, 210, .055);
+  color: var(--rv-cyan);
+  display: grid;
+  place-items: center;
+}
+
+.rvMobileSectionTitle > div {
+  display: grid;
+  gap: 2px;
+}
+
+.rvMobileSectionTitle strong {
+  color: var(--rv-text);
+  font-size: 11px;
+}
+
+.rvMobileSectionTitle small {
+  color: var(--rv-muted);
+  font-size: 8px;
+  line-height: 1.35;
+}
+
+.rvMobileExercisesSection {
+  display: grid;
+  gap: 10px;
+}
+
+.rvMobileExercisesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rvMobileExercisesHeader > div {
+  display: grid;
+  gap: 2px;
+}
+
+.rvMobileExercisesHeader span {
+  color: var(--rv-cyan);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.rvMobileExercisesHeader h3 {
+  margin: 0;
+  color: var(--rv-text);
+  font-size: 14px;
+}
+
+.rvMobileExercisesHeader > strong {
+  min-width: 35px;
+  height: 35px;
+  border-radius: 10px;
+  background: rgba(40, 216, 210, .055);
+  color: var(--rv-cyan);
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+}
+
+.rvMobileExercisesEmpty {
+  min-height: 120px;
+  padding: 18px;
+  border: 1px dashed rgba(116, 164, 203, .18);
+  border-radius: 12px;
+  color: #7990a8;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 5px;
+  text-align: center;
+}
+
+.rvMobileExercisesEmpty strong {
+  color: #d9e7f5;
+  font-size: 11px;
+}
+
+.rvMobileExercisesEmpty span {
+  max-width: 280px;
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+.rvMobileExerciseList {
+  display: grid;
+  gap: 8px;
+}
+
+.rvMobileExerciseCard {
+  overflow: hidden;
+  border: 1px solid rgba(116, 164, 203, .15);
+  border-radius: 11px;
+  background: #061832;
+}
+
+.rvMobileExerciseCard > summary {
+  min-height: 62px;
+  padding: 9px 10px;
+  cursor: pointer;
+  list-style: none;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 9px;
+}
+
+.rvMobileExerciseCard > summary::-webkit-details-marker {
+  display: none;
+}
+
+.rvMobileExerciseCard[open] > summary {
+  border-bottom: 1px solid rgba(116, 164, 203, .12);
+}
+
+.rvMobileExerciseCard[open] > summary > svg {
+  transform: rotate(180deg);
+}
+
+.rvMobileExerciseIndex {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: rgba(40, 216, 210, .055);
+  color: var(--rv-cyan);
+  display: grid;
+  place-items: center;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.rvMobileExerciseSummary {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.rvMobileExerciseSummary strong,
+.rvMobileExerciseSummary small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rvMobileExerciseSummary strong {
+  color: #eef7ff;
+  font-size: 10px;
+}
+
+.rvMobileExerciseSummary small {
+  color: #7188a2;
+  font-size: 8px;
+}
+
+.rvMobileExerciseBody {
+  padding: 11px;
+  display: grid;
+  gap: 10px;
+}
+
+.rvMobileTwoFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rvMobileVideoBlock,
+.rvMobileNewVideo {
+  padding: 10px;
+  border: 1px solid rgba(116, 164, 203, .14);
+  border-radius: 10px;
+  background: rgba(3, 17, 37, .56);
+  display: grid;
+  gap: 9px;
+}
+
+.rvMobileVideoBlock > div:first-child,
+.rvMobileNewVideo > div:first-child {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  color: var(--rv-cyan);
+}
+
+.rvMobileVideoBlock > div:first-child span,
+.rvMobileNewVideo > div:first-child span {
+  display: grid;
+  gap: 2px;
+}
+
+.rvMobileVideoBlock strong,
+.rvMobileNewVideo strong {
+  color: #e9f4fe;
+  font-size: 9px;
+}
+
+.rvMobileVideoBlock small,
+.rvMobileNewVideo small {
+  overflow: hidden;
+  color: #7188a2;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rvMobileVideoBlock video {
+  width: 100%;
+  max-height: 320px;
+  border-radius: 9px;
+  background: black;
+}
+
+.rvMobileVideoActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.rvMobileVideoActions button,
+.rvMobileVideoActions label,
+.rvMobileNewVideo > label {
+  min-height: 42px;
+  border: 1px solid rgba(40, 216, 210, .17);
+  border-radius: 9px;
+  background: rgba(40, 216, 210, .045);
+  color: var(--rv-cyan);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 9px;
+  font-weight: 850;
+}
+
+.rvMobileVideoActions input,
+.rvMobileNewVideo input[type='file'] {
+  display: none;
+}
+
+.rvMobileUploadProgress {
+  display: grid;
+  gap: 5px;
+}
+
+.rvMobileUploadProgress > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #8ca5bd;
+  font-size: 8px;
+}
+
+.rvMobileUploadProgress i {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(116, 164, 203, .12);
+}
+
+.rvMobileUploadProgress i span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--rv-cyan);
+}
+
+.rvMobileVideoAdvanced {
+  border: 1px solid rgba(116, 164, 203, .12);
+  border-radius: 9px;
+}
+
+.rvMobileVideoAdvanced > summary,
+.rvMobileDangerZone > summary {
+  padding: 10px;
+  cursor: pointer;
+  color: #8199b2;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.rvMobileVideoAdvanced > div {
+  padding: 0 10px 10px;
+}
+
+.rvMobileDangerAction {
+  border: 1px solid rgba(255, 132, 145, .2);
+  background: rgba(255, 132, 145, .035);
+  color: #ff9aa6;
+}
+
+.rvMobileAddExerciseButton {
+  min-height: 62px;
+  padding: 10px 12px;
+  border: 1px dashed rgba(40, 216, 210, .28);
+  background: rgba(40, 216, 210, .035);
+  color: var(--rv-cyan);
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.rvMobileAddExerciseButton > span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.rvMobileAddExerciseButton strong {
+  color: #dff9f8;
+  font-size: 10px;
+}
+
+.rvMobileAddExerciseButton small {
+  color: #738aa2;
+  font-size: 8px;
+}
+
+.rvMobileDangerZone {
+  padding: 0;
+  background: rgba(255, 132, 145, .018);
+}
+
+.rvMobileDangerZone > button {
+  width: calc(100% - 20px);
+  min-height: 42px;
+  margin: 0 10px 10px;
+  border: 1px solid rgba(255, 132, 145, .18);
+  border-radius: 9px;
+  background: rgba(255, 132, 145, .035);
+  color: #ff9aa6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 9px;
+  font-weight: 850;
+}
+
+@media (max-width: 820px) {
+  .rvStudentVisualHome {
+    padding: 2px 0 6px;
+  }
+
+  .rvStudentVisualHero {
+    min-height: 210px;
+    padding: 18px;
+    grid-template-columns: minmax(0, 1fr) 104px;
+    gap: 10px;
+  }
+
+  .rvVisualHeroCopy h1 {
+    font-size: 28px;
+  }
+
+  .rvProgressOrb {
+    width: 96px;
+  }
+
+  .rvProgressOrb::before {
+    inset: 6px;
+  }
+
+  .rvProgressOrb strong {
+    font-size: 20px;
+  }
+
+  .rvProgressOrb span {
+    width: 58px;
+    font-size: 7px;
+  }
+
+  .rvStudentHomeMetrics > div {
+    padding: 10px 6px;
+  }
+
+  .rvStudentHomeMetrics strong {
+    font-size: 14px;
+  }
+
+  .rvVisualActionCard {
+    min-height: 68px;
+    grid-template-columns: 40px minmax(0, 1fr) auto 18px;
+  }
+
+  .rvVisualActionIcon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .rvAdminVisualHome {
+    display: grid;
+    gap: 11px;
+  }
+
+  .tab-dashboard .upgradedAdminTopbar > div:first-child {
+    display: none;
+  }
+
+  .tab-dashboard .upgradedAdminTopbar {
+    min-height: 48px;
+    padding-top: max(7px, env(safe-area-inset-top, 0px));
+    padding-bottom: 5px;
+    justify-content: flex-end;
+  }
+
+  .dashboardAdminV2 > .dashboardOverviewHero,
+  .dashboardAdminV2 > .dashboardAdminCardsV2,
+  .dashboardAdminV2 > .dashboardOperationsGrid,
+  .dashboardAdminV2 > .dashboardSecondaryGrid {
+    display: none !important;
+  }
+
+  .dashboardAdminV2 {
+    padding-top: 0 !important;
+  }
+
+  .rvAdminVisualHero {
+    min-height: 180px;
+    padding: 17px;
+  }
+
+  .rvMobileContentEditor {
+    padding-inline: 0;
+  }
+}
+
+@media (max-width: 390px) {
+  .rvVisualActionMeta {
+    display: none;
+  }
+
+  .rvVisualActionCard {
+    grid-template-columns: 40px minmax(0, 1fr) 18px;
+  }
+
+  .rvMobileTwoFields,
+  .rvMobileVideoActions {
+    grid-template-columns: 1fr;
+  }
+}
+
