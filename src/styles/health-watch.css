@@ -363,3 +363,220 @@
     width: fit-content;
   }
 }
+
+
+/* RV_HEALTH_SIMPLE_SETUP_V17 */
+.rvHealthSimpleSetup {
+  grid-column: 1 / -1;
+}
+
+.rvHealthOnceNote {
+  width: fit-content;
+  min-height: 32px;
+  margin-top: 12px;
+  padding: 0 11px;
+  border: 1px solid rgba(32, 214, 207, .18);
+  border-radius: 999px;
+  background: #06202d;
+  color: #a9d7d4;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 8.5px;
+  font-weight: 750;
+}
+
+.rvHealthOnceNote svg {
+  color: #20d6cf;
+}
+
+.rvHealthSimpleSteps {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rvHealthSimpleSteps article {
+  min-width: 0;
+  min-height: 180px;
+  padding: 14px;
+  border: 1px solid rgba(126, 163, 195, .12);
+  border-radius: 12px;
+  background: #051522;
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+}
+
+.rvHealthSimpleSteps article.done {
+  border-color: rgba(32, 214, 207, .2);
+}
+
+.rvHealthStepNumber {
+  width: 27px;
+  height: 27px;
+  border: 1px solid rgba(32, 214, 207, .22);
+  border-radius: 50%;
+  background: #082333;
+  color: #20d6cf;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.rvHealthSimpleSteps article > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.rvHealthSimpleSteps strong {
+  color: #e7f0f5;
+  display: block;
+  font-size: 10px;
+}
+
+.rvHealthSimpleSteps p {
+  min-height: 42px;
+  margin: 6px 0 11px;
+  color: #718aa1;
+  font-size: 8.5px;
+  line-height: 1.45;
+}
+
+.rvHealthSimpleSteps small {
+  margin-top: 8px;
+  color: #667f95;
+  display: block;
+  font-size: 7.5px;
+  line-height: 1.4;
+}
+
+.rvHealthSimplePrimary {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 11px;
+  border: 1px solid rgba(32, 214, 207, .25);
+  border-radius: 9px;
+  background: #0a2b3a;
+  color: #ddf7f5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font: inherit;
+  font-size: 8.5px;
+  font-weight: 850;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.rvHealthSimplePrimary.disabled {
+  border-color: rgba(126, 163, 195, .11);
+  background: #071622;
+  color: #586f83;
+  pointer-events: none;
+}
+
+.rvHealthSimpleCode {
+  margin-top: 10px;
+  padding: 11px;
+  border: 1px solid rgba(32, 214, 207, .17);
+  border-radius: 11px;
+  background: #05202d;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.rvHealthSimpleCode small {
+  color: #7590a5;
+  display: block;
+  font-size: 7.5px;
+}
+
+.rvHealthSimpleCode code {
+  margin-top: 3px;
+  color: #d8e7ee;
+  display: block;
+  font-size: 8px;
+  overflow-wrap: anywhere;
+}
+
+.rvHealthSimpleCode button,
+.rvHealthDisconnect {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid rgba(126, 163, 195, .14);
+  border-radius: 8px;
+  background: #071d2c;
+  color: #9eb5c5;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 8px;
+  cursor: pointer;
+}
+
+.rvHealthAdvanced > p {
+  margin: 0 0 10px;
+  color: #71899e;
+  font-size: 8px;
+}
+
+.rvHealthAdvancedRow {
+  padding: 9px;
+  border: 1px solid rgba(126, 163, 195, .1);
+  border-radius: 8px;
+  background: #041522;
+}
+
+.rvHealthAdvancedRow + .rvHealthAdvancedRow {
+  margin-top: 6px;
+}
+
+.rvHealthAdvancedRow small {
+  color: #688198;
+  display: block;
+  font-size: 7.5px;
+}
+
+.rvHealthAdvancedRow code {
+  margin-top: 3px;
+  color: #d8e7ee;
+  display: block;
+  font-size: 8px;
+  overflow-wrap: anywhere;
+}
+
+.rvHealthDisconnect {
+  margin-top: 10px;
+  border-color: rgba(214, 128, 128, .16);
+  color: #c7a2a2;
+}
+
+@media (max-width: 760px) {
+  .rvHealthSimpleSteps {
+    grid-template-columns: 1fr;
+  }
+
+  .rvHealthSimpleSteps article {
+    min-height: 0;
+  }
+
+  .rvHealthSimpleSteps p {
+    min-height: 0;
+  }
+
+  .rvHealthSimpleCode {
+    grid-template-columns: 1fr;
+  }
+
+  .rvHealthSimpleCode button {
+    width: fit-content;
+  }
+}

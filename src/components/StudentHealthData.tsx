@@ -42,6 +42,9 @@ const ENDPOINT =
 const SHORTCUT =
   'shortcuts://run-shortcut?name=RV%20-%20Sincronizar%20Sa%C3%BAde'
 
+const OFFICIAL_SHORTCUT =
+  'https://www.icloud.com/shortcuts/f04df007e3334f9fb8437aef6f8acb26'
+
 export default function StudentHealthData({
   studentId,
 }: {
@@ -284,6 +287,131 @@ export default function StudentHealthData({
 
   const t = strings[language]
 
+  const simple = {
+    'pt-BR': {
+      title: 'Conectar dados do Apple Watch',
+      text: 'Configure uma vez. Depois, basta tocar em Sincronizar agora para enviar os dados do iPhone ao RV.',
+      once: 'Você só precisa fazer isso uma vez',
+      step1: '1. Criar código',
+      step1Text: 'O RV cria seu código pessoal e já copia automaticamente.',
+      createCode: 'Criar e copiar código',
+      newCode: 'Criar novo código',
+      codeCopied: 'Código copiado',
+      step2: '2. Instalar integração',
+      step2Text: 'Abra o atalho oficial do RV e adicione ao seu iPhone.',
+      install: 'Instalar no iPhone',
+      pasteHint: 'Quando o iPhone pedir, cole o código que o RV acabou de copiar.',
+      step3: '3. Sincronizar',
+      step3Text: 'Depois de instalado, use este botão para enviar seus dados.',
+      sync: 'Sincronizar agora',
+      ready: 'Pronto para sincronizar',
+      notReady: 'Falta concluir a configuração',
+      yourCode: 'Seu código de conexão',
+      copyCode: 'Copiar código',
+      advanced: 'Avançado',
+      advancedText: 'Informações técnicas e opção para revogar a conexão.',
+      revoke: 'Desconectar Apple Saúde',
+    },
+    en: {
+      title: 'Connect Apple Watch data',
+      text: 'Set it up once. After that, tap Sync now to send iPhone health data to RV.',
+      once: 'You only need to do this once',
+      step1: '1. Create code',
+      step1Text: 'RV creates your personal code and copies it automatically.',
+      createCode: 'Create and copy code',
+      newCode: 'Create new code',
+      codeCopied: 'Code copied',
+      step2: '2. Install integration',
+      step2Text: 'Open the official RV Shortcut and add it to your iPhone.',
+      install: 'Install on iPhone',
+      pasteHint: 'When prompted, paste the code RV just copied.',
+      step3: '3. Sync',
+      step3Text: 'After installation, use this button to send your data.',
+      sync: 'Sync now',
+      ready: 'Ready to sync',
+      notReady: 'Setup is not complete yet',
+      yourCode: 'Your connection code',
+      copyCode: 'Copy code',
+      advanced: 'Advanced',
+      advancedText: 'Technical information and disconnect option.',
+      revoke: 'Disconnect Apple Health',
+    },
+    es: {
+      title: 'Conectar datos del Apple Watch',
+      text: 'Configúralo una vez. Después solo toca Sincronizar ahora.',
+      once: 'Solo necesitas hacer esto una vez',
+      step1: '1. Crear código',
+      step1Text: 'RV crea tu código personal y lo copia automáticamente.',
+      createCode: 'Crear y copiar código',
+      newCode: 'Crear nuevo código',
+      codeCopied: 'Código copiado',
+      step2: '2. Instalar integración',
+      step2Text: 'Abre el Atajo oficial de RV y agrégalo al iPhone.',
+      install: 'Instalar en iPhone',
+      pasteHint: 'Cuando lo pida, pega el código copiado por RV.',
+      step3: '3. Sincronizar',
+      step3Text: 'Después de instalar, usa este botón para enviar datos.',
+      sync: 'Sincronizar ahora',
+      ready: 'Listo para sincronizar',
+      notReady: 'Falta terminar la configuración',
+      yourCode: 'Tu código de conexión',
+      copyCode: 'Copiar código',
+      advanced: 'Avanzado',
+      advancedText: 'Información técnica y opción para desconectar.',
+      revoke: 'Desconectar Apple Salud',
+    },
+    'zh-CN': {
+      title: '连接 Apple Watch 数据',
+      text: '只需设置一次。之后点击立即同步即可发送健康数据。',
+      once: '只需要设置一次',
+      step1: '1. 创建代码',
+      step1Text: 'RV 会创建个人代码并自动复制。',
+      createCode: '创建并复制代码',
+      newCode: '创建新代码',
+      codeCopied: '代码已复制',
+      step2: '2. 安装集成',
+      step2Text: '打开 RV 官方快捷指令并添加到 iPhone。',
+      install: '安装到 iPhone',
+      pasteHint: '提示时粘贴 RV 刚刚复制的代码。',
+      step3: '3. 同步',
+      step3Text: '安装完成后，使用此按钮发送数据。',
+      sync: '立即同步',
+      ready: '可以同步',
+      notReady: '尚未完成设置',
+      yourCode: '连接代码',
+      copyCode: '复制代码',
+      advanced: '高级',
+      advancedText: '技术信息和断开连接选项。',
+      revoke: '断开 Apple 健康',
+    },
+    de: {
+      title: 'Apple-Watch-Daten verbinden',
+      text: 'Einmal einrichten. Danach genügt Synchronisieren.',
+      once: 'Nur einmal erforderlich',
+      step1: '1. Code erstellen',
+      step1Text: 'RV erstellt deinen persönlichen Code und kopiert ihn automatisch.',
+      createCode: 'Code erstellen und kopieren',
+      newCode: 'Neuen Code erstellen',
+      codeCopied: 'Code kopiert',
+      step2: '2. Integration installieren',
+      step2Text: 'Öffne den offiziellen RV-Kurzbefehl und füge ihn dem iPhone hinzu.',
+      install: 'Auf iPhone installieren',
+      pasteHint: 'Wenn gefragt, füge den von RV kopierten Code ein.',
+      step3: '3. Synchronisieren',
+      step3Text: 'Nach der Installation sendest du hier deine Daten.',
+      sync: 'Jetzt synchronisieren',
+      ready: 'Bereit zum Synchronisieren',
+      notReady: 'Einrichtung noch nicht abgeschlossen',
+      yourCode: 'Verbindungscode',
+      copyCode: 'Code kopieren',
+      advanced: 'Erweitert',
+      advancedText: 'Technische Informationen und Trennen-Option.',
+      revoke: 'Apple Health trennen',
+    },
+  } as const
+
+  const s = simple[language]
+
   async function load() {
     setLoading(true)
     const [a, b, c] = await Promise.all([
@@ -393,8 +521,19 @@ export default function StudentHealthData({
 
     if (!error && data) {
       const result = data as { token?: string }
-      setToken(result.token || '')
+      const nextToken = result.token || ''
+      setToken(nextToken)
       setStatus({ configured: true, last_used_at: null })
+
+      if (nextToken) {
+        try {
+          await navigator.clipboard.writeText(nextToken)
+          setCopied('key')
+          window.setTimeout(() => setCopied(''), 2200)
+        } catch {
+          // O botao de copiar continua disponivel como fallback.
+        }
+      }
     }
 
     setBusy(false)
@@ -463,7 +602,7 @@ export default function StudentHealthData({
   }
 
   return (
-    <section className="rvHealthModule" data-rv-health-module="v16">
+    <section className="rvHealthModule" data-rv-health-module="v17">
       <div className="rvHealthModuleHead">
         <div>
           <span>RV HEALTH</span>
@@ -515,77 +654,139 @@ export default function StudentHealthData({
       </div>
 
       <div className="rvHealthTwoColumns">
-        <section className="rvHealthBox">
+        <section className="rvHealthBox rvHealthSimpleSetup">
           <div className="rvHealthBoxHead">
             <div>
               <span>APPLE HEALTH</span>
-              <h3>{t.integration}</h3>
+              <h3>{s.title}</h3>
             </div>
             <KeyRound size={19} />
           </div>
 
-          <p>{t.integrationText}</p>
+          <p>{s.text}</p>
 
-          <div className="rvHealthActions">
-            <button type="button" onClick={() => void rotate()} disabled={busy}>
-              <KeyRound size={15} />
-              {status.configured ? t.regenerate : t.generate}
-            </button>
+          <div className="rvHealthOnceNote">
+            <Check size={15} />
+            {s.once}
+          </div>
+
+          <div className="rvHealthSimpleSteps">
+            <article className={status.configured ? 'done' : ''}>
+              <span className="rvHealthStepNumber">1</span>
+              <div>
+                <strong>{s.step1}</strong>
+                <p>{s.step1Text}</p>
+
+                <button
+                  type="button"
+                  className="rvHealthSimplePrimary"
+                  onClick={() => void rotate()}
+                  disabled={busy}
+                >
+                  <KeyRound size={15} />
+                  {token
+                    ? s.codeCopied
+                    : status.configured
+                      ? s.newCode
+                      : s.createCode}
+                </button>
+              </div>
+            </article>
+
+            <article>
+              <span className="rvHealthStepNumber">2</span>
+              <div>
+                <strong>{s.step2}</strong>
+                <p>{s.step2Text}</p>
+
+                <a
+                  className="rvHealthSimplePrimary"
+                  href={OFFICIAL_SHORTCUT}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {s.install}
+                </a>
+
+                <small>{s.pasteHint}</small>
+              </div>
+            </article>
+
+            <article className={status.configured ? 'done' : ''}>
+              <span className="rvHealthStepNumber">3</span>
+              <div>
+                <strong>{s.step3}</strong>
+                <p>{s.step3Text}</p>
+
+                <a
+                  className={
+                    status.configured
+                      ? 'rvHealthSimplePrimary'
+                      : 'rvHealthSimplePrimary disabled'
+                  }
+                  href={status.configured ? SHORTCUT : undefined}
+                  aria-disabled={!status.configured}
+                >
+                  <RefreshCw size={15} />
+                  {s.sync}
+                </a>
+
+                <small>
+                  {status.configured
+                    ? s.ready
+                    : s.notReady}
+                </small>
+              </div>
+            </article>
+          </div>
+
+          {token && (
+            <div className="rvHealthSimpleCode">
+              <div>
+                <small>{s.yourCode}</small>
+                <code>{token}</code>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => void copy('key', token)}
+              >
+                {copied === 'key' ? (
+                  <Check size={14} />
+                ) : (
+                  <Copy size={14} />
+                )}
+                {copied === 'key'
+                  ? t.copied
+                  : s.copyCode}
+              </button>
+            </div>
+          )}
+
+          <details className="rvHealthSetup rvHealthAdvanced">
+            <summary>{s.advanced}</summary>
+            <p>{s.advancedText}</p>
+
+            <div className="rvHealthAdvancedRow">
+              <small>{t.endpoint}</small>
+              <code>{ENDPOINT}</code>
+            </div>
+
+            <div className="rvHealthAdvancedRow">
+              <small>Header</small>
+              <code>X-RV-Health-Key</code>
+            </div>
 
             {status.configured && (
               <button
                 type="button"
-                className="ghost"
+                className="rvHealthDisconnect"
                 onClick={() => void revoke()}
                 disabled={busy}
               >
-                {t.revoke}
+                {s.revoke}
               </button>
             )}
-
-            <a className="ghost" href={SHORTCUT}>
-              {t.shortcut}
-            </a>
-          </div>
-
-          {token && (
-            <div className="rvHealthSecret">
-              <strong>{t.keyOnce}</strong>
-
-              <div>
-                <span>
-                  <small>{t.endpoint}</small>
-                  <code>{ENDPOINT}</code>
-                </span>
-                <button type="button" onClick={() => void copy('url', ENDPOINT)}>
-                  {copied === 'url' ? <Check size={14} /> : <Copy size={14} />}
-                  {copied === 'url' ? t.copied : t.copy}
-                </button>
-              </div>
-
-              <div>
-                <span>
-                  <small>{t.key}</small>
-                  <code>{token}</code>
-                </span>
-                <button type="button" onClick={() => void copy('key', token)}>
-                  {copied === 'key' ? <Check size={14} /> : <Copy size={14} />}
-                  {copied === 'key' ? t.copied : t.copy}
-                </button>
-              </div>
-            </div>
-          )}
-
-          <details className="rvHealthSetup">
-            <summary>{t.setup}</summary>
-            <ol>
-              <li>{t.step1}</li>
-              <li>{t.step2}</li>
-              <li>{t.step3}</li>
-              <li>{t.step4}</li>
-            </ol>
-            <code>{ENDPOINT}</code>
-            <code>X-RV-Health-Key</code>
           </details>
         </section>
 
