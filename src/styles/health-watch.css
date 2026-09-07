@@ -743,3 +743,125 @@
     height: 142px;
   }
 }
+
+
+/* RV_WATCH_ANALYSIS_V21 */
+.rvWatchAnalysisCard {
+  padding: 18px;
+  border: 1px solid rgba(32, 214, 207, .18);
+  border-radius: 17px;
+  background: #071a2d;
+}
+
+.rvWatchAnalysisCard.ready {
+  border-color: rgba(32, 214, 207, .25);
+}
+
+.rvWatchAnalysisCopy {
+  margin: 7px 0 0;
+  color: #8198aa;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.rvWatchAnalysisMetrics {
+  margin-top: 13px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.rvWatchAnalysisMetrics article {
+  min-width: 0;
+  min-height: 82px;
+  padding: 11px;
+  border: 1px solid rgba(126, 163, 195, .1);
+  border-radius: 11px;
+  background: #051522;
+}
+
+.rvWatchAnalysisMetrics svg {
+  color: #20d6cf;
+}
+
+.rvWatchAnalysisMetrics span {
+  margin-top: 6px;
+  color: #718aa1;
+  display: block;
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+.rvWatchAnalysisMetrics strong {
+  margin-top: 4px;
+  color: #e7f1f5;
+  display: block;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.rvWatchAnalysisBottom {
+  margin-top: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 13px;
+}
+
+.rvWatchAnalysisBottom > div {
+  min-width: 0;
+}
+
+.rvWatchAnalysisBottom small,
+.rvWatchAnalysisBottom span {
+  color: #718aa1;
+  display: block;
+  font-size: 8.5px;
+  line-height: 1.45;
+}
+
+.rvWatchAnalysisBottom span {
+  margin-top: 3px;
+  color: #607b92;
+}
+
+.rvWatchAnalysisPrimary {
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid rgba(32, 214, 207, .25);
+  border-radius: 11px;
+  background: #0a2b3a;
+  color: #e1fbf9;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 9.5px;
+  font-weight: 850;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .rvWatchAnalysisMetrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .rvWatchAnalysisCard {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .rvWatchAnalysisBottom {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rvWatchAnalysisPrimary {
+    width: 100%;
+  }
+}

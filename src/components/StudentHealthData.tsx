@@ -71,6 +71,9 @@ const OFFICIAL_SHORTCUT =
 const SHORTCUT_SYNC =
   'shortcuts://run-shortcut?name=RV%20-%20Sincronizar%20Sa%C3%BAde&input=text&text=sync'
 
+const SHORTCUT_ANALYSIS =
+  'shortcuts://run-shortcut?name=RV%20-%20Sincronizar%20Sa%C3%BAde&input=text&text=analysis'
+
 function statsFor(samples: Sample[], metric: string): Stats | null {
   const rows = samples.filter((item) => item.metric === metric)
   if (!rows.length) return null
@@ -222,6 +225,24 @@ export default function StudentHealthData({
       noData: '—',
       justNow: 'agora',
       setupDone: 'Tudo certo. A integração já está pronta.',
+      analysisEyebrow: 'PRIMEIRO PASSO',
+      analysisTitle: 'Faça sua análise inicial',
+      analysisText:
+        'O RV busca seus dados recentes do Apple Saúde e monta uma visão geral antes de começar a acompanhar os treinos.',
+      analysisButton: 'Analisar meus dados',
+      analysisUpdate: 'Atualizar análise',
+      analysisReady: 'Análise inicial pronta',
+      analysisPeriod: 'Resumo dos últimos 7 dias',
+      restingHeart: 'Batimentos em repouso',
+      heartVariation: 'Batimentos registrados',
+      activity: 'Atividade',
+      hrvAnalysis: 'Variação cardíaca',
+      breathingAnalysis: 'Respiração',
+      oxygenAnalysis: 'Oxigenação',
+      analysisHint:
+        'Leva alguns segundos. O iPhone pode pedir permissão para acessar informações do Apple Saúde.',
+      analysisNoData:
+        'Depois de tocar no botão, volte para o RV. Os resultados aparecerão aqui automaticamente.',
       simpleHow: 'Como funciona',
       simpleHowText:
         'Você inicia o exercício no Apple Watch. O iPhone envia os dados ao RV e o treino fica salvo no histórico.',
@@ -281,6 +302,24 @@ export default function StudentHealthData({
       noData: '—',
       justNow: 'now',
       setupDone: 'All set. The integration is ready.',
+      analysisEyebrow: 'FIRST STEP',
+      analysisTitle: 'Run your initial analysis',
+      analysisText:
+        'RV checks recent Apple Health data and builds an overview before workout tracking starts.',
+      analysisButton: 'Analyze my data',
+      analysisUpdate: 'Update analysis',
+      analysisReady: 'Initial analysis ready',
+      analysisPeriod: 'Last 7 days',
+      restingHeart: 'Resting heart rate',
+      heartVariation: 'Recorded heart rate',
+      activity: 'Activity',
+      hrvAnalysis: 'Heart variability',
+      breathingAnalysis: 'Breathing',
+      oxygenAnalysis: 'Oxygen',
+      analysisHint:
+        'It takes a few seconds. iPhone may ask for Apple Health permissions.',
+      analysisNoData:
+        'After tapping the button, return to RV. Results will appear here automatically.',
       simpleHow: 'How it works',
       simpleHowText:
         'Start a workout on Apple Watch. iPhone sends the data to RV and the workout is saved in history.',
@@ -340,6 +379,24 @@ export default function StudentHealthData({
       noData: '—',
       justNow: 'ahora',
       setupDone: 'Todo listo. La integración ya funciona.',
+      analysisEyebrow: 'PRIMER PASO',
+      analysisTitle: 'Haz tu análisis inicial',
+      analysisText:
+        'RV revisa datos recientes de Apple Salud y crea una visión general antes de seguir los entrenamientos.',
+      analysisButton: 'Analizar mis datos',
+      analysisUpdate: 'Actualizar análisis',
+      analysisReady: 'Análisis inicial listo',
+      analysisPeriod: 'Últimos 7 días',
+      restingHeart: 'Pulsaciones en reposo',
+      heartVariation: 'Pulsaciones registradas',
+      activity: 'Actividad',
+      hrvAnalysis: 'Variación cardíaca',
+      breathingAnalysis: 'Respiración',
+      oxygenAnalysis: 'Oxigenación',
+      analysisHint:
+        'Tarda unos segundos. El iPhone puede pedir permisos de Apple Salud.',
+      analysisNoData:
+        'Después de tocar el botón, vuelve a RV. Los resultados aparecerán automáticamente.',
       simpleHow: 'Cómo funciona',
       simpleHowText:
         'Inicia un ejercicio en Apple Watch. El iPhone envía los datos a RV y el entrenamiento queda guardado.',
@@ -398,6 +455,21 @@ export default function StudentHealthData({
       noData: '—',
       justNow: '刚刚',
       setupDone: '已完成，连接可以使用。',
+      analysisEyebrow: '第一步',
+      analysisTitle: '进行初始分析',
+      analysisText: 'RV 会读取最近的 Apple 健康数据，并在训练追踪前生成概览。',
+      analysisButton: '分析我的数据',
+      analysisUpdate: '更新分析',
+      analysisReady: '初始分析已完成',
+      analysisPeriod: '最近 7 天',
+      restingHeart: '静息心率',
+      heartVariation: '已记录心率',
+      activity: '活动',
+      hrvAnalysis: '心率变异',
+      breathingAnalysis: '呼吸',
+      oxygenAnalysis: '血氧',
+      analysisHint: '只需几秒钟。iPhone 可能会请求 Apple 健康权限。',
+      analysisNoData: '点击按钮后返回 RV，结果会自动显示在这里。',
       simpleHow: '工作方式',
       simpleHowText: '在 Apple Watch 开始训练，iPhone 将数据发送到 RV，并保存到历史。',
     },
@@ -456,6 +528,24 @@ export default function StudentHealthData({
       noData: '—',
       justNow: 'jetzt',
       setupDone: 'Alles bereit. Die Integration funktioniert.',
+      analysisEyebrow: 'ERSTER SCHRITT',
+      analysisTitle: 'Erstanalyse durchführen',
+      analysisText:
+        'RV prüft aktuelle Apple-Health-Daten und erstellt vor dem Trainingstracking eine Übersicht.',
+      analysisButton: 'Meine Daten analysieren',
+      analysisUpdate: 'Analyse aktualisieren',
+      analysisReady: 'Erstanalyse fertig',
+      analysisPeriod: 'Letzte 7 Tage',
+      restingHeart: 'Ruhepuls',
+      heartVariation: 'Erfasster Puls',
+      activity: 'Aktivität',
+      hrvAnalysis: 'Herzvariabilität',
+      breathingAnalysis: 'Atmung',
+      oxygenAnalysis: 'Sauerstoff',
+      analysisHint:
+        'Dauert nur wenige Sekunden. Das iPhone kann nach Apple-Health-Berechtigungen fragen.',
+      analysisNoData:
+        'Nach dem Tippen zu RV zurückkehren. Die Ergebnisse erscheinen automatisch.',
       simpleHow: 'So funktioniert es',
       simpleHowText:
         'Starte ein Training auf der Apple Watch. Das iPhone sendet die Daten an RV und das Training wird gespeichert.',
@@ -481,9 +571,8 @@ export default function StudentHealthData({
           'id,student_id,workout_session_id,source,metric,value,unit,measured_at,received_at',
         )
         .eq('student_id', studentId)
-        .not('workout_session_id', 'is', null)
         .order('measured_at', { ascending: false })
-        .limit(3500),
+        .limit(5000),
       supabase.rpc('get_own_health_ingest_status'),
     ])
 
@@ -557,12 +646,12 @@ export default function StudentHealthData({
         },
         (payload) => {
           const row = payload.new as Sample
-          if (!row?.id || !row.workout_session_id) return
+          if (!row?.id) return
 
           setSamples((current) =>
             [row, ...current.filter((item) => item.id !== row.id)].slice(
               0,
-              3500,
+              5000,
             ),
           )
         },
@@ -802,6 +891,37 @@ export default function StudentHealthData({
   }
 
   const connected = Boolean(status.last_used_at)
+
+  const analysisSince = Date.now() - 7 * 24 * 60 * 60 * 1000
+  const analysisRows = samples.filter(
+    (item) =>
+      !item.workout_session_id &&
+      item.metric !== 'workout_start' &&
+      item.metric !== 'workout_end' &&
+      new Date(item.measured_at).getTime() >= analysisSince,
+  )
+
+  const analysisResting =
+    statsFor(analysisRows, 'resting_heart_rate') ??
+    statsFor(analysisRows, 'heart_rate')
+  const analysisHeart = statsFor(analysisRows, 'heart_rate')
+  const analysisHrv = statsFor(analysisRows, 'heart_rate_variability')
+  const analysisBreathing = statsFor(analysisRows, 'respiratory_rate')
+  const analysisOxygen = statsFor(analysisRows, 'oxygen_saturation')
+  const analysisSteps = statsFor(analysisRows, 'steps')
+  const analysisEnergy = statsFor(analysisRows, 'active_energy')
+
+  const analysisMetricCount = [
+    analysisResting,
+    analysisHrv,
+    analysisBreathing,
+    analysisOxygen,
+    analysisSteps,
+    analysisEnergy,
+  ].filter(Boolean).length
+
+  const analysisReady = analysisMetricCount >= 2
+
   const activeRows = sessionSamples(activeSession)
   const activeHeart = statsFor(workoutHeartSamples(activeSession), 'heart_rate')
   const activeEnergy = activeSession
@@ -834,7 +954,7 @@ export default function StudentHealthData({
   const detailExtras = selectedSession ? extraMetrics(selectedSession) : []
 
   return (
-    <section className="rvWatchSimpleModule" data-rv-health-module="simple-v20">
+    <section className="rvWatchSimpleModule" data-rv-health-module="simple-v21">
       {!connected && (
         <section className="rvWatchConnectCard">
           <div className="rvWatchSimpleSectionHead">
@@ -924,6 +1044,96 @@ export default function StudentHealthData({
             </button>
           </details>
         </div>
+      )}
+
+      {connected && (
+        <section className={`rvWatchAnalysisCard ${analysisReady ? 'ready' : ''}`}>
+          <div className="rvWatchSimpleSectionHead">
+            <div>
+              <span>{analysisReady ? t.analysisReady : t.analysisEyebrow}</span>
+              <h2>{t.analysisTitle}</h2>
+            </div>
+            <HeartPulse size={21} />
+          </div>
+
+          <p className="rvWatchAnalysisCopy">
+            {analysisReady ? t.analysisPeriod : t.analysisText}
+          </p>
+
+          {analysisReady && (
+            <div className="rvWatchAnalysisMetrics">
+              {analysisResting && (
+                <article>
+                  <HeartPulse size={15} />
+                  <span>{t.restingHeart}</span>
+                  <strong>{Math.round(analysisResting.avg)} bpm</strong>
+                </article>
+              )}
+
+              {analysisHeart && (
+                <article>
+                  <Activity size={15} />
+                  <span>{t.heartVariation}</span>
+                  <strong>
+                    {Math.round(analysisHeart.min)}–{Math.round(analysisHeart.max)} bpm
+                  </strong>
+                </article>
+              )}
+
+              {analysisHrv && (
+                <article>
+                  <Activity size={15} />
+                  <span>{t.hrvAnalysis}</span>
+                  <strong>{Math.round(analysisHrv.avg)} {analysisHrv.unit}</strong>
+                </article>
+              )}
+
+              {analysisSteps && (
+                <article>
+                  <Footprints size={15} />
+                  <span>{t.activity}</span>
+                  <strong>{Math.round(analysisSteps.sum)} {analysisSteps.unit}</strong>
+                </article>
+              )}
+
+              {analysisBreathing && (
+                <article>
+                  <Activity size={15} />
+                  <span>{t.breathingAnalysis}</span>
+                  <strong>{analysisBreathing.avg.toFixed(1)} {analysisBreathing.unit}</strong>
+                </article>
+              )}
+
+              {analysisOxygen && (
+                <article>
+                  <Activity size={15} />
+                  <span>{t.oxygenAnalysis}</span>
+                  <strong>{analysisOxygen.avg.toFixed(1)} {analysisOxygen.unit}</strong>
+                </article>
+              )}
+
+              {analysisEnergy && (
+                <article>
+                  <Flame size={15} />
+                  <span>{t.calories}</span>
+                  <strong>{Math.round(analysisEnergy.sum)} {analysisEnergy.unit}</strong>
+                </article>
+              )}
+            </div>
+          )}
+
+          <div className="rvWatchAnalysisBottom">
+            <div>
+              <small>{analysisReady ? t.setupDone : t.analysisNoData}</small>
+              <span>{t.analysisHint}</span>
+            </div>
+
+            <a href={SHORTCUT_ANALYSIS} className="rvWatchAnalysisPrimary">
+              <RefreshCw size={15} />
+              {analysisReady ? t.analysisUpdate : t.analysisButton}
+            </a>
+          </div>
+        </section>
       )}
 
       <section className={`rvWatchNowCard ${activeSession ? 'live' : ''}`}>
