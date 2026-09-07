@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useI18n } from '../i18n'
+import StudentHealthData from './StudentHealthData'
 
 type WatchConnectionState =
   | 'idle'
@@ -46,6 +47,7 @@ type WindowWithWatchBridge = Window & {
 }
 
 type StudentWatchHubProps = {
+  studentId: string
   studentName: string
   programTitle: string
   progress: number
@@ -62,6 +64,7 @@ const wait = (ms: number) =>
   new Promise((resolve) => window.setTimeout(resolve, ms))
 
 export default function StudentWatchHub({
+  studentId,
   studentName,
   programTitle,
   progress,
@@ -609,6 +612,8 @@ export default function StudentWatchHub({
           </div>
         </div>
       </section>
+
+      <StudentHealthData studentId={studentId} />
 
       <section className="rvWatchDataGrid">
         <article>

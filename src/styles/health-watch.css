@@ -1,0 +1,365 @@
+.rvHealthModule {
+  display: grid;
+  gap: 10px;
+}
+
+.rvHealthModuleHead,
+.rvHealthBox {
+  border: 1px solid rgba(126, 163, 195, .16);
+  border-radius: 16px;
+  background: #071a2d;
+}
+
+.rvHealthModuleHead {
+  padding: 18px 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.rvHealthModuleHead > div > span,
+.rvHealthBoxHead > div > span {
+  color: #20d6cf;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 1.2px;
+}
+
+.rvHealthModuleHead h2,
+.rvHealthBoxHead h3 {
+  margin: 3px 0 0;
+  color: #f2f7fa;
+}
+
+.rvHealthModuleHead h2 {
+  font-size: 21px;
+}
+
+.rvHealthBoxHead h3 {
+  font-size: 16px;
+}
+
+.rvHealthModuleHead p,
+.rvHealthBox > p {
+  margin: 6px 0 0;
+  color: #829aae;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.rvHealthModuleHead > svg,
+.rvHealthBoxHead > svg {
+  color: #718aa1;
+}
+
+.rvHealthQuickGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rvHealthQuickGrid article {
+  min-width: 0;
+  min-height: 108px;
+  padding: 14px;
+  border: 1px solid rgba(126, 163, 195, .14);
+  border-radius: 14px;
+  background: #061729;
+}
+
+.rvHealthQuickGrid article > svg {
+  color: #20d6cf;
+}
+
+.rvHealthQuickGrid span {
+  margin-top: 9px;
+  color: #718aa1;
+  display: block;
+  font-size: 8.5px;
+  text-transform: uppercase;
+  letter-spacing: .65px;
+}
+
+.rvHealthQuickGrid strong {
+  margin-top: 4px;
+  color: #edf4f8;
+  display: block;
+  font-size: 13px;
+}
+
+.rvHealthQuickGrid small {
+  margin-top: 4px;
+  color: #617a91;
+  display: block;
+  font-size: 8.5px;
+  line-height: 1.4;
+}
+
+.rvHealthTwoColumns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.rvHealthBox {
+  padding: 17px;
+  min-width: 0;
+}
+
+.rvHealthBoxHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rvHealthActions {
+  margin-top: 13px;
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.rvHealthActions button,
+.rvHealthActions a,
+.rvPressureMiniForm button {
+  min-height: 39px;
+  padding: 0 12px;
+  border: 1px solid rgba(32, 214, 207, .25);
+  border-radius: 9px;
+  background: #0a2b3a;
+  color: #ddf7f5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.rvHealthActions .ghost {
+  border-color: rgba(126, 163, 195, .15);
+  background: #051522;
+  color: #9eb2c3;
+}
+
+.rvHealthSecret {
+  margin-top: 13px;
+  padding: 12px;
+  border: 1px solid rgba(32, 214, 207, .18);
+  border-radius: 11px;
+  background: #05202d;
+}
+
+.rvHealthSecret > strong {
+  color: #c5ecea;
+  font-size: 9px;
+}
+
+.rvHealthSecret > div {
+  margin-top: 8px;
+  padding: 9px;
+  border-radius: 9px;
+  background: #041522;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.rvHealthSecret small {
+  color: #688198;
+  display: block;
+  font-size: 7.5px;
+}
+
+.rvHealthSecret code,
+.rvHealthSetup code {
+  color: #d8e7ee;
+  display: block;
+  font-size: 8px;
+  overflow-wrap: anywhere;
+}
+
+.rvHealthSecret button {
+  min-height: 31px;
+  border: 1px solid rgba(126, 163, 195, .14);
+  border-radius: 8px;
+  background: #071d2c;
+  color: #9eb5c5;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font: inherit;
+  font-size: 8px;
+}
+
+.rvHealthSetup {
+  margin-top: 12px;
+  padding: 0 12px 12px;
+  border: 1px solid rgba(126, 163, 195, .12);
+  border-radius: 10px;
+  background: #051522;
+}
+
+.rvHealthSetup summary {
+  padding: 12px 0;
+  color: #d7e4eb;
+  font-size: 9.5px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.rvHealthSetup ol {
+  margin: 0 0 10px;
+  padding-left: 18px;
+  color: #8199ad;
+  font-size: 8.5px;
+  line-height: 1.5;
+}
+
+.rvHealthSetup code + code {
+  margin-top: 4px;
+}
+
+.rvPressureMiniForm {
+  margin-top: 13px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+}
+
+.rvPressureMiniForm label span {
+  margin-bottom: 4px;
+  color: #718aa1;
+  display: block;
+  font-size: 8px;
+}
+
+.rvPressureMiniForm input {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 9px;
+  border: 1px solid rgba(126, 163, 195, .14);
+  border-radius: 9px;
+  outline: 0;
+  background: #051522;
+  color: #eef5f8;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.rvPressureMiniForm button {
+  grid-column: 1 / -1;
+}
+
+.rvHealthMessage {
+  margin-top: 9px;
+  padding: 8px 10px;
+  border: 1px solid rgba(32, 214, 207, .13);
+  border-radius: 8px;
+  background: #06202d;
+  color: #9ec3c1;
+  font-size: 8.5px;
+}
+
+.rvHealthList {
+  margin-top: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.rvHealthList article {
+  min-height: 53px;
+  padding: 9px 10px;
+  border: 1px solid rgba(126, 163, 195, .1);
+  border-radius: 9px;
+  background: #051522;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.rvHealthList strong {
+  color: #d9e6ed;
+  display: block;
+  font-size: 9px;
+}
+
+.rvHealthList small {
+  margin-top: 3px;
+  color: #667f95;
+  display: block;
+  font-size: 7.5px;
+}
+
+.rvHealthList b {
+  color: #20d6cf;
+  font-size: 9.5px;
+  white-space: nowrap;
+}
+
+.rvHealthEmpty {
+  min-height: 70px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px dashed rgba(126, 163, 195, .13);
+  border-radius: 9px;
+  color: #71899e;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-size: 8.5px;
+}
+
+.rvHealthSpin {
+  animation: rvHealthSpin .8s linear infinite;
+}
+
+@keyframes rvHealthSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* O caminho atual usa Apple Health + Atalhos; o diagnóstico Bluetooth antigo fica oculto. */
+.rvWatchConnectionCard {
+  display: none !important;
+}
+
+@media (max-width: 760px) {
+  .rvHealthQuickGrid,
+  .rvHealthTwoColumns {
+    grid-template-columns: 1fr;
+  }
+
+  .rvHealthModuleHead,
+  .rvHealthBox {
+    border-radius: 14px;
+  }
+
+  .rvHealthModuleHead,
+  .rvHealthBox {
+    padding: 14px;
+  }
+
+  .rvHealthActions {
+    display: grid;
+  }
+
+  .rvHealthActions button,
+  .rvHealthActions a {
+    width: 100%;
+  }
+
+  .rvHealthSecret > div {
+    grid-template-columns: 1fr;
+  }
+
+  .rvHealthSecret button {
+    width: fit-content;
+  }
+}

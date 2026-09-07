@@ -8,6 +8,7 @@ import './feature.css'
 import './ui-fixes.css'
 import './styles/rv-premium.css'
 import './styles/apple-watch.css'
+import './styles/health-watch.css'
 
 // RV_PWA_SERVICE_WORKER_V3
 if ('serviceWorker' in navigator) {

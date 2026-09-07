@@ -1,0 +1,719 @@
+import {
+  Check,
+  Copy,
+  Database,
+  Gauge,
+  HeartPulse,
+  KeyRound,
+  RefreshCw,
+} from 'lucide-react'
+import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { supabase } from '../lib/supabase'
+import { useI18n } from '../i18n'
+
+type Sample = {
+  id: string
+  source: string
+  metric: string
+  value: number
+  unit: string
+  measured_at: string
+  received_at: string
+}
+
+type Pressure = {
+  id: string
+  systolic: number
+  diastolic: number
+  pulse: number | null
+  source: string
+  measured_at: string
+  created_at: string
+}
+
+type Status = {
+  configured: boolean
+  last_used_at?: string | null
+}
+
+const ENDPOINT =
+  'https://ilnlnkcxajkarwviynbm.supabase.co/functions/v1/health-ingest'
+
+const SHORTCUT =
+  'shortcuts://run-shortcut?name=RV%20-%20Sincronizar%20Sa%C3%BAde'
+
+export default function StudentHealthData({
+  studentId,
+}: {
+  studentId: string
+}) {
+  const { language, locale } = useI18n()
+  const [samples, setSamples] = useState<Sample[]>([])
+  const [pressures, setPressures] = useState<Pressure[]>([])
+  const [status, setStatus] = useState<Status>({ configured: false })
+  const [token, setToken] = useState('')
+  const [copied, setCopied] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState(false)
+  const [sys, setSys] = useState('')
+  const [dia, setDia] = useState('')
+  const [pulse, setPulse] = useState('')
+  const [message, setMessage] = useState('')
+
+  const strings = {
+    'pt-BR': {
+      title: 'Saúde & Watch',
+      subtitle: 'Dados reais recebidos do Apple Saúde e do OMRON.',
+      heart: 'Frequência cardíaca',
+      noHeart: 'Sem leitura recebida',
+      pressure: 'Pressão arterial',
+      noPressure: 'Sem leitura registrada',
+      lastSync: 'Última sincronização',
+      never: 'Ainda não sincronizado',
+      integration: 'Conectar Apple Saúde',
+      integrationText:
+        'Gere uma chave individual e use no Atalho RV do iPhone. Ela não dá acesso à sua conta.',
+      generate: 'Gerar chave',
+      regenerate: 'Gerar nova chave',
+      revoke: 'Revogar',
+      keyOnce: 'Copie esta chave agora. Ela só aparece neste momento.',
+      endpoint: 'URL do receptor',
+      key: 'Chave RV Health',
+      copy: 'Copiar',
+      copied: 'Copiado',
+      shortcut: 'Executar Atalho RV',
+      setup: 'Como montar o Atalho',
+      step1: 'Crie um atalho chamado “RV - Sincronizar Saúde”.',
+      step2:
+        'Adicione “Buscar Amostras de Saúde” > Frequência Cardíaca > mais recente > limite 1.',
+      step3:
+        'Crie um Dicionário: source=apple_health, metric=heart_rate, value=valor, unit=bpm e measured_at=data.',
+      step4:
+        'Use “Obter Conteúdo do URL”: POST + JSON + URL abaixo + cabeçalho X-RV-Health-Key.',
+      omron: 'Registrar pressão OMRON',
+      omronText: 'Digite os três números do visor.',
+      systolic: 'Sistólica',
+      diastolic: 'Diastólica',
+      pulse: 'Pulso',
+      save: 'Salvar leitura',
+      saving: 'Salvando...',
+      saved: 'Leitura salva no RV.',
+      invalid: 'Confira os valores antes de salvar.',
+      recent: 'Dados recentes',
+      empty: 'Nenhum dado do Apple Saúde recebido ainda.',
+      history: 'Histórico de pressão',
+      pressureEmpty: 'Nenhuma pressão registrada.',
+      configured: 'Integração configurada',
+      notConfigured: 'Integração não configurada',
+      sourceWatch: 'Apple Watch · Apple Saúde',
+      sourceOmron: 'OMRON HEM-6221',
+    },
+    en: {
+      title: 'Health & Watch',
+      subtitle: 'Real data received from Apple Health and OMRON.',
+      heart: 'Heart rate',
+      noHeart: 'No reading received',
+      pressure: 'Blood pressure',
+      noPressure: 'No reading recorded',
+      lastSync: 'Last sync',
+      never: 'Not synced yet',
+      integration: 'Connect Apple Health',
+      integrationText: 'Generate an individual key for the RV Shortcut.',
+      generate: 'Generate key',
+      regenerate: 'Generate new key',
+      revoke: 'Revoke',
+      keyOnce: 'Copy this key now. It is only shown once.',
+      endpoint: 'Receiver URL',
+      key: 'RV Health key',
+      copy: 'Copy',
+      copied: 'Copied',
+      shortcut: 'Run RV Shortcut',
+      setup: 'Shortcut setup',
+      step1: 'Create “RV - Sincronizar Saúde”.',
+      step2: 'Find the newest Heart Rate health sample, limit 1.',
+      step3: 'Create a Dictionary with source, metric, value, unit and measured_at.',
+      step4: 'POST JSON to the URL below with X-RV-Health-Key.',
+      omron: 'Record OMRON pressure',
+      omronText: 'Enter the three values from the display.',
+      systolic: 'Systolic',
+      diastolic: 'Diastolic',
+      pulse: 'Pulse',
+      save: 'Save reading',
+      saving: 'Saving...',
+      saved: 'Reading saved in RV.',
+      invalid: 'Check the values before saving.',
+      recent: 'Recent data',
+      empty: 'No Apple Health data received yet.',
+      history: 'Pressure history',
+      pressureEmpty: 'No pressure readings.',
+      configured: 'Integration configured',
+      notConfigured: 'Integration not configured',
+      sourceWatch: 'Apple Watch · Apple Health',
+      sourceOmron: 'OMRON HEM-6221',
+    },
+    es: {
+      title: 'Salud & Watch',
+      subtitle: 'Datos reales de Apple Salud y OMRON.',
+      heart: 'Frecuencia cardíaca',
+      noHeart: 'Sin lectura recibida',
+      pressure: 'Presión arterial',
+      noPressure: 'Sin lectura registrada',
+      lastSync: 'Última sincronización',
+      never: 'Aún sin sincronizar',
+      integration: 'Conectar Apple Salud',
+      integrationText: 'Genera una clave individual para el Atajo RV.',
+      generate: 'Generar clave',
+      regenerate: 'Generar nueva clave',
+      revoke: 'Revocar',
+      keyOnce: 'Copia esta clave ahora. Solo aparece una vez.',
+      endpoint: 'URL del receptor',
+      key: 'Clave RV Health',
+      copy: 'Copiar',
+      copied: 'Copiado',
+      shortcut: 'Ejecutar Atajo RV',
+      setup: 'Configurar Atajo',
+      step1: 'Crea “RV - Sincronizar Saúde”.',
+      step2: 'Busca la muestra de frecuencia cardíaca más reciente.',
+      step3: 'Crea un Diccionario con source, metric, value, unit y measured_at.',
+      step4: 'POST JSON a la URL con X-RV-Health-Key.',
+      omron: 'Registrar presión OMRON',
+      omronText: 'Escribe los tres valores de la pantalla.',
+      systolic: 'Sistólica',
+      diastolic: 'Diastólica',
+      pulse: 'Pulso',
+      save: 'Guardar lectura',
+      saving: 'Guardando...',
+      saved: 'Lectura guardada.',
+      invalid: 'Revisa los valores.',
+      recent: 'Datos recientes',
+      empty: 'Aún no hay datos de Apple Salud.',
+      history: 'Historial de presión',
+      pressureEmpty: 'No hay lecturas.',
+      configured: 'Integración configurada',
+      notConfigured: 'Integración no configurada',
+      sourceWatch: 'Apple Watch · Apple Salud',
+      sourceOmron: 'OMRON HEM-6221',
+    },
+    'zh-CN': {
+      title: '健康 & Watch',
+      subtitle: '来自 Apple 健康和 OMRON 的真实数据。',
+      heart: '心率',
+      noHeart: '暂无数据',
+      pressure: '血压',
+      noPressure: '暂无记录',
+      lastSync: '上次同步',
+      never: '尚未同步',
+      integration: '连接 Apple 健康',
+      integrationText: '为 iPhone 的 RV 快捷指令生成个人密钥。',
+      generate: '生成密钥',
+      regenerate: '生成新密钥',
+      revoke: '撤销',
+      keyOnce: '请立即复制，此密钥只显示一次。',
+      endpoint: '接收 URL',
+      key: 'RV Health 密钥',
+      copy: '复制',
+      copied: '已复制',
+      shortcut: '运行 RV 快捷指令',
+      setup: '快捷指令设置',
+      step1: '创建 “RV - Sincronizar Saúde”。',
+      step2: '查找最新心率样本，限制 1。',
+      step3: '创建包含 source、metric、value、unit、measured_at 的字典。',
+      step4: 'POST JSON 到 URL，并添加 X-RV-Health-Key。',
+      omron: '记录 OMRON 血压',
+      omronText: '输入屏幕上的三个数值。',
+      systolic: '收缩压',
+      diastolic: '舒张压',
+      pulse: '脉搏',
+      save: '保存',
+      saving: '保存中...',
+      saved: '已保存。',
+      invalid: '请检查数值。',
+      recent: '最近数据',
+      empty: '尚未收到 Apple 健康数据。',
+      history: '血压历史',
+      pressureEmpty: '暂无血压记录。',
+      configured: '集成已配置',
+      notConfigured: '集成未配置',
+      sourceWatch: 'Apple Watch · Apple 健康',
+      sourceOmron: 'OMRON HEM-6221',
+    },
+    de: {
+      title: 'Gesundheit & Watch',
+      subtitle: 'Echte Daten aus Apple Health und OMRON.',
+      heart: 'Herzfrequenz',
+      noHeart: 'Keine Messung',
+      pressure: 'Blutdruck',
+      noPressure: 'Keine Messung',
+      lastSync: 'Letzte Synchronisierung',
+      never: 'Noch nicht synchronisiert',
+      integration: 'Apple Health verbinden',
+      integrationText: 'Erzeuge einen individuellen Schlüssel für den RV-Kurzbefehl.',
+      generate: 'Schlüssel erzeugen',
+      regenerate: 'Neuen Schlüssel erzeugen',
+      revoke: 'Widerrufen',
+      keyOnce: 'Jetzt kopieren. Der Schlüssel wird nur einmal gezeigt.',
+      endpoint: 'Empfänger-URL',
+      key: 'RV Health Schlüssel',
+      copy: 'Kopieren',
+      copied: 'Kopiert',
+      shortcut: 'RV-Kurzbefehl ausführen',
+      setup: 'Kurzbefehl einrichten',
+      step1: 'Erstelle “RV - Sincronizar Saúde”.',
+      step2: 'Hole die neueste Herzfrequenz-Probe.',
+      step3: 'Erstelle ein Wörterbuch mit source, metric, value, unit und measured_at.',
+      step4: 'POST JSON an die URL mit X-RV-Health-Key.',
+      omron: 'OMRON-Blutdruck erfassen',
+      omronText: 'Gib die drei Werte vom Display ein.',
+      systolic: 'Systolisch',
+      diastolic: 'Diastolisch',
+      pulse: 'Puls',
+      save: 'Speichern',
+      saving: 'Speichern...',
+      saved: 'Messung gespeichert.',
+      invalid: 'Bitte Werte prüfen.',
+      recent: 'Aktuelle Daten',
+      empty: 'Noch keine Apple-Health-Daten.',
+      history: 'Blutdruckverlauf',
+      pressureEmpty: 'Keine Messungen.',
+      configured: 'Integration eingerichtet',
+      notConfigured: 'Integration nicht eingerichtet',
+      sourceWatch: 'Apple Watch · Apple Health',
+      sourceOmron: 'OMRON HEM-6221',
+    },
+  } as const
+
+  const t = strings[language]
+
+  async function load() {
+    setLoading(true)
+    const [a, b, c] = await Promise.all([
+      supabase
+        .from('health_samples')
+        .select('id,source,metric,value,unit,measured_at,received_at')
+        .eq('student_id', studentId)
+        .order('measured_at', { ascending: false })
+        .limit(30),
+      supabase
+        .from('blood_pressure_readings')
+        .select('id,systolic,diastolic,pulse,source,measured_at,created_at')
+        .eq('student_id', studentId)
+        .order('measured_at', { ascending: false })
+        .limit(20),
+      supabase.rpc('get_own_health_ingest_status'),
+    ])
+
+    if (!a.error) setSamples((a.data as Sample[]) ?? [])
+    if (!b.error) setPressures((b.data as Pressure[]) ?? [])
+    if (!c.error && c.data) setStatus(c.data as Status)
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    void load()
+
+    const channel = supabase
+      .channel(`rv-health-${studentId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'health_samples',
+          filter: `student_id=eq.${studentId}`,
+        },
+        (payload) => {
+          const row = payload.new as Sample
+          setSamples((current) =>
+            [row, ...current.filter((item) => item.id !== row.id)].slice(0, 30),
+          )
+          void refreshStatus()
+        },
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'blood_pressure_readings',
+          filter: `student_id=eq.${studentId}`,
+        },
+        (payload) => {
+          const row = payload.new as Pressure
+          setPressures((current) =>
+            [row, ...current.filter((item) => item.id !== row.id)].slice(0, 20),
+          )
+        },
+      )
+      .subscribe()
+
+    return () => {
+      void supabase.removeChannel(channel)
+    }
+  }, [studentId])
+
+  async function refreshStatus() {
+    const { data, error } = await supabase.rpc('get_own_health_ingest_status')
+    if (!error && data) setStatus(data as Status)
+  }
+
+  const heart = useMemo(
+    () => samples.find((item) => item.metric === 'heart_rate') ?? null,
+    [samples],
+  )
+
+  const pressure = pressures[0] ?? null
+
+  const latest = useMemo(() => {
+    const values = [
+      status.last_used_at,
+      samples[0]?.received_at,
+      pressures[0]?.created_at,
+    ]
+      .filter(Boolean)
+      .map((value) => new Date(String(value)).getTime())
+      .filter(Number.isFinite)
+
+    return values.length ? new Date(Math.max(...values)) : null
+  }, [status, samples, pressures])
+
+  function date(value: string | Date) {
+    return new Intl.DateTimeFormat(locale, {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    }).format(value instanceof Date ? value : new Date(value))
+  }
+
+  async function rotate() {
+    setBusy(true)
+    setToken('')
+    const { data, error } = await supabase.rpc(
+      'rotate_own_health_ingest_token',
+      { p_label: 'iPhone / Atalhos' },
+    )
+
+    if (!error && data) {
+      const result = data as { token?: string }
+      setToken(result.token || '')
+      setStatus({ configured: true, last_used_at: null })
+    }
+
+    setBusy(false)
+  }
+
+  async function revoke() {
+    setBusy(true)
+    const { error } = await supabase.rpc('revoke_own_health_ingest_token')
+    if (!error) {
+      setStatus({ configured: false })
+      setToken('')
+    }
+    setBusy(false)
+  }
+
+  async function copy(id: string, value: string) {
+    await navigator.clipboard.writeText(value)
+    setCopied(id)
+    window.setTimeout(() => setCopied(''), 1500)
+  }
+
+  async function savePressure(event: FormEvent) {
+    event.preventDefault()
+    setMessage('')
+
+    const a = Number(sys)
+    const b = Number(dia)
+    const c = pulse ? Number(pulse) : null
+
+    if (
+      !Number.isFinite(a) ||
+      !Number.isFinite(b) ||
+      a < 40 ||
+      a > 350 ||
+      b < 20 ||
+      b > 250 ||
+      (c !== null && (!Number.isFinite(c) || c < 20 || c > 300))
+    ) {
+      setMessage(t.invalid)
+      return
+    }
+
+    setBusy(true)
+
+    const { error } = await supabase
+      .from('blood_pressure_readings')
+      .insert({
+        student_id: studentId,
+        systolic: Math.round(a),
+        diastolic: Math.round(b),
+        pulse: c === null ? null : Math.round(c),
+        source: 'omron_hem_6221',
+        measured_at: new Date().toISOString(),
+      })
+
+    if (error) {
+      setMessage(error.message)
+    } else {
+      setSys('')
+      setDia('')
+      setPulse('')
+      setMessage(t.saved)
+    }
+
+    setBusy(false)
+  }
+
+  return (
+    <section className="rvHealthModule" data-rv-health-module="v16">
+      <div className="rvHealthModuleHead">
+        <div>
+          <span>RV HEALTH</span>
+          <h2>{t.title}</h2>
+          <p>{t.subtitle}</p>
+        </div>
+        <HeartPulse size={23} />
+      </div>
+
+      <div className="rvHealthQuickGrid">
+        <article>
+          <HeartPulse size={18} />
+          <span>{t.heart}</span>
+          <strong>
+            {heart
+              ? `${Math.round(heart.value)} ${heart.unit}`
+              : t.noHeart}
+          </strong>
+          <small>
+            {heart ? `${t.sourceWatch} · ${date(heart.measured_at)}` : t.sourceWatch}
+          </small>
+        </article>
+
+        <article>
+          <Gauge size={18} />
+          <span>{t.pressure}</span>
+          <strong>
+            {pressure
+              ? `${pressure.systolic} / ${pressure.diastolic} mmHg`
+              : t.noPressure}
+          </strong>
+          <small>
+            {pressure
+              ? `${pressure.pulse ? `${t.pulse} ${pressure.pulse} · ` : ''}${date(
+                  pressure.measured_at,
+                )}`
+              : t.sourceOmron}
+          </small>
+        </article>
+
+        <article>
+          <RefreshCw size={18} />
+          <span>{t.lastSync}</span>
+          <strong>{latest ? date(latest) : t.never}</strong>
+          <small>
+            {status.configured ? t.configured : t.notConfigured}
+          </small>
+        </article>
+      </div>
+
+      <div className="rvHealthTwoColumns">
+        <section className="rvHealthBox">
+          <div className="rvHealthBoxHead">
+            <div>
+              <span>APPLE HEALTH</span>
+              <h3>{t.integration}</h3>
+            </div>
+            <KeyRound size={19} />
+          </div>
+
+          <p>{t.integrationText}</p>
+
+          <div className="rvHealthActions">
+            <button type="button" onClick={() => void rotate()} disabled={busy}>
+              <KeyRound size={15} />
+              {status.configured ? t.regenerate : t.generate}
+            </button>
+
+            {status.configured && (
+              <button
+                type="button"
+                className="ghost"
+                onClick={() => void revoke()}
+                disabled={busy}
+              >
+                {t.revoke}
+              </button>
+            )}
+
+            <a className="ghost" href={SHORTCUT}>
+              {t.shortcut}
+            </a>
+          </div>
+
+          {token && (
+            <div className="rvHealthSecret">
+              <strong>{t.keyOnce}</strong>
+
+              <div>
+                <span>
+                  <small>{t.endpoint}</small>
+                  <code>{ENDPOINT}</code>
+                </span>
+                <button type="button" onClick={() => void copy('url', ENDPOINT)}>
+                  {copied === 'url' ? <Check size={14} /> : <Copy size={14} />}
+                  {copied === 'url' ? t.copied : t.copy}
+                </button>
+              </div>
+
+              <div>
+                <span>
+                  <small>{t.key}</small>
+                  <code>{token}</code>
+                </span>
+                <button type="button" onClick={() => void copy('key', token)}>
+                  {copied === 'key' ? <Check size={14} /> : <Copy size={14} />}
+                  {copied === 'key' ? t.copied : t.copy}
+                </button>
+              </div>
+            </div>
+          )}
+
+          <details className="rvHealthSetup">
+            <summary>{t.setup}</summary>
+            <ol>
+              <li>{t.step1}</li>
+              <li>{t.step2}</li>
+              <li>{t.step3}</li>
+              <li>{t.step4}</li>
+            </ol>
+            <code>{ENDPOINT}</code>
+            <code>X-RV-Health-Key</code>
+          </details>
+        </section>
+
+        <section className="rvHealthBox">
+          <div className="rvHealthBoxHead">
+            <div>
+              <span>OMRON HEM-6221</span>
+              <h3>{t.omron}</h3>
+            </div>
+            <Gauge size={19} />
+          </div>
+
+          <p>{t.omronText}</p>
+
+          <form className="rvPressureMiniForm" onSubmit={savePressure}>
+            <label>
+              <span>{t.systolic}</span>
+              <input
+                type="number"
+                inputMode="numeric"
+                value={sys}
+                onChange={(event) => setSys(event.target.value)}
+                placeholder="120"
+                required
+              />
+            </label>
+
+            <label>
+              <span>{t.diastolic}</span>
+              <input
+                type="number"
+                inputMode="numeric"
+                value={dia}
+                onChange={(event) => setDia(event.target.value)}
+                placeholder="80"
+                required
+              />
+            </label>
+
+            <label>
+              <span>{t.pulse}</span>
+              <input
+                type="number"
+                inputMode="numeric"
+                value={pulse}
+                onChange={(event) => setPulse(event.target.value)}
+                placeholder="72"
+              />
+            </label>
+
+            <button disabled={busy}>
+              <Gauge size={15} />
+              {busy ? t.saving : t.save}
+            </button>
+          </form>
+
+          {message && (
+            <div className="rvHealthMessage" role="status">
+              {message}
+            </div>
+          )}
+        </section>
+      </div>
+
+      <div className="rvHealthTwoColumns">
+        <section className="rvHealthBox">
+          <div className="rvHealthBoxHead">
+            <div>
+              <span>APPLE HEALTH</span>
+              <h3>{t.recent}</h3>
+            </div>
+            <Database size={19} />
+          </div>
+
+          {loading ? (
+            <div className="rvHealthEmpty">
+              <RefreshCw className="rvHealthSpin" size={18} />
+            </div>
+          ) : samples.length === 0 ? (
+            <div className="rvHealthEmpty">{t.empty}</div>
+          ) : (
+            <div className="rvHealthList">
+              {samples.slice(0, 8).map((item) => (
+                <article key={item.id}>
+                  <span>
+                    <strong>{item.metric.replaceAll('_', ' ')}</strong>
+                    <small>{date(item.measured_at)}</small>
+                  </span>
+                  <b>
+                    {Number.isInteger(item.value)
+                      ? item.value
+                      : item.value.toFixed(1)}{' '}
+                    {item.unit}
+                  </b>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="rvHealthBox">
+          <div className="rvHealthBoxHead">
+            <div>
+              <span>OMRON</span>
+              <h3>{t.history}</h3>
+            </div>
+            <Database size={19} />
+          </div>
+
+          {pressures.length === 0 ? (
+            <div className="rvHealthEmpty">{t.pressureEmpty}</div>
+          ) : (
+            <div className="rvHealthList">
+              {pressures.slice(0, 8).map((item) => (
+                <article key={item.id}>
+                  <span>
+                    <strong>
+                      {item.systolic} / {item.diastolic} mmHg
+                    </strong>
+                    <small>{date(item.measured_at)}</small>
+                  </span>
+                  <b>{item.pulse ? `${item.pulse} bpm` : '—'}</b>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+    </section>
+  )
+}

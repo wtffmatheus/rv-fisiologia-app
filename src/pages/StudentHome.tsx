@@ -1403,6 +1403,7 @@ export default function StudentHome({ profile }: { profile: Profile }) {
   function renderWatch() {
     return (
       <StudentWatchHub
+        studentId={profile.id}
         studentName={firstName}
         programTitle={activeProgram.title}
         progress={percentage}
