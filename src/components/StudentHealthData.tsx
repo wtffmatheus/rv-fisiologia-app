@@ -1,18 +1,40 @@
 import {
+  Activity,
   Check,
+  Clock3,
   Copy,
-  Database,
-  Gauge,
+  Flame,
+  Footprints,
   HeartPulse,
   KeyRound,
   RefreshCw,
+  Route,
+  ShieldCheck,
+  TimerReset,
+  Watch,
 } from 'lucide-react'
-import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useI18n } from '../i18n'
 
+type WorkoutSession = {
+  id: string
+  student_id: string
+  source: string
+  workout_type: string
+  planned_duration_minutes: number | null
+  started_at: string
+  ended_at: string | null
+  status: 'active' | 'completed' | 'cancelled'
+  last_synced_at: string | null
+  created_at: string
+  updated_at: string
+}
+
 type Sample = {
   id: string
+  student_id: string
+  workout_session_id: string | null
   source: string
   metric: string
   value: number
@@ -21,29 +43,104 @@ type Sample = {
   received_at: string
 }
 
-type Pressure = {
-  id: string
-  systolic: number
-  diastolic: number
-  pulse: number | null
-  source: string
-  measured_at: string
-  created_at: string
-}
-
-type Status = {
+type IngestStatus = {
   configured: boolean
   last_used_at?: string | null
 }
 
-const ENDPOINT =
-  'https://ilnlnkcxajkarwviynbm.supabase.co/functions/v1/health-ingest'
-
-const SHORTCUT =
-  'shortcuts://run-shortcut?name=RV%20-%20Sincronizar%20Sa%C3%BAde'
+type Stats = {
+  count: number
+  min: number
+  max: number
+  avg: number
+  sum: number
+  unit: string
+}
 
 const OFFICIAL_SHORTCUT =
   'https://www.icloud.com/shortcuts/7f89138a88834de78d0a256ba0418c5b'
+
+const SHORTCUT_SYNC =
+  'shortcuts://run-shortcut?name=RV%20-%20Sincronizar%20Sa%C3%BAde&input=text&text=sync'
+
+const ENDPOINT =
+  'https://ilnlnkcxajkarwviynbm.supabase.co/functions/v1/health-ingest'
+
+function statsFor(samples: Sample[], metric: string): Stats | null {
+  const rows = samples.filter((item) => item.metric === metric)
+  if (!rows.length) return null
+
+  const values = rows.map((item) => Number(item.value)).filter(Number.isFinite)
+  if (!values.length) return null
+
+  const sum = values.reduce((total, value) => total + value, 0)
+
+  return {
+    count: values.length,
+    min: Math.min(...values),
+    max: Math.max(...values),
+    avg: sum / values.length,
+    sum,
+    unit: rows[0]?.unit || '',
+  }
+}
+
+function Sparkline({
+  samples,
+  empty,
+}: {
+  samples: Sample[]
+  empty: string
+}) {
+  const values = samples
+    .filter((item) => item.metric === 'heart_rate')
+    .sort(
+      (a, b) =>
+        new Date(a.measured_at).getTime() - new Date(b.measured_at).getTime(),
+    )
+
+  if (values.length < 2) {
+    return <div className="rvWorkoutChartEmpty">{empty}</div>
+  }
+
+  const width = 640
+  const height = 180
+  const padding = 14
+  const numbers = values.map((item) => Number(item.value))
+  const min = Math.min(...numbers)
+  const max = Math.max(...numbers)
+  const span = Math.max(1, max - min)
+
+  const points = values
+    .map((item, index) => {
+      const x =
+        padding +
+        (index / Math.max(1, values.length - 1)) * (width - padding * 2)
+      const y =
+        height -
+        padding -
+        ((Number(item.value) - min) / span) * (height - padding * 2)
+      return `${x.toFixed(1)},${y.toFixed(1)}`
+    })
+    .join(' ')
+
+  return (
+    <div className="rvWorkoutChart">
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        role="img"
+        aria-label="Heart rate chart"
+        preserveAspectRatio="none"
+      >
+        <polyline points={points} fill="none" vectorEffect="non-scaling-stroke" />
+      </svg>
+      <div className="rvWorkoutChartScale">
+        <span>{Math.round(max)} bpm</span>
+        <span>{Math.round(min)} bpm</span>
+      </div>
+    </div>
+  )
+}
 
 export default function StudentHealthData({
   studentId,
@@ -51,411 +148,428 @@ export default function StudentHealthData({
   studentId: string
 }) {
   const { language, locale } = useI18n()
+  const [sessions, setSessions] = useState<WorkoutSession[]>([])
   const [samples, setSamples] = useState<Sample[]>([])
-  const [pressures, setPressures] = useState<Pressure[]>([])
-  const [status, setStatus] = useState<Status>({ configured: false })
+  const [status, setStatus] = useState<IngestStatus>({ configured: false })
   const [token, setToken] = useState('')
-  const [copied, setCopied] = useState('')
-  const [loading, setLoading] = useState(true)
+  const [copied, setCopied] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [sys, setSys] = useState('')
-  const [dia, setDia] = useState('')
-  const [pulse, setPulse] = useState('')
-  const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [, setTick] = useState(0)
 
-  const strings = {
+  const text = {
     'pt-BR': {
-      title: 'Saúde & Watch',
-      subtitle: 'Dados reais recebidos do Apple Saúde e do OMRON.',
-      heart: 'Frequência cardíaca',
-      noHeart: 'Sem leitura recebida',
-      pressure: 'Pressão arterial',
-      noPressure: 'Sem leitura registrada',
-      lastSync: 'Última sincronização',
-      never: 'Ainda não sincronizado',
-      integration: 'Conectar Apple Saúde',
-      integrationText:
-        'Gere uma chave individual e use no Atalho RV do iPhone. Ela não dá acesso à sua conta.',
-      generate: 'Gerar chave',
-      regenerate: 'Gerar nova chave',
-      revoke: 'Revogar',
-      keyOnce: 'Copie esta chave agora. Ela só aparece neste momento.',
-      endpoint: 'URL do receptor',
-      key: 'Chave RV Health',
-      copy: 'Copiar',
-      copied: 'Copiado',
-      shortcut: 'Executar Atalho RV',
-      setup: 'Como montar o Atalho',
-      step1: 'Crie um atalho chamado “RV - Sincronizar Saúde”.',
-      step2:
-        'Adicione “Buscar Amostras de Saúde” > Frequência Cardíaca > mais recente > limite 1.',
-      step3:
-        'Crie um Dicionário: source=apple_health, metric=heart_rate, value=valor, unit=bpm e measured_at=data.',
-      step4:
-        'Use “Obter Conteúdo do URL”: POST + JSON + URL abaixo + cabeçalho X-RV-Health-Key.',
-      omron: 'Registrar pressão OMRON',
-      omronText: 'Digite os três números do visor.',
-      systolic: 'Sistólica',
-      diastolic: 'Diastólica',
-      pulse: 'Pulso',
-      save: 'Salvar leitura',
-      saving: 'Salvando...',
-      saved: 'Leitura salva no RV.',
-      invalid: 'Confira os valores antes de salvar.',
-      recent: 'Dados recentes',
-      empty: 'Nenhum dado do Apple Saúde recebido ainda.',
-      history: 'Histórico de pressão',
-      pressureEmpty: 'Nenhuma pressão registrada.',
-      configured: 'Integração configurada',
-      notConfigured: 'Integração não configurada',
-      sourceWatch: 'Apple Watch · Apple Saúde',
-      sourceOmron: 'OMRON HEM-6221',
-    },
-    en: {
-      title: 'Health & Watch',
-      subtitle: 'Real data received from Apple Health and OMRON.',
-      heart: 'Heart rate',
-      noHeart: 'No reading received',
-      pressure: 'Blood pressure',
-      noPressure: 'No reading recorded',
-      lastSync: 'Last sync',
-      never: 'Not synced yet',
-      integration: 'Connect Apple Health',
-      integrationText: 'Generate an individual key for the RV Shortcut.',
-      generate: 'Generate key',
-      regenerate: 'Generate new key',
-      revoke: 'Revoke',
-      keyOnce: 'Copy this key now. It is only shown once.',
-      endpoint: 'Receiver URL',
-      key: 'RV Health key',
-      copy: 'Copy',
-      copied: 'Copied',
-      shortcut: 'Run RV Shortcut',
-      setup: 'Shortcut setup',
-      step1: 'Create “RV - Sincronizar Saúde”.',
-      step2: 'Find the newest Heart Rate health sample, limit 1.',
-      step3: 'Create a Dictionary with source, metric, value, unit and measured_at.',
-      step4: 'POST JSON to the URL below with X-RV-Health-Key.',
-      omron: 'Record OMRON pressure',
-      omronText: 'Enter the three values from the display.',
-      systolic: 'Systolic',
-      diastolic: 'Diastolic',
-      pulse: 'Pulse',
-      save: 'Save reading',
-      saving: 'Saving...',
-      saved: 'Reading saved in RV.',
-      invalid: 'Check the values before saving.',
-      recent: 'Recent data',
-      empty: 'No Apple Health data received yet.',
-      history: 'Pressure history',
-      pressureEmpty: 'No pressure readings.',
-      configured: 'Integration configured',
-      notConfigured: 'Integration not configured',
-      sourceWatch: 'Apple Watch · Apple Health',
-      sourceOmron: 'OMRON HEM-6221',
-    },
-    es: {
-      title: 'Salud & Watch',
-      subtitle: 'Datos reales de Apple Salud y OMRON.',
-      heart: 'Frecuencia cardíaca',
-      noHeart: 'Sin lectura recibida',
-      pressure: 'Presión arterial',
-      noPressure: 'Sin lectura registrada',
-      lastSync: 'Última sincronización',
-      never: 'Aún sin sincronizar',
-      integration: 'Conectar Apple Salud',
-      integrationText: 'Genera una clave individual para el Atajo RV.',
-      generate: 'Generar clave',
-      regenerate: 'Generar nueva clave',
-      revoke: 'Revocar',
-      keyOnce: 'Copia esta clave ahora. Solo aparece una vez.',
-      endpoint: 'URL del receptor',
-      key: 'Clave RV Health',
-      copy: 'Copiar',
-      copied: 'Copiado',
-      shortcut: 'Ejecutar Atajo RV',
-      setup: 'Configurar Atajo',
-      step1: 'Crea “RV - Sincronizar Saúde”.',
-      step2: 'Busca la muestra de frecuencia cardíaca más reciente.',
-      step3: 'Crea un Diccionario con source, metric, value, unit y measured_at.',
-      step4: 'POST JSON a la URL con X-RV-Health-Key.',
-      omron: 'Registrar presión OMRON',
-      omronText: 'Escribe los tres valores de la pantalla.',
-      systolic: 'Sistólica',
-      diastolic: 'Diastólica',
-      pulse: 'Pulso',
-      save: 'Guardar lectura',
-      saving: 'Guardando...',
-      saved: 'Lectura guardada.',
-      invalid: 'Revisa los valores.',
-      recent: 'Datos recientes',
-      empty: 'Aún no hay datos de Apple Salud.',
-      history: 'Historial de presión',
-      pressureEmpty: 'No hay lecturas.',
-      configured: 'Integración configurada',
-      notConfigured: 'Integración no configurada',
-      sourceWatch: 'Apple Watch · Apple Salud',
-      sourceOmron: 'OMRON HEM-6221',
-    },
-    'zh-CN': {
-      title: '健康 & Watch',
-      subtitle: '来自 Apple 健康和 OMRON 的真实数据。',
-      heart: '心率',
-      noHeart: '暂无数据',
-      pressure: '血压',
-      noPressure: '暂无记录',
-      lastSync: '上次同步',
-      never: '尚未同步',
-      integration: '连接 Apple 健康',
-      integrationText: '为 iPhone 的 RV 快捷指令生成个人密钥。',
-      generate: '生成密钥',
-      regenerate: '生成新密钥',
-      revoke: '撤销',
-      keyOnce: '请立即复制，此密钥只显示一次。',
-      endpoint: '接收 URL',
-      key: 'RV Health 密钥',
-      copy: '复制',
-      copied: '已复制',
-      shortcut: '运行 RV 快捷指令',
-      setup: '快捷指令设置',
-      step1: '创建 “RV - Sincronizar Saúde”。',
-      step2: '查找最新心率样本，限制 1。',
-      step3: '创建包含 source、metric、value、unit、measured_at 的字典。',
-      step4: 'POST JSON 到 URL，并添加 X-RV-Health-Key。',
-      omron: '记录 OMRON 血压',
-      omronText: '输入屏幕上的三个数值。',
-      systolic: '收缩压',
-      diastolic: '舒张压',
-      pulse: '脉搏',
-      save: '保存',
-      saving: '保存中...',
-      saved: '已保存。',
-      invalid: '请检查数值。',
-      recent: '最近数据',
-      empty: '尚未收到 Apple 健康数据。',
-      history: '血压历史',
-      pressureEmpty: '暂无血压记录。',
-      configured: '集成已配置',
-      notConfigured: '集成未配置',
-      sourceWatch: 'Apple Watch · Apple 健康',
-      sourceOmron: 'OMRON HEM-6221',
-    },
-    de: {
-      title: 'Gesundheit & Watch',
-      subtitle: 'Echte Daten aus Apple Health und OMRON.',
-      heart: 'Herzfrequenz',
-      noHeart: 'Keine Messung',
-      pressure: 'Blutdruck',
-      noPressure: 'Keine Messung',
-      lastSync: 'Letzte Synchronisierung',
-      never: 'Noch nicht synchronisiert',
-      integration: 'Apple Health verbinden',
-      integrationText: 'Erzeuge einen individuellen Schlüssel für den RV-Kurzbefehl.',
-      generate: 'Schlüssel erzeugen',
-      regenerate: 'Neuen Schlüssel erzeugen',
-      revoke: 'Widerrufen',
-      keyOnce: 'Jetzt kopieren. Der Schlüssel wird nur einmal gezeigt.',
-      endpoint: 'Empfänger-URL',
-      key: 'RV Health Schlüssel',
-      copy: 'Kopieren',
-      copied: 'Kopiert',
-      shortcut: 'RV-Kurzbefehl ausführen',
-      setup: 'Kurzbefehl einrichten',
-      step1: 'Erstelle “RV - Sincronizar Saúde”.',
-      step2: 'Hole die neueste Herzfrequenz-Probe.',
-      step3: 'Erstelle ein Wörterbuch mit source, metric, value, unit und measured_at.',
-      step4: 'POST JSON an die URL mit X-RV-Health-Key.',
-      omron: 'OMRON-Blutdruck erfassen',
-      omronText: 'Gib die drei Werte vom Display ein.',
-      systolic: 'Systolisch',
-      diastolic: 'Diastolisch',
-      pulse: 'Puls',
-      save: 'Speichern',
-      saving: 'Speichern...',
-      saved: 'Messung gespeichert.',
-      invalid: 'Bitte Werte prüfen.',
-      recent: 'Aktuelle Daten',
-      empty: 'Noch keine Apple-Health-Daten.',
-      history: 'Blutdruckverlauf',
-      pressureEmpty: 'Keine Messungen.',
-      configured: 'Integration eingerichtet',
-      notConfigured: 'Integration nicht eingerichtet',
-      sourceWatch: 'Apple Watch · Apple Health',
-      sourceOmron: 'OMRON HEM-6221',
-    },
-  } as const
-
-  const t = strings[language]
-
-  const simple = {
-    'pt-BR': {
-      title: 'Conectar Apple Saúde',
-      text: 'Configure uma vez. Depois, o Atalho RV envia ao RV os dados autorizados do Apple Saúde.',
-      once: 'Você só precisa fazer isso uma vez',
-      step1: '1. Criar código',
-      step1Text: 'O RV cria seu código pessoal e já copia automaticamente.',
-      createCode: 'Criar e copiar código',
+      eyebrow: 'MONITORAMENTO DE TREINO',
+      title: 'Sessões do Apple Watch',
+      subtitle:
+        'O Watch mede continuamente. O RV organiza as leituras por treino, calcula variação, médias e mantém o histórico.',
+      active: 'Treino em andamento',
+      noneActive: 'Nenhum treino em andamento',
+      noneActiveText:
+        'Quando um exercício começar no Apple Watch, a automação do iPhone poderá abrir a sessão no RV.',
+      started: 'Iniciado',
+      planned: 'Previsto',
+      elapsed: 'Decorrido',
+      lastUpdate: 'Última atualização',
+      waiting: 'Aguardando dados',
+      update: 'Atualizar dados agora',
+      liveHint:
+        'Durante o treino, novas remessas aparecem aqui automaticamente. No fim, o atalho faz uma conferência completa da sessão.',
+      bpmRange: 'Variação de BPM',
+      average: 'Média',
+      minimum: 'Mínima',
+      maximum: 'Máxima',
+      calories: 'Calorias ativas',
+      steps: 'Passos',
+      distance: 'Distância',
+      hrv: 'VFC',
+      respiratory: 'Respiração',
+      oxygen: 'Oxigenação',
+      recovery: 'Recuperação',
+      recoveryText: 'queda após o fim',
+      history: 'Histórico de treinos',
+      historyText:
+        'Cada treino fica separado por data e horário, com todas as medições daquele período.',
+      noHistory: 'Ainda não há sessões de treino registradas.',
+      open: 'Ver treino',
+      duration: 'Duração',
+      samples: 'leituras',
+      detail: 'Resumo da sessão',
+      chart: 'Frequência cardíaca durante o treino',
+      chartEmpty: 'O gráfico aparece após receber pelo menos duas leituras de BPM.',
+      noMetric: 'Sem dados',
+      setup: 'Conectar Apple Saúde',
+      setupText:
+        'A conexão é feita pelo Apple Saúde + Atalhos. Não existe pareamento direto do RV com o Apple Watch.',
+      configured: 'Integração verificada',
+      configuredPending: 'Código criado · aguardando primeiro envio',
+      notConfigured: 'Integração ainda não configurada',
+      create: 'Criar e copiar código',
       newCode: 'Criar novo código',
-      codeCopied: 'Código copiado',
-      step2: '2. Instalar integração',
-      step2Text: 'Abra o atalho oficial do RV e adicione ao seu iPhone.',
-      install: 'Instalar no iPhone',
-      pasteHint: 'Quando o iPhone pedir, cole o código que o RV acabou de copiar.',
-      step3: '3. Enviar dados',
-      step3Text: 'Depois de instalado, use este botão para buscar a leitura mais recente no Apple Saúde e enviar ao RV.',
-      sync: 'Atualizar dados agora',
-      ready: 'Atalho pronto para enviar',
-      notReady: 'Falta concluir a configuração',
-      yourCode: 'Seu código de conexão',
-      copyCode: 'Copiar código',
+      copied: 'Código copiado',
+      install: 'Instalar Atalho RV',
+      syncTest: 'Testar envio',
+      disconnect: 'Desconectar',
+      key: 'Código de conexão',
       advanced: 'Avançado',
-      advancedText: 'Informações técnicas e opção para revogar a conexão.',
-      revoke: 'Desconectar Apple Saúde',
+      flow: 'Fluxo automático recomendado',
+      flow1: 'Início do exercício',
+      flow1Text: 'O iPhone pergunta quanto tempo o treino deve durar e abre uma sessão.',
+      flow2: 'Durante o treino',
+      flow2Text: 'O Watch continua medindo e o atalho tenta enviar novos dados em blocos.',
+      flow3: 'Fim do exercício',
+      flow3Text: 'O atalho confere todo o período, inclui recuperação e fecha a sessão.',
+      flow4: 'Histórico RV',
+      flow4Text: 'O RV calcula mínimo, média, máximo e demais métricas por sessão.',
+      activeBadge: 'AO VIVO',
+      completed: 'Concluído',
+      cancelled: 'Cancelado',
+      minutes: 'min',
+      integrationNote:
+        'A automação de início/fim será configurada no mesmo Atalho RV. O banco e a tela já estão preparados para receber as sessões.',
     },
     en: {
-      title: 'Connect Apple Health',
-      text: 'Set it up once. Then the RV Shortcut sends authorized Apple Health data to RV.',
-      once: 'You only need to do this once',
-      step1: '1. Create code',
-      step1Text: 'RV creates your personal code and copies it automatically.',
-      createCode: 'Create and copy code',
+      eyebrow: 'WORKOUT MONITORING',
+      title: 'Apple Watch sessions',
+      subtitle:
+        'Watch measures continuously. RV groups readings by workout, calculates ranges, averages and keeps the history.',
+      active: 'Workout in progress',
+      noneActive: 'No workout in progress',
+      noneActiveText: 'When a Watch workout starts, iPhone automation can open a session in RV.',
+      started: 'Started',
+      planned: 'Planned',
+      elapsed: 'Elapsed',
+      lastUpdate: 'Last update',
+      waiting: 'Waiting for data',
+      update: 'Update data now',
+      liveHint: 'New batches appear automatically. At the end, the shortcut performs a full session check.',
+      bpmRange: 'BPM range',
+      average: 'Average',
+      minimum: 'Minimum',
+      maximum: 'Maximum',
+      calories: 'Active calories',
+      steps: 'Steps',
+      distance: 'Distance',
+      hrv: 'HRV',
+      respiratory: 'Respiration',
+      oxygen: 'Oxygen',
+      recovery: 'Recovery',
+      recoveryText: 'drop after ending',
+      history: 'Workout history',
+      historyText: 'Each workout is stored separately with all measurements from that period.',
+      noHistory: 'No workout sessions recorded yet.',
+      open: 'View workout',
+      duration: 'Duration',
+      samples: 'readings',
+      detail: 'Session summary',
+      chart: 'Heart rate during workout',
+      chartEmpty: 'The chart appears after at least two BPM readings.',
+      noMetric: 'No data',
+      setup: 'Connect Apple Health',
+      setupText: 'Connection uses Apple Health + Shortcuts. RV does not directly pair with Apple Watch.',
+      configured: 'Integration verified',
+      configuredPending: 'Code created · waiting for first upload',
+      notConfigured: 'Integration not configured',
+      create: 'Create and copy code',
       newCode: 'Create new code',
-      codeCopied: 'Code copied',
-      step2: '2. Install integration',
-      step2Text: 'Open the official RV Shortcut and add it to your iPhone.',
-      install: 'Install on iPhone',
-      pasteHint: 'When prompted, paste the code RV just copied.',
-      step3: '3. Send data',
-      step3Text: 'After installation, use this button to fetch the latest Apple Health reading and send it to RV.',
-      sync: 'Update data now',
-      ready: 'Shortcut ready to send',
-      notReady: 'Setup is not complete yet',
-      yourCode: 'Your connection code',
-      copyCode: 'Copy code',
+      copied: 'Code copied',
+      install: 'Install RV Shortcut',
+      syncTest: 'Test upload',
+      disconnect: 'Disconnect',
+      key: 'Connection code',
       advanced: 'Advanced',
-      advancedText: 'Technical information and disconnect option.',
-      revoke: 'Disconnect Apple Health',
+      flow: 'Recommended automatic flow',
+      flow1: 'Workout starts',
+      flow1Text: 'iPhone asks the planned duration and opens an RV session.',
+      flow2: 'During workout',
+      flow2Text: 'Watch keeps measuring and Shortcut attempts batch uploads.',
+      flow3: 'Workout ends',
+      flow3Text: 'Shortcut checks the full period, includes recovery and closes the session.',
+      flow4: 'RV history',
+      flow4Text: 'RV calculates minimum, average, maximum and other metrics per session.',
+      activeBadge: 'LIVE',
+      completed: 'Completed',
+      cancelled: 'Cancelled',
+      minutes: 'min',
+      integrationNote: 'Start/end automation will use the same RV Shortcut. Database and UI are ready.',
     },
     es: {
-      title: 'Conectar Apple Salud',
-      text: 'Configúralo una vez. Luego el Atajo RV envía a RV los datos autorizados de Apple Salud.',
-      once: 'Solo necesitas hacer esto una vez',
-      step1: '1. Crear código',
-      step1Text: 'RV crea tu código personal y lo copia automáticamente.',
-      createCode: 'Crear y copiar código',
+      eyebrow: 'MONITOREO DE ENTRENAMIENTO',
+      title: 'Sesiones del Apple Watch',
+      subtitle: 'Watch mide continuamente. RV agrupa las lecturas por entrenamiento y mantiene el historial.',
+      active: 'Entrenamiento en curso',
+      noneActive: 'Ningún entrenamiento en curso',
+      noneActiveText: 'Cuando comience un ejercicio en Apple Watch, la automatización puede abrir una sesión en RV.',
+      started: 'Inicio',
+      planned: 'Previsto',
+      elapsed: 'Transcurrido',
+      lastUpdate: 'Última actualización',
+      waiting: 'Esperando datos',
+      update: 'Actualizar datos ahora',
+      liveHint: 'Nuevos lotes aparecen automáticamente y al final se revisa toda la sesión.',
+      bpmRange: 'Variación de BPM',
+      average: 'Media',
+      minimum: 'Mínima',
+      maximum: 'Máxima',
+      calories: 'Calorías activas',
+      steps: 'Pasos',
+      distance: 'Distancia',
+      hrv: 'VFC',
+      respiratory: 'Respiración',
+      oxygen: 'Oxigenación',
+      recovery: 'Recuperación',
+      recoveryText: 'caída después del final',
+      history: 'Historial de entrenamientos',
+      historyText: 'Cada entrenamiento queda separado por fecha y hora.',
+      noHistory: 'Todavía no hay sesiones registradas.',
+      open: 'Ver entrenamiento',
+      duration: 'Duración',
+      samples: 'lecturas',
+      detail: 'Resumen de sesión',
+      chart: 'Frecuencia cardíaca durante el entrenamiento',
+      chartEmpty: 'El gráfico aparece con al menos dos lecturas de BPM.',
+      noMetric: 'Sin datos',
+      setup: 'Conectar Apple Salud',
+      setupText: 'La conexión usa Apple Salud + Atajos. RV no empareja directamente con Apple Watch.',
+      configured: 'Integración verificada',
+      configuredPending: 'Código creado · esperando primer envío',
+      notConfigured: 'Integración no configurada',
+      create: 'Crear y copiar código',
       newCode: 'Crear nuevo código',
-      codeCopied: 'Código copiado',
-      step2: '2. Instalar integración',
-      step2Text: 'Abre el Atajo oficial de RV y agrégalo al iPhone.',
-      install: 'Instalar en iPhone',
-      pasteHint: 'Cuando lo pida, pega el código copiado por RV.',
-      step3: '3. Enviar datos',
-      step3Text: 'Después de instalar, usa este botón para buscar la última lectura en Apple Salud y enviarla a RV.',
-      sync: 'Actualizar datos ahora',
-      ready: 'Atajo listo para enviar',
-      notReady: 'Falta terminar la configuración',
-      yourCode: 'Tu código de conexión',
-      copyCode: 'Copiar código',
+      copied: 'Código copiado',
+      install: 'Instalar Atajo RV',
+      syncTest: 'Probar envío',
+      disconnect: 'Desconectar',
+      key: 'Código de conexión',
       advanced: 'Avanzado',
-      advancedText: 'Información técnica y opción para desconectar.',
-      revoke: 'Desconectar Apple Salud',
+      flow: 'Flujo automático recomendado',
+      flow1: 'Inicio del ejercicio',
+      flow1Text: 'El iPhone pregunta la duración prevista y abre una sesión.',
+      flow2: 'Durante el entrenamiento',
+      flow2Text: 'Watch sigue midiendo y el atajo intenta enviar nuevos datos.',
+      flow3: 'Fin del ejercicio',
+      flow3Text: 'El atajo revisa todo el período, incluye recuperación y cierra la sesión.',
+      flow4: 'Historial RV',
+      flow4Text: 'RV calcula mínimo, media, máximo y otras métricas.',
+      activeBadge: 'EN VIVO',
+      completed: 'Completado',
+      cancelled: 'Cancelado',
+      minutes: 'min',
+      integrationNote: 'La automatización de inicio/fin usará el mismo Atajo RV. La base y la interfaz ya están listas.',
     },
     'zh-CN': {
-      title: '连接 Apple 健康',
-      text: '只需设置一次。之后 RV 快捷指令会把已授权的 Apple 健康数据发送到 RV。',
-      once: '只需要设置一次',
-      step1: '1. 创建代码',
-      step1Text: 'RV 会创建个人代码并自动复制。',
-      createCode: '创建并复制代码',
+      eyebrow: '训练监测',
+      title: 'Apple Watch 训练记录',
+      subtitle: 'Watch 持续测量，RV 按训练分组并计算范围、平均值与历史记录。',
+      active: '训练进行中',
+      noneActive: '当前没有训练',
+      noneActiveText: 'Apple Watch 开始训练时，iPhone 自动化可以在 RV 中创建训练会话。',
+      started: '开始',
+      planned: '计划',
+      elapsed: '已用',
+      lastUpdate: '最近更新',
+      waiting: '等待数据',
+      update: '立即更新数据',
+      liveHint: '训练中会显示新的批次，结束时快捷指令会再次核对完整会话。',
+      bpmRange: '心率范围',
+      average: '平均',
+      minimum: '最低',
+      maximum: '最高',
+      calories: '活动卡路里',
+      steps: '步数',
+      distance: '距离',
+      hrv: 'HRV',
+      respiratory: '呼吸',
+      oxygen: '血氧',
+      recovery: '恢复',
+      recoveryText: '结束后的下降',
+      history: '训练历史',
+      historyText: '每次训练按日期和时间单独保存。',
+      noHistory: '暂无训练会话。',
+      open: '查看训练',
+      duration: '时长',
+      samples: '条读数',
+      detail: '会话摘要',
+      chart: '训练期间心率',
+      chartEmpty: '至少收到两条心率读数后显示图表。',
+      noMetric: '无数据',
+      setup: '连接 Apple 健康',
+      setupText: '连接通过 Apple 健康 + 快捷指令完成，RV 不直接配对 Apple Watch。',
+      configured: '集成已验证',
+      configuredPending: '已创建代码 · 等待首次上传',
+      notConfigured: '尚未配置集成',
+      create: '创建并复制代码',
       newCode: '创建新代码',
-      codeCopied: '代码已复制',
-      step2: '2. 安装集成',
-      step2Text: '打开 RV 官方快捷指令并添加到 iPhone。',
-      install: '安装到 iPhone',
-      pasteHint: '提示时粘贴 RV 刚刚复制的代码。',
-      step3: '3. 发送数据',
-      step3Text: '安装完成后，使用此按钮发送数据。',
-      sync: '立即更新数据',
-      ready: '快捷指令已可发送',
-      notReady: '尚未完成设置',
-      yourCode: '连接代码',
-      copyCode: '复制代码',
+      copied: '代码已复制',
+      install: '安装 RV 快捷指令',
+      syncTest: '测试上传',
+      disconnect: '断开连接',
+      key: '连接代码',
       advanced: '高级',
-      advancedText: '技术信息和断开连接选项。',
-      revoke: '断开 Apple 健康',
+      flow: '推荐自动流程',
+      flow1: '训练开始',
+      flow1Text: 'iPhone 询问计划时长并创建 RV 会话。',
+      flow2: '训练期间',
+      flow2Text: 'Watch 持续测量，快捷指令尝试分批发送。',
+      flow3: '训练结束',
+      flow3Text: '快捷指令核对完整时段、包含恢复数据并关闭会话。',
+      flow4: 'RV 历史',
+      flow4Text: 'RV 按会话计算最低、平均、最高及其他指标。',
+      activeBadge: '实时',
+      completed: '已完成',
+      cancelled: '已取消',
+      minutes: '分钟',
+      integrationNote: '开始/结束自动化将使用同一个 RV 快捷指令。数据库与界面已就绪。',
     },
     de: {
-      title: 'Apple Health verbinden',
-      text: 'Einmal einrichten. Danach sendet der RV-Kurzbefehl freigegebene Apple-Health-Daten an RV.',
-      once: 'Nur einmal erforderlich',
-      step1: '1. Code erstellen',
-      step1Text: 'RV erstellt deinen persönlichen Code und kopiert ihn automatisch.',
-      createCode: 'Code erstellen und kopieren',
+      eyebrow: 'TRAININGSÜBERWACHUNG',
+      title: 'Apple-Watch-Trainings',
+      subtitle: 'Die Watch misst kontinuierlich. RV gruppiert Messwerte pro Training und berechnet Verlauf und Mittelwerte.',
+      active: 'Training läuft',
+      noneActive: 'Kein Training aktiv',
+      noneActiveText: 'Wenn ein Watch-Training startet, kann die iPhone-Automation eine RV-Sitzung öffnen.',
+      started: 'Gestartet',
+      planned: 'Geplant',
+      elapsed: 'Vergangen',
+      lastUpdate: 'Letztes Update',
+      waiting: 'Warte auf Daten',
+      update: 'Daten jetzt aktualisieren',
+      liveHint: 'Neue Datenblöcke erscheinen automatisch; am Ende wird die Sitzung vollständig geprüft.',
+      bpmRange: 'BPM-Bereich',
+      average: 'Mittel',
+      minimum: 'Minimum',
+      maximum: 'Maximum',
+      calories: 'Aktive Kalorien',
+      steps: 'Schritte',
+      distance: 'Distanz',
+      hrv: 'HRV',
+      respiratory: 'Atmung',
+      oxygen: 'Sauerstoff',
+      recovery: 'Erholung',
+      recoveryText: 'Abfall nach Ende',
+      history: 'Trainingsverlauf',
+      historyText: 'Jedes Training wird nach Datum und Uhrzeit getrennt gespeichert.',
+      noHistory: 'Noch keine Trainingssitzungen.',
+      open: 'Training ansehen',
+      duration: 'Dauer',
+      samples: 'Messwerte',
+      detail: 'Sitzungsübersicht',
+      chart: 'Herzfrequenz während des Trainings',
+      chartEmpty: 'Das Diagramm erscheint ab zwei BPM-Messungen.',
+      noMetric: 'Keine Daten',
+      setup: 'Apple Health verbinden',
+      setupText: 'Die Verbindung nutzt Apple Health + Kurzbefehle. RV koppelt die Watch nicht direkt.',
+      configured: 'Integration geprüft',
+      configuredPending: 'Code erstellt · wartet auf ersten Upload',
+      notConfigured: 'Integration nicht eingerichtet',
+      create: 'Code erstellen und kopieren',
       newCode: 'Neuen Code erstellen',
-      codeCopied: 'Code kopiert',
-      step2: '2. Integration installieren',
-      step2Text: 'Öffne den offiziellen RV-Kurzbefehl und füge ihn dem iPhone hinzu.',
-      install: 'Auf iPhone installieren',
-      pasteHint: 'Wenn gefragt, füge den von RV kopierten Code ein.',
-      step3: '3. Daten senden',
-      step3Text: 'Nach der Installation sendest du hier deine Daten.',
-      sync: 'Daten jetzt aktualisieren',
-      ready: 'Kurzbefehl bereit zum Senden',
-      notReady: 'Einrichtung noch nicht abgeschlossen',
-      yourCode: 'Verbindungscode',
-      copyCode: 'Code kopieren',
+      copied: 'Code kopiert',
+      install: 'RV-Kurzbefehl installieren',
+      syncTest: 'Upload testen',
+      disconnect: 'Trennen',
+      key: 'Verbindungscode',
       advanced: 'Erweitert',
-      advancedText: 'Technische Informationen und Trennen-Option.',
-      revoke: 'Apple Health trennen',
+      flow: 'Empfohlener automatischer Ablauf',
+      flow1: 'Training startet',
+      flow1Text: 'Das iPhone fragt die geplante Dauer und öffnet eine Sitzung.',
+      flow2: 'Während des Trainings',
+      flow2Text: 'Die Watch misst weiter und der Kurzbefehl versucht Block-Uploads.',
+      flow3: 'Training endet',
+      flow3Text: 'Der Kurzbefehl prüft den gesamten Zeitraum, Erholung inklusive, und schließt die Sitzung.',
+      flow4: 'RV-Verlauf',
+      flow4Text: 'RV berechnet Minimum, Mittelwert, Maximum und weitere Metriken pro Sitzung.',
+      activeBadge: 'LIVE',
+      completed: 'Abgeschlossen',
+      cancelled: 'Abgebrochen',
+      minutes: 'Min',
+      integrationNote: 'Start-/End-Automation nutzt denselben RV-Kurzbefehl. Datenbank und UI sind bereit.',
     },
   } as const
 
-  const s = simple[language]
-  const tokenStorageKey = `rv_health_setup_token_${studentId}`
-  const verified = Boolean(status.last_used_at)
-
-  function acceptStatus(nextStatus: Status) {
-    setStatus(nextStatus)
-
-    if (nextStatus.last_used_at) {
-      setToken('')
-      try {
-        window.localStorage.removeItem(tokenStorageKey)
-      } catch {
-        // Storage pode estar indisponivel em modos privados/restritos.
-      }
-    }
-  }
+  const t = text[language]
+  const storageKey = `rv_health_setup_token_${studentId}`
 
   async function load() {
-    setLoading(true)
-    const [a, b, c] = await Promise.all([
+    const [sessionsResult, samplesResult, statusResult] = await Promise.all([
+      supabase
+        .from('workout_sessions')
+        .select(
+          'id,student_id,source,workout_type,planned_duration_minutes,started_at,ended_at,status,last_synced_at,created_at,updated_at',
+        )
+        .eq('student_id', studentId)
+        .order('started_at', { ascending: false })
+        .limit(24),
       supabase
         .from('health_samples')
-        .select('id,source,metric,value,unit,measured_at,received_at')
+        .select(
+          'id,student_id,workout_session_id,source,metric,value,unit,measured_at,received_at',
+        )
         .eq('student_id', studentId)
+        .not('workout_session_id', 'is', null)
         .order('measured_at', { ascending: false })
-        .limit(30),
-      supabase
-        .from('blood_pressure_readings')
-        .select('id,systolic,diastolic,pulse,source,measured_at,created_at')
-        .eq('student_id', studentId)
-        .order('measured_at', { ascending: false })
-        .limit(20),
+        .limit(3500),
       supabase.rpc('get_own_health_ingest_status'),
     ])
 
-    if (!a.error) setSamples((a.data as Sample[]) ?? [])
-    if (!b.error) setPressures((b.data as Pressure[]) ?? [])
-    if (!c.error && c.data) acceptStatus(c.data as Status)
+    if (!sessionsResult.error) {
+      setSessions((sessionsResult.data as WorkoutSession[]) ?? [])
+    }
+    if (!samplesResult.error) {
+      setSamples((samplesResult.data as Sample[]) ?? [])
+    }
+    if (!statusResult.error && statusResult.data) {
+      const next = statusResult.data as IngestStatus
+      setStatus(next)
+      if (next.last_used_at) {
+        setToken('')
+        try {
+          window.localStorage.removeItem(storageKey)
+        } catch {
+          // Storage pode estar indisponível.
+        }
+      }
+    }
+
     setLoading(false)
   }
 
   useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(storageKey)
+      if (saved) setToken(saved)
+    } catch {
+      // Mantém o fluxo sem armazenamento local.
+    }
+
     void load()
 
     const channel = supabase
-      .channel(`rv-health-${studentId}`)
+      .channel(`rv-workout-sessions-${studentId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'workout_sessions',
+          filter: `student_id=eq.${studentId}`,
+        },
+        (payload) => {
+          const next = payload.new as WorkoutSession
+          if (!next?.id) return
+          setSessions((current) => {
+            const merged = [next, ...current.filter((item) => item.id !== next.id)]
+            return merged
+              .sort(
+                (a, b) =>
+                  new Date(b.started_at).getTime() -
+                  new Date(a.started_at).getTime(),
+              )
+              .slice(0, 24)
+          })
+        },
+      )
       .on(
         'postgres_changes',
         {
@@ -465,512 +579,654 @@ export default function StudentHealthData({
           filter: `student_id=eq.${studentId}`,
         },
         (payload) => {
-          const row = payload.new as Sample
+          const next = payload.new as Sample
+          if (!next?.id || !next.workout_session_id) return
           setSamples((current) =>
-            [row, ...current.filter((item) => item.id !== row.id)].slice(0, 30),
-          )
-          void refreshStatus()
-        },
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'blood_pressure_readings',
-          filter: `student_id=eq.${studentId}`,
-        },
-        (payload) => {
-          const row = payload.new as Pressure
-          setPressures((current) =>
-            [row, ...current.filter((item) => item.id !== row.id)].slice(0, 20),
+            [next, ...current.filter((item) => item.id !== next.id)].slice(
+              0,
+              3500,
+            ),
           )
         },
       )
       .subscribe()
 
+    const visible = () => {
+      if (document.visibilityState === 'visible') void load()
+    }
+
+    document.addEventListener('visibilitychange', visible)
+    window.addEventListener('pageshow', visible)
+
     return () => {
+      document.removeEventListener('visibilitychange', visible)
+      window.removeEventListener('pageshow', visible)
       void supabase.removeChannel(channel)
     }
   }, [studentId])
 
   useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(tokenStorageKey) || ''
-      if (stored) setToken(stored)
-    } catch {
-      // Mantem o fluxo funcional mesmo sem localStorage.
-    }
+    const timer = window.setInterval(() => setTick((value) => value + 1), 1000)
+    return () => window.clearInterval(timer)
+  }, [])
 
-    const refreshWhenVisible = () => {
-      if (document.visibilityState === 'visible') void load()
-    }
-    const refreshOnPageShow = () => {
-      void load()
-    }
+  useEffect(() => {
+    if (selectedId && sessions.some((item) => item.id === selectedId)) return
+    const preferred =
+      sessions.find((item) => item.status === 'active') ??
+      sessions.find((item) => item.status === 'completed') ??
+      sessions[0]
+    setSelectedId(preferred?.id ?? null)
+  }, [sessions, selectedId])
 
-    document.addEventListener('visibilitychange', refreshWhenVisible)
-    window.addEventListener('pageshow', refreshOnPageShow)
+  const activeSession =
+    sessions.find((item) => item.status === 'active') ?? null
 
-    return () => {
-      document.removeEventListener('visibilitychange', refreshWhenVisible)
-      window.removeEventListener('pageshow', refreshOnPageShow)
+  const selectedSession =
+    sessions.find((item) => item.id === selectedId) ?? null
+
+  const samplesBySession = useMemo(() => {
+    const map = new Map<string, Sample[]>()
+    for (const sample of samples) {
+      if (!sample.workout_session_id) continue
+      const list = map.get(sample.workout_session_id) ?? []
+      list.push(sample)
+      map.set(sample.workout_session_id, list)
     }
-  }, [studentId])
+    return map
+  }, [samples])
 
-  async function refreshStatus() {
-    const { data, error } = await supabase.rpc('get_own_health_ingest_status')
-    if (!error && data) acceptStatus(data as Status)
+  function sessionSamples(session: WorkoutSession | null) {
+    if (!session) return []
+    return samplesBySession.get(session.id) ?? []
   }
 
-  const heart = useMemo(
-    () => samples.find((item) => item.metric === 'heart_rate') ?? null,
-    [samples],
-  )
+  function workoutHeartSamples(session: WorkoutSession | null) {
+    const rows = sessionSamples(session).filter(
+      (item) => item.metric === 'heart_rate',
+    )
+    if (!session?.ended_at) return rows
 
-  const pressure = pressures[0] ?? null
+    const end = new Date(session.ended_at).getTime()
+    return rows.filter((item) => new Date(item.measured_at).getTime() <= end)
+  }
 
-  const latest = useMemo(() => {
-    const values = [
-      status.last_used_at,
-      samples[0]?.received_at,
-      pressures[0]?.created_at,
-    ]
-      .filter(Boolean)
-      .map((value) => new Date(String(value)).getTime())
-      .filter(Number.isFinite)
+  function recoverySamples(session: WorkoutSession | null) {
+    if (!session?.ended_at) return []
+    const end = new Date(session.ended_at).getTime()
+    return sessionSamples(session)
+      .filter(
+        (item) =>
+          item.metric === 'heart_rate' &&
+          new Date(item.measured_at).getTime() > end &&
+          new Date(item.measured_at).getTime() <= end + 3 * 60 * 1000,
+      )
+      .sort(
+        (a, b) =>
+          new Date(a.measured_at).getTime() -
+          new Date(b.measured_at).getTime(),
+      )
+  }
 
-    return values.length ? new Date(Math.max(...values)) : null
-  }, [status, samples, pressures])
-
-  function date(value: string | Date) {
+  function fmtDate(value: string) {
     return new Intl.DateTimeFormat(locale, {
       dateStyle: 'short',
       timeStyle: 'short',
-    }).format(value instanceof Date ? value : new Date(value))
+    }).format(new Date(value))
+  }
+
+  function sessionTitle(session: WorkoutSession) {
+    const date = new Intl.DateTimeFormat(locale, {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(session.started_at))
+
+    return `${t.detail} · ${date}`
+  }
+
+  function workoutName(value: string) {
+    return value
+      .replaceAll('_', ' ')
+      .replace(/\b\w/g, (letter) => letter.toUpperCase())
+  }
+
+  function duration(session: WorkoutSession, live = false) {
+    const start = new Date(session.started_at).getTime()
+    const end = session.ended_at
+      ? new Date(session.ended_at).getTime()
+      : live
+        ? Date.now()
+        : start
+    const totalSeconds = Math.max(0, Math.round((end - start) / 1000))
+    const hours = Math.floor(totalSeconds / 3600)
+    const minutes = Math.floor((totalSeconds % 3600) / 60)
+    const seconds = totalSeconds % 60
+
+    if (hours > 0) {
+      return `${hours}:${String(minutes).padStart(2, '0')}:${String(
+        seconds,
+      ).padStart(2, '0')}`
+    }
+
+    return `${minutes}:${String(seconds).padStart(2, '0')}`
+  }
+
+  function metricValue(
+    session: WorkoutSession,
+    metric: string,
+    mode: 'avg' | 'sum' = 'avg',
+    digits = 0,
+  ) {
+    const stats = statsFor(sessionSamples(session), metric)
+    if (!stats) return t.noMetric
+    const value = mode === 'sum' ? stats.sum : stats.avg
+    return `${value.toFixed(digits)} ${stats.unit}`
   }
 
   async function rotate() {
     setBusy(true)
-    setToken('')
     const { data, error } = await supabase.rpc(
       'rotate_own_health_ingest_token',
       { p_label: 'iPhone / Atalhos' },
     )
 
     if (!error && data) {
-      const result = data as { token?: string }
-      const nextToken = result.token || ''
-      setToken(nextToken)
+      const next = String((data as { token?: string }).token || '')
+      setToken(next)
       setStatus({ configured: true, last_used_at: null })
 
-      if (nextToken) {
+      if (next) {
         try {
-          window.localStorage.setItem(tokenStorageKey, nextToken)
+          window.localStorage.setItem(storageKey, next)
         } catch {
-          // O codigo continua visivel/copiavel mesmo sem persistencia local.
+          // Código continua disponível na tela.
         }
 
         try {
-          await navigator.clipboard.writeText(nextToken)
-          setCopied('key')
-          window.setTimeout(() => setCopied(''), 2200)
+          await navigator.clipboard.writeText(next)
+          setCopied(true)
+          window.setTimeout(() => setCopied(false), 1800)
         } catch {
-          // O botao de copiar continua disponivel como fallback.
+          // Botão copiar continua disponível.
         }
       }
     }
 
     setBusy(false)
+  }
+
+  async function copyToken() {
+    if (!token) return
+    await navigator.clipboard.writeText(token)
+    setCopied(true)
+    window.setTimeout(() => setCopied(false), 1800)
   }
 
   async function revoke() {
     setBusy(true)
     const { error } = await supabase.rpc('revoke_own_health_ingest_token')
+
     if (!error) {
       setStatus({ configured: false })
       setToken('')
       try {
-        window.localStorage.removeItem(tokenStorageKey)
+        window.localStorage.removeItem(storageKey)
       } catch {
         // Nada a fazer.
       }
     }
-    setBusy(false)
-  }
-
-  async function copy(id: string, value: string) {
-    await navigator.clipboard.writeText(value)
-    setCopied(id)
-    window.setTimeout(() => setCopied(''), 1500)
-  }
-
-  async function savePressure(event: FormEvent) {
-    event.preventDefault()
-    setMessage('')
-
-    const a = Number(sys)
-    const b = Number(dia)
-    const c = pulse ? Number(pulse) : null
-
-    if (
-      !Number.isFinite(a) ||
-      !Number.isFinite(b) ||
-      a < 40 ||
-      a > 350 ||
-      b < 20 ||
-      b > 250 ||
-      (c !== null && (!Number.isFinite(c) || c < 20 || c > 300))
-    ) {
-      setMessage(t.invalid)
-      return
-    }
-
-    setBusy(true)
-
-    const { error } = await supabase
-      .from('blood_pressure_readings')
-      .insert({
-        student_id: studentId,
-        systolic: Math.round(a),
-        diastolic: Math.round(b),
-        pulse: c === null ? null : Math.round(c),
-        source: 'omron_hem_6221',
-        measured_at: new Date().toISOString(),
-      })
-
-    if (error) {
-      setMessage(error.message)
-    } else {
-      setSys('')
-      setDia('')
-      setPulse('')
-      setMessage(t.saved)
-    }
 
     setBusy(false)
   }
+
+  const activeSamples = sessionSamples(activeSession)
+  const activeHeart = statsFor(workoutHeartSamples(activeSession), 'heart_rate')
+  const selectedSamples = sessionSamples(selectedSession)
+  const selectedHeart = statsFor(
+    workoutHeartSamples(selectedSession),
+    'heart_rate',
+  )
+  const recovery = recoverySamples(selectedSession)
+  const recoveryDrop =
+    recovery.length >= 2
+      ? Math.round(Number(recovery[0].value) - Number(recovery.at(-1)?.value))
+      : null
 
   return (
-    <section className="rvHealthModule" data-rv-health-module="v18">
-      <div className="rvHealthModuleHead">
+    <section className="rvWorkoutModule" data-rv-workout-module="v19">
+      <header className="rvWorkoutModuleHead">
         <div>
-          <span>RV HEALTH</span>
+          <span>{t.eyebrow}</span>
           <h2>{t.title}</h2>
           <p>{t.subtitle}</p>
         </div>
-        <HeartPulse size={23} />
-      </div>
+        <Watch size={24} />
+      </header>
 
-      <div className="rvHealthQuickGrid">
-        <article>
-          <HeartPulse size={18} />
-          <span>{t.heart}</span>
+      <section
+        className={`rvWorkoutLiveCard ${activeSession ? 'is-active' : ''}`}
+      >
+        <div className="rvWorkoutLiveTop">
+          <div>
+            <span className="rvWorkoutLiveBadge">
+              {activeSession ? t.activeBadge : 'APPLE HEALTH'}
+            </span>
+            <h3>{activeSession ? t.active : t.noneActive}</h3>
+            <p>
+              {activeSession
+                ? `${workoutName(activeSession.workout_type)} · ${t.started} ${fmtDate(
+                    activeSession.started_at,
+                  )}`
+                : t.noneActiveText}
+            </p>
+          </div>
+          {activeSession ? <Activity size={23} /> : <TimerReset size={23} />}
+        </div>
+
+        {activeSession ? (
+          <>
+            <div className="rvWorkoutLiveStats">
+              <article>
+                <Clock3 size={16} />
+                <span>{t.elapsed}</span>
+                <strong>{duration(activeSession, true)}</strong>
+              </article>
+              <article>
+                <TimerReset size={16} />
+                <span>{t.planned}</span>
+                <strong>
+                  {activeSession.planned_duration_minutes
+                    ? `${activeSession.planned_duration_minutes} ${t.minutes}`
+                    : '—'}
+                </strong>
+              </article>
+              <article>
+                <HeartPulse size={16} />
+                <span>{t.bpmRange}</span>
+                <strong>
+                  {activeHeart
+                    ? `${Math.round(activeHeart.min)}–${Math.round(
+                        activeHeart.max,
+                      )} bpm`
+                    : t.waiting}
+                </strong>
+              </article>
+              <article>
+                <RefreshCw size={16} />
+                <span>{t.lastUpdate}</span>
+                <strong>
+                  {activeSession.last_synced_at
+                    ? fmtDate(activeSession.last_synced_at)
+                    : t.waiting}
+                </strong>
+              </article>
+            </div>
+
+            <div className="rvWorkoutLiveChart">
+              <Sparkline samples={activeSamples} empty={t.chartEmpty} />
+            </div>
+
+            <div className="rvWorkoutLiveActions">
+              <a
+                className="rvWorkoutPrimary"
+                href={SHORTCUT_SYNC}
+                aria-label={t.update}
+              >
+                <RefreshCw size={16} />
+                {t.update}
+              </a>
+              <small>{t.liveHint}</small>
+            </div>
+          </>
+        ) : (
+          <div className="rvWorkoutNoActiveFlow">
+            <div>
+              <Watch size={18} />
+              <span>{t.flow1}</span>
+            </div>
+            <div>
+              <HeartPulse size={18} />
+              <span>{t.flow2}</span>
+            </div>
+            <div>
+              <Check size={18} />
+              <span>{t.flow3}</span>
+            </div>
+          </div>
+        )}
+      </section>
+
+      <section className="rvWorkoutSetupCard">
+        <div className="rvWorkoutSectionHead">
+          <div>
+            <span>APPLE HEALTH + SHORTCUTS</span>
+            <h3>{t.setup}</h3>
+          </div>
+          <KeyRound size={19} />
+        </div>
+
+        <p>{t.setupText}</p>
+
+        <div className="rvWorkoutSetupStatus">
+          <span
+            className={
+              status.last_used_at
+                ? 'ok'
+                : status.configured
+                  ? 'pending'
+                  : ''
+            }
+          />
           <strong>
-            {heart
-              ? `${Math.round(heart.value)} ${heart.unit}`
-              : t.noHeart}
-          </strong>
-          <small>
-            {heart ? `${t.sourceWatch} · ${date(heart.measured_at)}` : t.sourceWatch}
-          </small>
-        </article>
-
-        <article>
-          <Gauge size={18} />
-          <span>{t.pressure}</span>
-          <strong>
-            {pressure
-              ? `${pressure.systolic} / ${pressure.diastolic} mmHg`
-              : t.noPressure}
-          </strong>
-          <small>
-            {pressure
-              ? `${pressure.pulse ? `${t.pulse} ${pressure.pulse} · ` : ''}${date(
-                  pressure.measured_at,
-                )}`
-              : t.sourceOmron}
-          </small>
-        </article>
-
-        <article>
-          <RefreshCw size={18} />
-          <span>{t.lastSync}</span>
-          <strong>{latest ? date(latest) : t.never}</strong>
-          <small>
-            {verified
+            {status.last_used_at
               ? t.configured
               : status.configured
-                ? s.ready
+                ? t.configuredPending
                 : t.notConfigured}
-          </small>
-        </article>
-      </div>
+          </strong>
+        </div>
 
-      <div className="rvHealthTwoColumns">
-        <section className="rvHealthBox rvHealthSimpleSetup">
-          <div className="rvHealthBoxHead">
-            <div>
-              <span>APPLE HEALTH</span>
-              <h3>{s.title}</h3>
-            </div>
-            <KeyRound size={19} />
-          </div>
+        <div className="rvWorkoutSetupActions">
+          <button
+            type="button"
+            className="rvWorkoutPrimary"
+            onClick={() => void rotate()}
+            disabled={busy}
+          >
+            <KeyRound size={15} />
+            {token ? t.copied : status.configured ? t.newCode : t.create}
+          </button>
 
-          <p>{s.text}</p>
+          <a
+            className="rvWorkoutSecondary"
+            href={OFFICIAL_SHORTCUT}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Watch size={15} />
+            {t.install}
+          </a>
 
-          <div className="rvHealthOnceNote">
-            <Check size={15} />
-            {s.once}
-          </div>
-
-          <div className="rvHealthSimpleSteps">
-            <article className={status.configured ? 'done' : ''}>
-              <span className="rvHealthStepNumber">1</span>
-              <div>
-                <strong>{s.step1}</strong>
-                <p>{s.step1Text}</p>
-
-                <button
-                  type="button"
-                  className="rvHealthSimplePrimary"
-                  onClick={() => void rotate()}
-                  disabled={busy}
-                >
-                  <KeyRound size={15} />
-                  {token
-                    ? s.codeCopied
-                    : status.configured
-                      ? s.newCode
-                      : s.createCode}
-                </button>
-              </div>
-            </article>
-
-            <article>
-              <span className="rvHealthStepNumber">2</span>
-              <div>
-                <strong>{s.step2}</strong>
-                <p>{s.step2Text}</p>
-
-                <a
-                  className="rvHealthSimplePrimary"
-                  href={OFFICIAL_SHORTCUT}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {s.install}
-                </a>
-
-                <small>{s.pasteHint}</small>
-              </div>
-            </article>
-
-            <article className={verified ? 'done' : ''}>
-              <span className="rvHealthStepNumber">3</span>
-              <div>
-                <strong>{s.step3}</strong>
-                <p>{s.step3Text}</p>
-
-                <a
-                  className={
-                    status.configured
-                      ? 'rvHealthSimplePrimary'
-                      : 'rvHealthSimplePrimary disabled'
-                  }
-                  href={status.configured ? SHORTCUT : undefined}
-                  aria-disabled={!status.configured}
-                >
-                  <RefreshCw size={15} />
-                  {s.sync}
-                </a>
-
-                <small>
-                  {verified
-                    ? t.configured
-                    : status.configured
-                      ? s.ready
-                      : s.notReady}
-                </small>
-              </div>
-            </article>
-          </div>
-
-          {token && (
-            <div className="rvHealthSimpleCode">
-              <div>
-                <small>{s.yourCode}</small>
-                <code>{token}</code>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => void copy('key', token)}
-              >
-                {copied === 'key' ? (
-                  <Check size={14} />
-                ) : (
-                  <Copy size={14} />
-                )}
-                {copied === 'key'
-                  ? t.copied
-                  : s.copyCode}
-              </button>
-            </div>
+          {status.configured && (
+            <a className="rvWorkoutSecondary" href={SHORTCUT_SYNC}>
+              <RefreshCw size={15} />
+              {t.syncTest}
+            </a>
           )}
+        </div>
 
-          <details className="rvHealthSetup rvHealthAdvanced">
-            <summary>{s.advanced}</summary>
-            <p>{s.advancedText}</p>
-
-            <div className="rvHealthAdvancedRow">
-              <small>{t.endpoint}</small>
-              <code>{ENDPOINT}</code>
-            </div>
-
-            <div className="rvHealthAdvancedRow">
-              <small>Header</small>
-              <code>X-RV-Health-Key</code>
-            </div>
-
-            {status.configured && (
-              <button
-                type="button"
-                className="rvHealthDisconnect"
-                onClick={() => void revoke()}
-                disabled={busy}
-              >
-                {s.revoke}
-              </button>
-            )}
-          </details>
-        </section>
-
-        <section className="rvHealthBox">
-          <div className="rvHealthBoxHead">
+        {token && (
+          <div className="rvWorkoutToken">
             <div>
-              <span>OMRON HEM-6221</span>
-              <h3>{t.omron}</h3>
+              <small>{t.key}</small>
+              <code>{token}</code>
             </div>
-            <Gauge size={19} />
-          </div>
-
-          <p>{t.omronText}</p>
-
-          <form className="rvPressureMiniForm" onSubmit={savePressure}>
-            <label>
-              <span>{t.systolic}</span>
-              <input
-                type="number"
-                inputMode="numeric"
-                value={sys}
-                onChange={(event) => setSys(event.target.value)}
-                placeholder="120"
-                required
-              />
-            </label>
-
-            <label>
-              <span>{t.diastolic}</span>
-              <input
-                type="number"
-                inputMode="numeric"
-                value={dia}
-                onChange={(event) => setDia(event.target.value)}
-                placeholder="80"
-                required
-              />
-            </label>
-
-            <label>
-              <span>{t.pulse}</span>
-              <input
-                type="number"
-                inputMode="numeric"
-                value={pulse}
-                onChange={(event) => setPulse(event.target.value)}
-                placeholder="72"
-              />
-            </label>
-
-            <button disabled={busy}>
-              <Gauge size={15} />
-              {busy ? t.saving : t.save}
+            <button type="button" onClick={() => void copyToken()}>
+              {copied ? <Check size={14} /> : <Copy size={14} />}
+              {copied ? t.copied : t.key}
             </button>
-          </form>
-
-          {message && (
-            <div className="rvHealthMessage" role="status">
-              {message}
-            </div>
-          )}
-        </section>
-      </div>
-
-      <div className="rvHealthTwoColumns">
-        <section className="rvHealthBox">
-          <div className="rvHealthBoxHead">
-            <div>
-              <span>APPLE HEALTH</span>
-              <h3>{t.recent}</h3>
-            </div>
-            <Database size={19} />
           </div>
+        )}
 
-          {loading ? (
-            <div className="rvHealthEmpty">
-              <RefreshCw className="rvHealthSpin" size={18} />
-            </div>
-          ) : samples.length === 0 ? (
-            <div className="rvHealthEmpty">{t.empty}</div>
-          ) : (
-            <div className="rvHealthList">
-              {samples.slice(0, 8).map((item) => (
-                <article key={item.id}>
-                  <span>
-                    <strong>{item.metric.replaceAll('_', ' ')}</strong>
-                    <small>{date(item.measured_at)}</small>
-                  </span>
-                  <b>
-                    {Number.isInteger(item.value)
-                      ? item.value
-                      : item.value.toFixed(1)}{' '}
-                    {item.unit}
-                  </b>
-                </article>
-              ))}
-            </div>
+        <details className="rvWorkoutAdvanced">
+          <summary>{t.advanced}</summary>
+          <code>{ENDPOINT}</code>
+          <code>X-RV-Health-Key</code>
+          {status.configured && (
+            <button type="button" onClick={() => void revoke()} disabled={busy}>
+              {t.disconnect}
+            </button>
           )}
-        </section>
+        </details>
+      </section>
 
-        <section className="rvHealthBox">
-          <div className="rvHealthBoxHead">
-            <div>
-              <span>OMRON</span>
-              <h3>{t.history}</h3>
-            </div>
-            <Database size={19} />
+      <section className="rvWorkoutFlowCard">
+        <div className="rvWorkoutSectionHead">
+          <div>
+            <span>AUTOMAÇÃO</span>
+            <h3>{t.flow}</h3>
           </div>
+          <ShieldCheck size={19} />
+        </div>
 
-          {pressures.length === 0 ? (
-            <div className="rvHealthEmpty">{t.pressureEmpty}</div>
-          ) : (
-            <div className="rvHealthList">
-              {pressures.slice(0, 8).map((item) => (
-                <article key={item.id}>
-                  <span>
+        <div className="rvWorkoutFlowGrid">
+          <article>
+            <span>1</span>
+            <strong>{t.flow1}</strong>
+            <p>{t.flow1Text}</p>
+          </article>
+          <article>
+            <span>2</span>
+            <strong>{t.flow2}</strong>
+            <p>{t.flow2Text}</p>
+          </article>
+          <article>
+            <span>3</span>
+            <strong>{t.flow3}</strong>
+            <p>{t.flow3Text}</p>
+          </article>
+          <article>
+            <span>4</span>
+            <strong>{t.flow4}</strong>
+            <p>{t.flow4Text}</p>
+          </article>
+        </div>
+
+        <small className="rvWorkoutIntegrationNote">{t.integrationNote}</small>
+      </section>
+
+      <section className="rvWorkoutHistory">
+        <div className="rvWorkoutSectionHead">
+          <div>
+            <span>HISTÓRICO</span>
+            <h3>{t.history}</h3>
+          </div>
+          <Route size={19} />
+        </div>
+        <p>{t.historyText}</p>
+
+        {loading ? (
+          <div className="rvWorkoutEmpty">{t.waiting}</div>
+        ) : sessions.length === 0 ? (
+          <div className="rvWorkoutEmpty">{t.noHistory}</div>
+        ) : (
+          <div className="rvWorkoutHistoryGrid">
+            <div className="rvWorkoutHistoryList">
+              {sessions.map((session) => {
+                const rows = sessionSamples(session)
+                const heart = statsFor(workoutHeartSamples(session), 'heart_rate')
+                const energy = statsFor(rows, 'active_energy')
+                const distance = statsFor(rows, 'distance')
+                const steps = statsFor(rows, 'steps')
+
+                return (
+                  <button
+                    type="button"
+                    key={session.id}
+                    className={`rvWorkoutHistoryItem ${
+                      selectedId === session.id ? 'selected' : ''
+                    }`}
+                    onClick={() => setSelectedId(session.id)}
+                  >
+                    <div className="rvWorkoutHistoryItemTop">
+                      <div>
+                        <span>{fmtDate(session.started_at)}</span>
+                        <strong>{workoutName(session.workout_type)}</strong>
+                      </div>
+                      <small className={`status-${session.status}`}>
+                        {session.status === 'active'
+                          ? t.activeBadge
+                          : session.status === 'completed'
+                            ? t.completed
+                            : t.cancelled}
+                      </small>
+                    </div>
+
+                    <div className="rvWorkoutHistoryNumbers">
+                      <span>
+                        <Clock3 size={13} />
+                        {duration(session, session.status === 'active')}
+                      </span>
+                      <span>
+                        <HeartPulse size={13} />
+                        {heart
+                          ? `${Math.round(heart.min)}–${Math.round(
+                              heart.max,
+                            )} · Ø ${Math.round(heart.avg)}`
+                          : '—'}
+                      </span>
+                      {energy && (
+                        <span>
+                          <Flame size={13} />
+                          {Math.round(energy.sum)} {energy.unit}
+                        </span>
+                      )}
+                      {steps && (
+                        <span>
+                          <Footprints size={13} />
+                          {Math.round(steps.sum)}
+                        </span>
+                      )}
+                      {distance && (
+                        <span>
+                          <Route size={13} />
+                          {distance.sum.toFixed(2)} {distance.unit}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+
+            {selectedSession && (
+              <article className="rvWorkoutSessionDetail">
+                <div className="rvWorkoutSessionDetailHead">
+                  <div>
+                    <span>
+                      {selectedSession.status === 'active'
+                        ? t.activeBadge
+                        : t.completed}
+                    </span>
+                    <h4>{sessionTitle(selectedSession)}</h4>
+                    <p>{workoutName(selectedSession.workout_type)}</p>
+                  </div>
+                  <Activity size={20} />
+                </div>
+
+                <div className="rvWorkoutMetricGrid">
+                  <article>
+                    <HeartPulse size={16} />
+                    <span>{t.bpmRange}</span>
                     <strong>
-                      {item.systolic} / {item.diastolic} mmHg
+                      {selectedHeart
+                        ? `${Math.round(selectedHeart.min)}–${Math.round(
+                            selectedHeart.max,
+                          )} bpm`
+                        : t.noMetric}
                     </strong>
-                    <small>{date(item.measured_at)}</small>
-                  </span>
-                  <b>{item.pulse ? `${item.pulse} bpm` : '—'}</b>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
-      </div>
+                    <small>
+                      {selectedHeart
+                        ? `${t.average}: ${Math.round(selectedHeart.avg)} bpm`
+                        : ''}
+                    </small>
+                  </article>
+
+                  <article>
+                    <Flame size={16} />
+                    <span>{t.calories}</span>
+                    <strong>
+                      {metricValue(selectedSession, 'active_energy', 'sum', 0)}
+                    </strong>
+                  </article>
+
+                  <article>
+                    <Footprints size={16} />
+                    <span>{t.steps}</span>
+                    <strong>
+                      {metricValue(selectedSession, 'steps', 'sum', 0)}
+                    </strong>
+                  </article>
+
+                  <article>
+                    <Route size={16} />
+                    <span>{t.distance}</span>
+                    <strong>
+                      {metricValue(selectedSession, 'distance', 'sum', 2)}
+                    </strong>
+                  </article>
+
+                  <article>
+                    <Activity size={16} />
+                    <span>{t.hrv}</span>
+                    <strong>
+                      {metricValue(
+                        selectedSession,
+                        'heart_rate_variability',
+                        'avg',
+                        0,
+                      )}
+                    </strong>
+                  </article>
+
+                  <article>
+                    <Activity size={16} />
+                    <span>{t.respiratory}</span>
+                    <strong>
+                      {metricValue(
+                        selectedSession,
+                        'respiratory_rate',
+                        'avg',
+                        1,
+                      )}
+                    </strong>
+                  </article>
+
+                  <article>
+                    <Activity size={16} />
+                    <span>{t.oxygen}</span>
+                    <strong>
+                      {metricValue(
+                        selectedSession,
+                        'oxygen_saturation',
+                        'avg',
+                        1,
+                      )}
+                    </strong>
+                  </article>
+
+                  <article>
+                    <TimerReset size={16} />
+                    <span>{t.recovery}</span>
+                    <strong>
+                      {recoveryDrop === null
+                        ? t.noMetric
+                        : `${recoveryDrop > 0 ? '−' : '+'}${Math.abs(
+                            recoveryDrop,
+                          )} bpm`}
+                    </strong>
+                    <small>{recoveryDrop === null ? '' : t.recoveryText}</small>
+                  </article>
+                </div>
+
+                <div className="rvWorkoutSessionChart">
+                  <div>
+                    <strong>{t.chart}</strong>
+                    <small>
+                      {selectedHeart
+                        ? `${selectedHeart.count} ${t.samples}`
+                        : t.waiting}
+                    </small>
+                  </div>
+                  <Sparkline samples={selectedSamples} empty={t.chartEmpty} />
+                </div>
+              </article>
+            )}
+          </div>
+        )}
+      </section>
     </section>
   )
 }
