@@ -43,7 +43,7 @@ const SHORTCUT =
   'shortcuts://run-shortcut?name=RV%20-%20Sincronizar%20Sa%C3%BAde'
 
 const OFFICIAL_SHORTCUT =
-  'https://www.icloud.com/shortcuts/f04df007e3334f9fb8437aef6f8acb26'
+  'https://www.icloud.com/shortcuts/7f89138a88834de78d0a256ba0418c5b'
 
 export default function StudentHealthData({
   studentId,
@@ -411,6 +411,21 @@ export default function StudentHealthData({
   } as const
 
   const s = simple[language]
+  const tokenStorageKey = `rv_health_setup_token_${studentId}`
+  const verified = Boolean(status.last_used_at)
+
+  function acceptStatus(nextStatus: Status) {
+    setStatus(nextStatus)
+
+    if (nextStatus.last_used_at) {
+      setToken('')
+      try {
+        window.localStorage.removeItem(tokenStorageKey)
+      } catch {
+        // Storage pode estar indisponivel em modos privados/restritos.
+      }
+    }
+  }
 
   async function load() {
     setLoading(true)
@@ -432,7 +447,7 @@ export default function StudentHealthData({
 
     if (!a.error) setSamples((a.data as Sample[]) ?? [])
     if (!b.error) setPressures((b.data as Pressure[]) ?? [])
-    if (!c.error && c.data) setStatus(c.data as Status)
+    if (!c.error && c.data) acceptStatus(c.data as Status)
     setLoading(false)
   }
 
@@ -479,9 +494,33 @@ export default function StudentHealthData({
     }
   }, [studentId])
 
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(tokenStorageKey) || ''
+      if (stored) setToken(stored)
+    } catch {
+      // Mantem o fluxo funcional mesmo sem localStorage.
+    }
+
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') void load()
+    }
+    const refreshOnPageShow = () => {
+      void load()
+    }
+
+    document.addEventListener('visibilitychange', refreshWhenVisible)
+    window.addEventListener('pageshow', refreshOnPageShow)
+
+    return () => {
+      document.removeEventListener('visibilitychange', refreshWhenVisible)
+      window.removeEventListener('pageshow', refreshOnPageShow)
+    }
+  }, [studentId])
+
   async function refreshStatus() {
     const { data, error } = await supabase.rpc('get_own_health_ingest_status')
-    if (!error && data) setStatus(data as Status)
+    if (!error && data) acceptStatus(data as Status)
   }
 
   const heart = useMemo(
@@ -527,6 +566,12 @@ export default function StudentHealthData({
 
       if (nextToken) {
         try {
+          window.localStorage.setItem(tokenStorageKey, nextToken)
+        } catch {
+          // O codigo continua visivel/copiavel mesmo sem persistencia local.
+        }
+
+        try {
           await navigator.clipboard.writeText(nextToken)
           setCopied('key')
           window.setTimeout(() => setCopied(''), 2200)
@@ -545,6 +590,11 @@ export default function StudentHealthData({
     if (!error) {
       setStatus({ configured: false })
       setToken('')
+      try {
+        window.localStorage.removeItem(tokenStorageKey)
+      } catch {
+        // Nada a fazer.
+      }
     }
     setBusy(false)
   }
@@ -602,7 +652,7 @@ export default function StudentHealthData({
   }
 
   return (
-    <section className="rvHealthModule" data-rv-health-module="v17">
+    <section className="rvHealthModule" data-rv-health-module="v17.2">
       <div className="rvHealthModuleHead">
         <div>
           <span>RV HEALTH</span>
@@ -648,7 +698,11 @@ export default function StudentHealthData({
           <span>{t.lastSync}</span>
           <strong>{latest ? date(latest) : t.never}</strong>
           <small>
-            {status.configured ? t.configured : t.notConfigured}
+            {verified
+              ? t.configured
+              : status.configured
+                ? s.ready
+                : t.notConfigured}
           </small>
         </article>
       </div>
@@ -712,7 +766,7 @@ export default function StudentHealthData({
               </div>
             </article>
 
-            <article className={status.configured ? 'done' : ''}>
+            <article className={verified ? 'done' : ''}>
               <span className="rvHealthStepNumber">3</span>
               <div>
                 <strong>{s.step3}</strong>
@@ -732,9 +786,11 @@ export default function StudentHealthData({
                 </a>
 
                 <small>
-                  {status.configured
-                    ? s.ready
-                    : s.notReady}
+                  {verified
+                    ? t.configured
+                    : status.configured
+                      ? s.ready
+                      : s.notReady}
                 </small>
               </div>
             </article>
