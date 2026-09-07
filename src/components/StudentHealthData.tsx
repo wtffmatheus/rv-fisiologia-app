@@ -1,6 +1,8 @@
 import {
   Activity,
   Check,
+  ChevronDown,
+  ChevronRight,
   Clock3,
   Copy,
   Flame,
@@ -9,9 +11,9 @@ import {
   KeyRound,
   RefreshCw,
   Route,
-  ShieldCheck,
   TimerReset,
   Watch,
+  X,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
@@ -57,14 +59,17 @@ type Stats = {
   unit: string
 }
 
+type ExtraMetric = {
+  key: string
+  label: string
+  value: string
+}
+
 const OFFICIAL_SHORTCUT =
   'https://www.icloud.com/shortcuts/7f89138a88834de78d0a256ba0418c5b'
 
 const SHORTCUT_SYNC =
   'shortcuts://run-shortcut?name=RV%20-%20Sincronizar%20Sa%C3%BAde&input=text&text=sync'
-
-const ENDPOINT =
-  'https://ilnlnkcxajkarwviynbm.supabase.co/functions/v1/health-ingest'
 
 function statsFor(samples: Sample[], metric: string): Stats | null {
   const rows = samples.filter((item) => item.metric === metric)
@@ -100,12 +105,12 @@ function Sparkline({
     )
 
   if (values.length < 2) {
-    return <div className="rvWorkoutChartEmpty">{empty}</div>
+    return <div className="rvWatchSimpleChartEmpty">{empty}</div>
   }
 
   const width = 640
-  const height = 180
-  const padding = 14
+  const height = 170
+  const padding = 12
   const numbers = values.map((item) => Number(item.value))
   const min = Math.min(...numbers)
   const max = Math.max(...numbers)
@@ -120,21 +125,23 @@ function Sparkline({
         height -
         padding -
         ((Number(item.value) - min) / span) * (height - padding * 2)
+
       return `${x.toFixed(1)},${y.toFixed(1)}`
     })
     .join(' ')
 
   return (
-    <div className="rvWorkoutChart">
+    <div className="rvWatchSimpleChart">
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        role="img"
-        aria-label="Heart rate chart"
         preserveAspectRatio="none"
+        role="img"
+        aria-label="Heart rate"
       >
         <polyline points={points} fill="none" vectorEffect="non-scaling-stroke" />
       </svg>
-      <div className="rvWorkoutChartScale">
+
+      <div className="rvWatchSimpleChartScale">
         <span>{Math.round(max)} bpm</span>
         <span>{Math.round(min)} bpm</span>
       </div>
@@ -158,341 +165,308 @@ export default function StudentHealthData({
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [, setTick] = useState(0)
 
-  const text = {
+  const labels = {
     'pt-BR': {
-      eyebrow: 'MONITORAMENTO DE TREINO',
-      title: 'Sessões do Apple Watch',
-      subtitle:
-        'O Watch mede continuamente. O RV organiza as leituras por treino, calcula variação, médias e mantém o histórico.',
-      active: 'Treino em andamento',
-      noneActive: 'Nenhum treino em andamento',
-      noneActiveText:
-        'Quando um exercício começar no Apple Watch, a automação do iPhone poderá abrir a sessão no RV.',
-      started: 'Iniciado',
+      connectTitle: 'Conectar seu Apple Watch',
+      connectText: 'É só configurar uma vez.',
+      step1: 'Criar código',
+      step2: 'Instalar no iPhone',
+      step3: 'Testar conexão',
+      createCode: 'Criar código',
+      newCode: 'Criar novo código',
+      install: 'Instalar integração',
+      test: 'Testar agora',
+      copied: 'Código copiado',
+      yourCode: 'Seu código',
+      connected: 'Apple Watch conectado ao RV',
+      waitingFirst: 'Falta testar a conexão',
+      manage: 'Gerenciar conexão',
+      disconnect: 'Desconectar',
+      connectionHelp:
+        'O relógio envia os dados pelo Apple Saúde do iPhone. Não há pareamento direto com o RV.',
+      currentWorkout: 'Treino agora',
+      noWorkout: 'Nenhum treino em andamento',
+      noWorkoutText:
+        'Quando você iniciar um exercício no Apple Watch, ele aparecerá aqui.',
+      started: 'Começou',
+      elapsed: 'Tempo',
       planned: 'Previsto',
-      elapsed: 'Decorrido',
-      lastUpdate: 'Última atualização',
-      waiting: 'Aguardando dados',
-      update: 'Atualizar dados agora',
-      liveHint:
-        'Durante o treino, novas remessas aparecem aqui automaticamente. No fim, o atalho faz uma conferência completa da sessão.',
-      bpmRange: 'Variação de BPM',
+      beats: 'Batimentos',
       average: 'Média',
-      minimum: 'Mínima',
-      maximum: 'Máxima',
-      calories: 'Calorias ativas',
-      steps: 'Passos',
+      calories: 'Calorias',
+      update: 'Atualizar agora',
+      updated: 'Atualizado',
+      history: 'Seus treinos',
+      historyText: 'Toque em um treino para ver os detalhes.',
+      noHistory: 'Seu histórico aparecerá aqui depois do primeiro treino.',
+      latest: 'Último treino',
+      duration: 'Duração',
+      minimum: 'Mínimo',
+      maximum: 'Máximo',
       distance: 'Distância',
-      hrv: 'VFC',
-      respiratory: 'Respiração',
+      steps: 'Passos',
+      hrv: 'Variação cardíaca',
+      breathing: 'Respiração',
       oxygen: 'Oxigenação',
       recovery: 'Recuperação',
-      recoveryText: 'queda após o fim',
-      history: 'Histórico de treinos',
-      historyText:
-        'Cada treino fica separado por data e horário, com todas as medições daquele período.',
-      noHistory: 'Ainda não há sessões de treino registradas.',
-      open: 'Ver treino',
-      duration: 'Duração',
-      samples: 'leituras',
-      detail: 'Resumo da sessão',
-      chart: 'Frequência cardíaca durante o treino',
-      chartEmpty: 'O gráfico aparece após receber pelo menos duas leituras de BPM.',
-      noMetric: 'Sem dados',
-      setup: 'Conectar Apple Saúde',
-      setupText:
-        'A conexão é feita pelo Apple Saúde + Atalhos. Não existe pareamento direto do RV com o Apple Watch.',
-      configured: 'Integração verificada',
-      configuredPending: 'Código criado · aguardando primeiro envio',
-      notConfigured: 'Integração ainda não configurada',
-      create: 'Criar e copiar código',
-      newCode: 'Criar novo código',
-      copied: 'Código copiado',
-      install: 'Instalar Atalho RV',
-      syncTest: 'Testar envio',
-      disconnect: 'Desconectar',
-      key: 'Código de conexão',
-      advanced: 'Avançado',
-      flow: 'Fluxo automático recomendado',
-      flow1: 'Início do exercício',
-      flow1Text: 'O iPhone pergunta quanto tempo o treino deve durar e abre uma sessão.',
-      flow2: 'Durante o treino',
-      flow2Text: 'O Watch continua medindo e o atalho tenta enviar novos dados em blocos.',
-      flow3: 'Fim do exercício',
-      flow3Text: 'O atalho confere todo o período, inclui recuperação e fecha a sessão.',
-      flow4: 'Histórico RV',
-      flow4Text: 'O RV calcula mínimo, média, máximo e demais métricas por sessão.',
-      activeBadge: 'AO VIVO',
-      completed: 'Concluído',
+      details: 'Detalhes do treino',
+      close: 'Fechar detalhes',
+      chart: 'Batimentos durante o treino',
+      chartEmpty: 'Ainda não há leituras suficientes para montar o gráfico.',
+      otherData: 'Outros dados',
+      readings: 'leituras',
+      live: 'AO VIVO',
+      finished: 'Concluído',
       cancelled: 'Cancelado',
       minutes: 'min',
-      integrationNote:
-        'A automação de início/fim será configurada no mesmo Atalho RV. O banco e a tela já estão preparados para receber as sessões.',
+      noData: '—',
+      justNow: 'agora',
+      setupDone: 'Tudo certo. A integração já está pronta.',
+      simpleHow: 'Como funciona',
+      simpleHowText:
+        'Você inicia o exercício no Apple Watch. O iPhone envia os dados ao RV e o treino fica salvo no histórico.',
     },
     en: {
-      eyebrow: 'WORKOUT MONITORING',
-      title: 'Apple Watch sessions',
-      subtitle:
-        'Watch measures continuously. RV groups readings by workout, calculates ranges, averages and keeps the history.',
-      active: 'Workout in progress',
-      noneActive: 'No workout in progress',
-      noneActiveText: 'When a Watch workout starts, iPhone automation can open a session in RV.',
+      connectTitle: 'Connect your Apple Watch',
+      connectText: 'You only need to set it up once.',
+      step1: 'Create code',
+      step2: 'Install on iPhone',
+      step3: 'Test connection',
+      createCode: 'Create code',
+      newCode: 'Create new code',
+      install: 'Install integration',
+      test: 'Test now',
+      copied: 'Code copied',
+      yourCode: 'Your code',
+      connected: 'Apple Watch connected to RV',
+      waitingFirst: 'Connection still needs testing',
+      manage: 'Manage connection',
+      disconnect: 'Disconnect',
+      connectionHelp:
+        'The watch sends data through Apple Health on iPhone. RV does not pair directly with the watch.',
+      currentWorkout: 'Workout now',
+      noWorkout: 'No workout in progress',
+      noWorkoutText: 'When you start an Apple Watch workout, it will appear here.',
       started: 'Started',
+      elapsed: 'Time',
       planned: 'Planned',
-      elapsed: 'Elapsed',
-      lastUpdate: 'Last update',
-      waiting: 'Waiting for data',
-      update: 'Update data now',
-      liveHint: 'New batches appear automatically. At the end, the shortcut performs a full session check.',
-      bpmRange: 'BPM range',
+      beats: 'Heart rate',
       average: 'Average',
+      calories: 'Calories',
+      update: 'Update now',
+      updated: 'Updated',
+      history: 'Your workouts',
+      historyText: 'Tap a workout to see details.',
+      noHistory: 'Your history will appear here after the first workout.',
+      latest: 'Latest workout',
+      duration: 'Duration',
       minimum: 'Minimum',
       maximum: 'Maximum',
-      calories: 'Active calories',
-      steps: 'Steps',
       distance: 'Distance',
-      hrv: 'HRV',
-      respiratory: 'Respiration',
+      steps: 'Steps',
+      hrv: 'Heart variability',
+      breathing: 'Breathing',
       oxygen: 'Oxygen',
       recovery: 'Recovery',
-      recoveryText: 'drop after ending',
-      history: 'Workout history',
-      historyText: 'Each workout is stored separately with all measurements from that period.',
-      noHistory: 'No workout sessions recorded yet.',
-      open: 'View workout',
-      duration: 'Duration',
-      samples: 'readings',
-      detail: 'Session summary',
+      details: 'Workout details',
+      close: 'Close details',
       chart: 'Heart rate during workout',
-      chartEmpty: 'The chart appears after at least two BPM readings.',
-      noMetric: 'No data',
-      setup: 'Connect Apple Health',
-      setupText: 'Connection uses Apple Health + Shortcuts. RV does not directly pair with Apple Watch.',
-      configured: 'Integration verified',
-      configuredPending: 'Code created · waiting for first upload',
-      notConfigured: 'Integration not configured',
-      create: 'Create and copy code',
-      newCode: 'Create new code',
-      copied: 'Code copied',
-      install: 'Install RV Shortcut',
-      syncTest: 'Test upload',
-      disconnect: 'Disconnect',
-      key: 'Connection code',
-      advanced: 'Advanced',
-      flow: 'Recommended automatic flow',
-      flow1: 'Workout starts',
-      flow1Text: 'iPhone asks the planned duration and opens an RV session.',
-      flow2: 'During workout',
-      flow2Text: 'Watch keeps measuring and Shortcut attempts batch uploads.',
-      flow3: 'Workout ends',
-      flow3Text: 'Shortcut checks the full period, includes recovery and closes the session.',
-      flow4: 'RV history',
-      flow4Text: 'RV calculates minimum, average, maximum and other metrics per session.',
-      activeBadge: 'LIVE',
-      completed: 'Completed',
+      chartEmpty: 'There are not enough readings yet for a chart.',
+      otherData: 'Other data',
+      readings: 'readings',
+      live: 'LIVE',
+      finished: 'Completed',
       cancelled: 'Cancelled',
       minutes: 'min',
-      integrationNote: 'Start/end automation will use the same RV Shortcut. Database and UI are ready.',
+      noData: '—',
+      justNow: 'now',
+      setupDone: 'All set. The integration is ready.',
+      simpleHow: 'How it works',
+      simpleHowText:
+        'Start a workout on Apple Watch. iPhone sends the data to RV and the workout is saved in history.',
     },
     es: {
-      eyebrow: 'MONITOREO DE ENTRENAMIENTO',
-      title: 'Sesiones del Apple Watch',
-      subtitle: 'Watch mide continuamente. RV agrupa las lecturas por entrenamiento y mantiene el historial.',
-      active: 'Entrenamiento en curso',
-      noneActive: 'Ningún entrenamiento en curso',
-      noneActiveText: 'Cuando comience un ejercicio en Apple Watch, la automatización puede abrir una sesión en RV.',
-      started: 'Inicio',
+      connectTitle: 'Conectar tu Apple Watch',
+      connectText: 'Solo necesitas configurarlo una vez.',
+      step1: 'Crear código',
+      step2: 'Instalar en iPhone',
+      step3: 'Probar conexión',
+      createCode: 'Crear código',
+      newCode: 'Crear nuevo código',
+      install: 'Instalar integración',
+      test: 'Probar ahora',
+      copied: 'Código copiado',
+      yourCode: 'Tu código',
+      connected: 'Apple Watch conectado a RV',
+      waitingFirst: 'Falta probar la conexión',
+      manage: 'Administrar conexión',
+      disconnect: 'Desconectar',
+      connectionHelp:
+        'El reloj envía datos por Apple Salud del iPhone. RV no se empareja directamente con el reloj.',
+      currentWorkout: 'Entrenamiento ahora',
+      noWorkout: 'Ningún entrenamiento en curso',
+      noWorkoutText: 'Cuando inicies un ejercicio en Apple Watch, aparecerá aquí.',
+      started: 'Comenzó',
+      elapsed: 'Tiempo',
       planned: 'Previsto',
-      elapsed: 'Transcurrido',
-      lastUpdate: 'Última actualización',
-      waiting: 'Esperando datos',
-      update: 'Actualizar datos ahora',
-      liveHint: 'Nuevos lotes aparecen automáticamente y al final se revisa toda la sesión.',
-      bpmRange: 'Variación de BPM',
+      beats: 'Pulsaciones',
       average: 'Media',
-      minimum: 'Mínima',
-      maximum: 'Máxima',
-      calories: 'Calorías activas',
-      steps: 'Pasos',
+      calories: 'Calorías',
+      update: 'Actualizar ahora',
+      updated: 'Actualizado',
+      history: 'Tus entrenamientos',
+      historyText: 'Toca un entrenamiento para ver los detalles.',
+      noHistory: 'Tu historial aparecerá después del primer entrenamiento.',
+      latest: 'Último entrenamiento',
+      duration: 'Duración',
+      minimum: 'Mínimo',
+      maximum: 'Máximo',
       distance: 'Distancia',
-      hrv: 'VFC',
-      respiratory: 'Respiración',
+      steps: 'Pasos',
+      hrv: 'Variación cardíaca',
+      breathing: 'Respiración',
       oxygen: 'Oxigenación',
       recovery: 'Recuperación',
-      recoveryText: 'caída después del final',
-      history: 'Historial de entrenamientos',
-      historyText: 'Cada entrenamiento queda separado por fecha y hora.',
-      noHistory: 'Todavía no hay sesiones registradas.',
-      open: 'Ver entrenamiento',
-      duration: 'Duración',
-      samples: 'lecturas',
-      detail: 'Resumen de sesión',
-      chart: 'Frecuencia cardíaca durante el entrenamiento',
-      chartEmpty: 'El gráfico aparece con al menos dos lecturas de BPM.',
-      noMetric: 'Sin datos',
-      setup: 'Conectar Apple Salud',
-      setupText: 'La conexión usa Apple Salud + Atajos. RV no empareja directamente con Apple Watch.',
-      configured: 'Integración verificada',
-      configuredPending: 'Código creado · esperando primer envío',
-      notConfigured: 'Integración no configurada',
-      create: 'Crear y copiar código',
-      newCode: 'Crear nuevo código',
-      copied: 'Código copiado',
-      install: 'Instalar Atajo RV',
-      syncTest: 'Probar envío',
-      disconnect: 'Desconectar',
-      key: 'Código de conexión',
-      advanced: 'Avanzado',
-      flow: 'Flujo automático recomendado',
-      flow1: 'Inicio del ejercicio',
-      flow1Text: 'El iPhone pregunta la duración prevista y abre una sesión.',
-      flow2: 'Durante el entrenamiento',
-      flow2Text: 'Watch sigue midiendo y el atajo intenta enviar nuevos datos.',
-      flow3: 'Fin del ejercicio',
-      flow3Text: 'El atajo revisa todo el período, incluye recuperación y cierra la sesión.',
-      flow4: 'Historial RV',
-      flow4Text: 'RV calcula mínimo, media, máximo y otras métricas.',
-      activeBadge: 'EN VIVO',
-      completed: 'Completado',
+      details: 'Detalles del entrenamiento',
+      close: 'Cerrar detalles',
+      chart: 'Pulsaciones durante el entrenamiento',
+      chartEmpty: 'Todavía no hay suficientes lecturas para el gráfico.',
+      otherData: 'Otros datos',
+      readings: 'lecturas',
+      live: 'EN VIVO',
+      finished: 'Completado',
       cancelled: 'Cancelado',
       minutes: 'min',
-      integrationNote: 'La automatización de inicio/fin usará el mismo Atajo RV. La base y la interfaz ya están listas.',
+      noData: '—',
+      justNow: 'ahora',
+      setupDone: 'Todo listo. La integración ya funciona.',
+      simpleHow: 'Cómo funciona',
+      simpleHowText:
+        'Inicia un ejercicio en Apple Watch. El iPhone envía los datos a RV y el entrenamiento queda guardado.',
     },
     'zh-CN': {
-      eyebrow: '训练监测',
-      title: 'Apple Watch 训练记录',
-      subtitle: 'Watch 持续测量，RV 按训练分组并计算范围、平均值与历史记录。',
-      active: '训练进行中',
-      noneActive: '当前没有训练',
-      noneActiveText: 'Apple Watch 开始训练时，iPhone 自动化可以在 RV 中创建训练会话。',
+      connectTitle: '连接 Apple Watch',
+      connectText: '只需设置一次。',
+      step1: '创建代码',
+      step2: '安装到 iPhone',
+      step3: '测试连接',
+      createCode: '创建代码',
+      newCode: '创建新代码',
+      install: '安装集成',
+      test: '立即测试',
+      copied: '代码已复制',
+      yourCode: '你的代码',
+      connected: 'Apple Watch 已连接到 RV',
+      waitingFirst: '还需要测试连接',
+      manage: '管理连接',
+      disconnect: '断开连接',
+      connectionHelp: '手表通过 iPhone 的 Apple 健康发送数据，RV 不直接配对手表。',
+      currentWorkout: '当前训练',
+      noWorkout: '当前没有训练',
+      noWorkoutText: '开始 Apple Watch 训练后会显示在这里。',
       started: '开始',
+      elapsed: '时间',
       planned: '计划',
-      elapsed: '已用',
-      lastUpdate: '最近更新',
-      waiting: '等待数据',
-      update: '立即更新数据',
-      liveHint: '训练中会显示新的批次，结束时快捷指令会再次核对完整会话。',
-      bpmRange: '心率范围',
+      beats: '心率',
       average: '平均',
+      calories: '卡路里',
+      update: '立即更新',
+      updated: '已更新',
+      history: '你的训练',
+      historyText: '点击训练查看详情。',
+      noHistory: '完成第一次训练后，历史会显示在这里。',
+      latest: '最近训练',
+      duration: '时长',
       minimum: '最低',
       maximum: '最高',
-      calories: '活动卡路里',
-      steps: '步数',
       distance: '距离',
-      hrv: 'HRV',
-      respiratory: '呼吸',
+      steps: '步数',
+      hrv: '心率变异',
+      breathing: '呼吸',
       oxygen: '血氧',
       recovery: '恢复',
-      recoveryText: '结束后的下降',
-      history: '训练历史',
-      historyText: '每次训练按日期和时间单独保存。',
-      noHistory: '暂无训练会话。',
-      open: '查看训练',
-      duration: '时长',
-      samples: '条读数',
-      detail: '会话摘要',
+      details: '训练详情',
+      close: '关闭详情',
       chart: '训练期间心率',
-      chartEmpty: '至少收到两条心率读数后显示图表。',
-      noMetric: '无数据',
-      setup: '连接 Apple 健康',
-      setupText: '连接通过 Apple 健康 + 快捷指令完成，RV 不直接配对 Apple Watch。',
-      configured: '集成已验证',
-      configuredPending: '已创建代码 · 等待首次上传',
-      notConfigured: '尚未配置集成',
-      create: '创建并复制代码',
-      newCode: '创建新代码',
-      copied: '代码已复制',
-      install: '安装 RV 快捷指令',
-      syncTest: '测试上传',
-      disconnect: '断开连接',
-      key: '连接代码',
-      advanced: '高级',
-      flow: '推荐自动流程',
-      flow1: '训练开始',
-      flow1Text: 'iPhone 询问计划时长并创建 RV 会话。',
-      flow2: '训练期间',
-      flow2Text: 'Watch 持续测量，快捷指令尝试分批发送。',
-      flow3: '训练结束',
-      flow3Text: '快捷指令核对完整时段、包含恢复数据并关闭会话。',
-      flow4: 'RV 历史',
-      flow4Text: 'RV 按会话计算最低、平均、最高及其他指标。',
-      activeBadge: '实时',
-      completed: '已完成',
+      chartEmpty: '读数不足，暂时无法显示图表。',
+      otherData: '其他数据',
+      readings: '条读数',
+      live: '实时',
+      finished: '已完成',
       cancelled: '已取消',
       minutes: '分钟',
-      integrationNote: '开始/结束自动化将使用同一个 RV 快捷指令。数据库与界面已就绪。',
+      noData: '—',
+      justNow: '刚刚',
+      setupDone: '已完成，连接可以使用。',
+      simpleHow: '工作方式',
+      simpleHowText: '在 Apple Watch 开始训练，iPhone 将数据发送到 RV，并保存到历史。',
     },
     de: {
-      eyebrow: 'TRAININGSÜBERWACHUNG',
-      title: 'Apple-Watch-Trainings',
-      subtitle: 'Die Watch misst kontinuierlich. RV gruppiert Messwerte pro Training und berechnet Verlauf und Mittelwerte.',
-      active: 'Training läuft',
-      noneActive: 'Kein Training aktiv',
-      noneActiveText: 'Wenn ein Watch-Training startet, kann die iPhone-Automation eine RV-Sitzung öffnen.',
+      connectTitle: 'Apple Watch verbinden',
+      connectText: 'Die Einrichtung ist nur einmal nötig.',
+      step1: 'Code erstellen',
+      step2: 'Auf iPhone installieren',
+      step3: 'Verbindung testen',
+      createCode: 'Code erstellen',
+      newCode: 'Neuen Code erstellen',
+      install: 'Integration installieren',
+      test: 'Jetzt testen',
+      copied: 'Code kopiert',
+      yourCode: 'Dein Code',
+      connected: 'Apple Watch mit RV verbunden',
+      waitingFirst: 'Verbindung muss noch getestet werden',
+      manage: 'Verbindung verwalten',
+      disconnect: 'Trennen',
+      connectionHelp:
+        'Die Watch sendet Daten über Apple Health auf dem iPhone. RV koppelt sich nicht direkt mit der Uhr.',
+      currentWorkout: 'Training jetzt',
+      noWorkout: 'Kein Training aktiv',
+      noWorkoutText: 'Wenn du ein Apple-Watch-Training startest, erscheint es hier.',
       started: 'Gestartet',
+      elapsed: 'Zeit',
       planned: 'Geplant',
-      elapsed: 'Vergangen',
-      lastUpdate: 'Letztes Update',
-      waiting: 'Warte auf Daten',
-      update: 'Daten jetzt aktualisieren',
-      liveHint: 'Neue Datenblöcke erscheinen automatisch; am Ende wird die Sitzung vollständig geprüft.',
-      bpmRange: 'BPM-Bereich',
+      beats: 'Herzfrequenz',
       average: 'Mittel',
+      calories: 'Kalorien',
+      update: 'Jetzt aktualisieren',
+      updated: 'Aktualisiert',
+      history: 'Deine Trainings',
+      historyText: 'Tippe auf ein Training für Details.',
+      noHistory: 'Nach dem ersten Training erscheint hier dein Verlauf.',
+      latest: 'Letztes Training',
+      duration: 'Dauer',
       minimum: 'Minimum',
       maximum: 'Maximum',
-      calories: 'Aktive Kalorien',
-      steps: 'Schritte',
       distance: 'Distanz',
-      hrv: 'HRV',
-      respiratory: 'Atmung',
+      steps: 'Schritte',
+      hrv: 'Herzvariabilität',
+      breathing: 'Atmung',
       oxygen: 'Sauerstoff',
       recovery: 'Erholung',
-      recoveryText: 'Abfall nach Ende',
-      history: 'Trainingsverlauf',
-      historyText: 'Jedes Training wird nach Datum und Uhrzeit getrennt gespeichert.',
-      noHistory: 'Noch keine Trainingssitzungen.',
-      open: 'Training ansehen',
-      duration: 'Dauer',
-      samples: 'Messwerte',
-      detail: 'Sitzungsübersicht',
-      chart: 'Herzfrequenz während des Trainings',
-      chartEmpty: 'Das Diagramm erscheint ab zwei BPM-Messungen.',
-      noMetric: 'Keine Daten',
-      setup: 'Apple Health verbinden',
-      setupText: 'Die Verbindung nutzt Apple Health + Kurzbefehle. RV koppelt die Watch nicht direkt.',
-      configured: 'Integration geprüft',
-      configuredPending: 'Code erstellt · wartet auf ersten Upload',
-      notConfigured: 'Integration nicht eingerichtet',
-      create: 'Code erstellen und kopieren',
-      newCode: 'Neuen Code erstellen',
-      copied: 'Code kopiert',
-      install: 'RV-Kurzbefehl installieren',
-      syncTest: 'Upload testen',
-      disconnect: 'Trennen',
-      key: 'Verbindungscode',
-      advanced: 'Erweitert',
-      flow: 'Empfohlener automatischer Ablauf',
-      flow1: 'Training startet',
-      flow1Text: 'Das iPhone fragt die geplante Dauer und öffnet eine Sitzung.',
-      flow2: 'Während des Trainings',
-      flow2Text: 'Die Watch misst weiter und der Kurzbefehl versucht Block-Uploads.',
-      flow3: 'Training endet',
-      flow3Text: 'Der Kurzbefehl prüft den gesamten Zeitraum, Erholung inklusive, und schließt die Sitzung.',
-      flow4: 'RV-Verlauf',
-      flow4Text: 'RV berechnet Minimum, Mittelwert, Maximum und weitere Metriken pro Sitzung.',
-      activeBadge: 'LIVE',
-      completed: 'Abgeschlossen',
+      details: 'Trainingsdetails',
+      close: 'Details schließen',
+      chart: 'Herzfrequenz im Training',
+      chartEmpty: 'Für das Diagramm gibt es noch nicht genug Messwerte.',
+      otherData: 'Weitere Daten',
+      readings: 'Messwerte',
+      live: 'LIVE',
+      finished: 'Abgeschlossen',
       cancelled: 'Abgebrochen',
       minutes: 'Min',
-      integrationNote: 'Start-/End-Automation nutzt denselben RV-Kurzbefehl. Datenbank und UI sind bereit.',
+      noData: '—',
+      justNow: 'jetzt',
+      setupDone: 'Alles bereit. Die Integration funktioniert.',
+      simpleHow: 'So funktioniert es',
+      simpleHowText:
+        'Starte ein Training auf der Apple Watch. Das iPhone sendet die Daten an RV und das Training wird gespeichert.',
     },
   } as const
 
-  const t = text[language]
+  const t = labels[language]
   const storageKey = `rv_health_setup_token_${studentId}`
 
   async function load() {
-    const [sessionsResult, samplesResult, statusResult] = await Promise.all([
+    const [sessionResult, sampleResult, statusResult] = await Promise.all([
       supabase
         .from('workout_sessions')
         .select(
@@ -500,7 +474,7 @@ export default function StudentHealthData({
         )
         .eq('student_id', studentId)
         .order('started_at', { ascending: false })
-        .limit(24),
+        .limit(20),
       supabase
         .from('health_samples')
         .select(
@@ -513,21 +487,24 @@ export default function StudentHealthData({
       supabase.rpc('get_own_health_ingest_status'),
     ])
 
-    if (!sessionsResult.error) {
-      setSessions((sessionsResult.data as WorkoutSession[]) ?? [])
+    if (!sessionResult.error) {
+      setSessions((sessionResult.data as WorkoutSession[]) ?? [])
     }
-    if (!samplesResult.error) {
-      setSamples((samplesResult.data as Sample[]) ?? [])
+
+    if (!sampleResult.error) {
+      setSamples((sampleResult.data as Sample[]) ?? [])
     }
+
     if (!statusResult.error && statusResult.data) {
       const next = statusResult.data as IngestStatus
       setStatus(next)
+
       if (next.last_used_at) {
         setToken('')
         try {
           window.localStorage.removeItem(storageKey)
         } catch {
-          // Storage pode estar indisponível.
+          // Mantém a interface funcionando sem localStorage.
         }
       }
     }
@@ -537,16 +514,16 @@ export default function StudentHealthData({
 
   useEffect(() => {
     try {
-      const saved = window.localStorage.getItem(storageKey)
-      if (saved) setToken(saved)
+      const stored = window.localStorage.getItem(storageKey)
+      if (stored) setToken(stored)
     } catch {
-      // Mantém o fluxo sem armazenamento local.
+      // Mantém a interface funcionando sem localStorage.
     }
 
     void load()
 
     const channel = supabase
-      .channel(`rv-workout-sessions-${studentId}`)
+      .channel(`rv-watch-simple-${studentId}`)
       .on(
         'postgres_changes',
         {
@@ -556,18 +533,18 @@ export default function StudentHealthData({
           filter: `student_id=eq.${studentId}`,
         },
         (payload) => {
-          const next = payload.new as WorkoutSession
-          if (!next?.id) return
-          setSessions((current) => {
-            const merged = [next, ...current.filter((item) => item.id !== next.id)]
-            return merged
+          const row = payload.new as WorkoutSession
+          if (!row?.id) return
+
+          setSessions((current) =>
+            [row, ...current.filter((item) => item.id !== row.id)]
               .sort(
                 (a, b) =>
                   new Date(b.started_at).getTime() -
                   new Date(a.started_at).getTime(),
               )
-              .slice(0, 24)
-          })
+              .slice(0, 20),
+          )
         },
       )
       .on(
@@ -579,10 +556,11 @@ export default function StudentHealthData({
           filter: `student_id=eq.${studentId}`,
         },
         (payload) => {
-          const next = payload.new as Sample
-          if (!next?.id || !next.workout_session_id) return
+          const row = payload.new as Sample
+          if (!row?.id || !row.workout_session_id) return
+
           setSamples((current) =>
-            [next, ...current.filter((item) => item.id !== next.id)].slice(
+            [row, ...current.filter((item) => item.id !== row.id)].slice(
               0,
               3500,
             ),
@@ -591,16 +569,16 @@ export default function StudentHealthData({
       )
       .subscribe()
 
-    const visible = () => {
+    const refreshWhenVisible = () => {
       if (document.visibilityState === 'visible') void load()
     }
 
-    document.addEventListener('visibilitychange', visible)
-    window.addEventListener('pageshow', visible)
+    document.addEventListener('visibilitychange', refreshWhenVisible)
+    window.addEventListener('pageshow', refreshWhenVisible)
 
     return () => {
-      document.removeEventListener('visibilitychange', visible)
-      window.removeEventListener('pageshow', visible)
+      document.removeEventListener('visibilitychange', refreshWhenVisible)
+      window.removeEventListener('pageshow', refreshWhenVisible)
       void supabase.removeChannel(channel)
     }
   }, [studentId])
@@ -610,31 +588,29 @@ export default function StudentHealthData({
     return () => window.clearInterval(timer)
   }, [])
 
-  useEffect(() => {
-    if (selectedId && sessions.some((item) => item.id === selectedId)) return
-    const preferred =
-      sessions.find((item) => item.status === 'active') ??
-      sessions.find((item) => item.status === 'completed') ??
-      sessions[0]
-    setSelectedId(preferred?.id ?? null)
-  }, [sessions, selectedId])
-
-  const activeSession =
-    sessions.find((item) => item.status === 'active') ?? null
-
-  const selectedSession =
-    sessions.find((item) => item.id === selectedId) ?? null
-
   const samplesBySession = useMemo(() => {
     const map = new Map<string, Sample[]>()
+
     for (const sample of samples) {
       if (!sample.workout_session_id) continue
-      const list = map.get(sample.workout_session_id) ?? []
-      list.push(sample)
-      map.set(sample.workout_session_id, list)
+      const current = map.get(sample.workout_session_id) ?? []
+      current.push(sample)
+      map.set(sample.workout_session_id, current)
     }
+
     return map
   }, [samples])
+
+  const activeSession =
+    sessions.find((session) => session.status === 'active') ?? null
+
+  const completedSessions = sessions.filter(
+    (session) => session.status !== 'active',
+  )
+
+  const latestSession = completedSessions[0] ?? null
+  const selectedSession =
+    sessions.find((session) => session.id === selectedId) ?? null
 
   function sessionSamples(session: WorkoutSession | null) {
     if (!session) return []
@@ -645,16 +621,18 @@ export default function StudentHealthData({
     const rows = sessionSamples(session).filter(
       (item) => item.metric === 'heart_rate',
     )
+
     if (!session?.ended_at) return rows
 
     const end = new Date(session.ended_at).getTime()
     return rows.filter((item) => new Date(item.measured_at).getTime() <= end)
   }
 
-  function recoverySamples(session: WorkoutSession | null) {
-    if (!session?.ended_at) return []
+  function recoveryDrop(session: WorkoutSession | null) {
+    if (!session?.ended_at) return null
+
     const end = new Date(session.ended_at).getTime()
-    return sessionSamples(session)
+    const rows = sessionSamples(session)
       .filter(
         (item) =>
           item.metric === 'heart_rate' &&
@@ -666,24 +644,29 @@ export default function StudentHealthData({
           new Date(a.measured_at).getTime() -
           new Date(b.measured_at).getTime(),
       )
+
+    if (rows.length < 2) return null
+
+    return Math.round(Number(rows[0].value) - Number(rows.at(-1)?.value))
   }
 
   function fmtDate(value: string) {
     return new Intl.DateTimeFormat(locale, {
-      dateStyle: 'short',
-      timeStyle: 'short',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     }).format(new Date(value))
   }
 
-  function sessionTitle(session: WorkoutSession) {
-    const date = new Intl.DateTimeFormat(locale, {
+  function fmtShort(value: string) {
+    return new Intl.DateTimeFormat(locale, {
       day: '2-digit',
       month: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
-    }).format(new Date(session.started_at))
-
-    return `${t.detail} · ${date}`
+    }).format(new Date(value))
   }
 
   function workoutName(value: string) {
@@ -699,6 +682,7 @@ export default function StudentHealthData({
       : live
         ? Date.now()
         : start
+
     const totalSeconds = Math.max(0, Math.round((end - start) / 1000))
     const hours = Math.floor(totalSeconds / 3600)
     const minutes = Math.floor((totalSeconds % 3600) / 60)
@@ -713,20 +697,55 @@ export default function StudentHealthData({
     return `${minutes}:${String(seconds).padStart(2, '0')}`
   }
 
-  function metricValue(
+  function totalMetric(
     session: WorkoutSession,
     metric: string,
-    mode: 'avg' | 'sum' = 'avg',
     digits = 0,
   ) {
     const stats = statsFor(sessionSamples(session), metric)
-    if (!stats) return t.noMetric
-    const value = mode === 'sum' ? stats.sum : stats.avg
-    return `${value.toFixed(digits)} ${stats.unit}`
+    if (!stats) return null
+    return `${stats.sum.toFixed(digits)} ${stats.unit}`
+  }
+
+  function averageMetric(
+    session: WorkoutSession,
+    metric: string,
+    digits = 0,
+  ) {
+    const stats = statsFor(sessionSamples(session), metric)
+    if (!stats) return null
+    return `${stats.avg.toFixed(digits)} ${stats.unit}`
+  }
+
+  function extraMetrics(session: WorkoutSession): ExtraMetric[] {
+    const rows: ExtraMetric[] = []
+
+    const hrv = averageMetric(session, 'heart_rate_variability', 0)
+    const breathing = averageMetric(session, 'respiratory_rate', 1)
+    const oxygen = averageMetric(session, 'oxygen_saturation', 1)
+    const recovery = recoveryDrop(session)
+
+    if (hrv) rows.push({ key: 'hrv', label: t.hrv, value: hrv })
+    if (breathing) {
+      rows.push({ key: 'breathing', label: t.breathing, value: breathing })
+    }
+    if (oxygen) {
+      rows.push({ key: 'oxygen', label: t.oxygen, value: oxygen })
+    }
+    if (recovery !== null) {
+      rows.push({
+        key: 'recovery',
+        label: t.recovery,
+        value: `${recovery > 0 ? '−' : '+'}${Math.abs(recovery)} bpm`,
+      })
+    }
+
+    return rows
   }
 
   async function rotate() {
     setBusy(true)
+
     const { data, error } = await supabase.rpc(
       'rotate_own_health_ingest_token',
       { p_label: 'iPhone / Atalhos' },
@@ -741,7 +760,7 @@ export default function StudentHealthData({
         try {
           window.localStorage.setItem(storageKey, next)
         } catch {
-          // Código continua disponível na tela.
+          // A chave continua disponível na tela.
         }
 
         try {
@@ -749,7 +768,7 @@ export default function StudentHealthData({
           setCopied(true)
           window.setTimeout(() => setCopied(false), 1800)
         } catch {
-          // Botão copiar continua disponível.
+          // O botão copiar continua disponível.
         }
       }
     }
@@ -771,6 +790,7 @@ export default function StudentHealthData({
     if (!error) {
       setStatus({ configured: false })
       setToken('')
+
       try {
         window.localStorage.removeItem(storageKey)
       } catch {
@@ -781,452 +801,433 @@ export default function StudentHealthData({
     setBusy(false)
   }
 
-  const activeSamples = sessionSamples(activeSession)
+  const connected = Boolean(status.last_used_at)
+  const activeRows = sessionSamples(activeSession)
   const activeHeart = statsFor(workoutHeartSamples(activeSession), 'heart_rate')
-  const selectedSamples = sessionSamples(selectedSession)
-  const selectedHeart = statsFor(
+  const activeEnergy = activeSession
+    ? totalMetric(activeSession, 'active_energy', 0)
+    : null
+
+  const latestHeart = statsFor(
+    workoutHeartSamples(latestSession),
+    'heart_rate',
+  )
+  const latestEnergy = latestSession
+    ? totalMetric(latestSession, 'active_energy', 0)
+    : null
+
+  const detailRows = sessionSamples(selectedSession)
+  const detailHeart = statsFor(
     workoutHeartSamples(selectedSession),
     'heart_rate',
   )
-  const recovery = recoverySamples(selectedSession)
-  const recoveryDrop =
-    recovery.length >= 2
-      ? Math.round(Number(recovery[0].value) - Number(recovery.at(-1)?.value))
-      : null
+
+  const detailDistance = selectedSession
+    ? totalMetric(selectedSession, 'distance', 2)
+    : null
+  const detailSteps = selectedSession
+    ? totalMetric(selectedSession, 'steps', 0)
+    : null
+  const detailEnergy = selectedSession
+    ? totalMetric(selectedSession, 'active_energy', 0)
+    : null
+  const detailExtras = selectedSession ? extraMetrics(selectedSession) : []
 
   return (
-    <section className="rvWorkoutModule" data-rv-workout-module="v19">
-      <header className="rvWorkoutModuleHead">
-        <div>
-          <span>{t.eyebrow}</span>
-          <h2>{t.title}</h2>
-          <p>{t.subtitle}</p>
-        </div>
-        <Watch size={24} />
-      </header>
-
-      <section
-        className={`rvWorkoutLiveCard ${activeSession ? 'is-active' : ''}`}
-      >
-        <div className="rvWorkoutLiveTop">
-          <div>
-            <span className="rvWorkoutLiveBadge">
-              {activeSession ? t.activeBadge : 'APPLE HEALTH'}
-            </span>
-            <h3>{activeSession ? t.active : t.noneActive}</h3>
-            <p>
-              {activeSession
-                ? `${workoutName(activeSession.workout_type)} · ${t.started} ${fmtDate(
-                    activeSession.started_at,
-                  )}`
-                : t.noneActiveText}
-            </p>
+    <section className="rvWatchSimpleModule" data-rv-health-module="simple-v20">
+      {!connected && (
+        <section className="rvWatchConnectCard">
+          <div className="rvWatchSimpleSectionHead">
+            <div>
+              <span>{t.connectText}</span>
+              <h2>{t.connectTitle}</h2>
+            </div>
+            <Watch size={21} />
           </div>
-          {activeSession ? <Activity size={23} /> : <TimerReset size={23} />}
+
+          <div className="rvWatchConnectSteps">
+            <article className={status.configured ? 'done' : ''}>
+              <span>1</span>
+              <strong>{t.step1}</strong>
+              <button
+                type="button"
+                onClick={() => void rotate()}
+                disabled={busy}
+              >
+                <KeyRound size={15} />
+                {status.configured ? t.newCode : t.createCode}
+              </button>
+            </article>
+
+            <article>
+              <span>2</span>
+              <strong>{t.step2}</strong>
+              <a
+                href={OFFICIAL_SHORTCUT}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Watch size={15} />
+                {t.install}
+              </a>
+            </article>
+
+            <article className={status.configured ? '' : 'disabled'}>
+              <span>3</span>
+              <strong>{t.step3}</strong>
+              <a
+                href={status.configured ? SHORTCUT_SYNC : undefined}
+                aria-disabled={!status.configured}
+              >
+                <RefreshCw size={15} />
+                {t.test}
+              </a>
+            </article>
+          </div>
+
+          {token && (
+            <div className="rvWatchConnectCode">
+              <div>
+                <small>{t.yourCode}</small>
+                <code>{token}</code>
+              </div>
+
+              <button type="button" onClick={() => void copyToken()}>
+                {copied ? <Check size={14} /> : <Copy size={14} />}
+                {copied ? t.copied : t.yourCode}
+              </button>
+            </div>
+          )}
+
+          <p className="rvWatchConnectNote">
+            {status.configured ? t.waitingFirst : t.connectionHelp}
+          </p>
+        </section>
+      )}
+
+      {connected && (
+        <div className="rvWatchConnectedBar">
+          <div>
+            <span className="rvWatchConnectedDot" />
+            <strong>{t.connected}</strong>
+          </div>
+
+          <details>
+            <summary>{t.manage}</summary>
+            <p>{t.connectionHelp}</p>
+            <button
+              type="button"
+              onClick={() => void revoke()}
+              disabled={busy}
+            >
+              {t.disconnect}
+            </button>
+          </details>
+        </div>
+      )}
+
+      <section className={`rvWatchNowCard ${activeSession ? 'live' : ''}`}>
+        <div className="rvWatchSimpleSectionHead">
+          <div>
+            <span>{activeSession ? t.live : 'APPLE WATCH'}</span>
+            <h2>{activeSession ? t.currentWorkout : t.noWorkout}</h2>
+          </div>
+          {activeSession ? <Activity size={21} /> : <TimerReset size={21} />}
         </div>
 
         {activeSession ? (
           <>
-            <div className="rvWorkoutLiveStats">
+            <p className="rvWatchNowSub">
+              {workoutName(activeSession.workout_type)} · {t.started}{' '}
+              {fmtShort(activeSession.started_at)}
+            </p>
+
+            <div className="rvWatchNowMetrics">
               <article>
                 <Clock3 size={16} />
                 <span>{t.elapsed}</span>
                 <strong>{duration(activeSession, true)}</strong>
               </article>
-              <article>
-                <TimerReset size={16} />
-                <span>{t.planned}</span>
-                <strong>
-                  {activeSession.planned_duration_minutes
-                    ? `${activeSession.planned_duration_minutes} ${t.minutes}`
-                    : '—'}
-                </strong>
-              </article>
+
               <article>
                 <HeartPulse size={16} />
-                <span>{t.bpmRange}</span>
+                <span>{t.beats}</span>
                 <strong>
                   {activeHeart
                     ? `${Math.round(activeHeart.min)}–${Math.round(
                         activeHeart.max,
-                      )} bpm`
-                    : t.waiting}
+                      )}`
+                    : t.noData}
                 </strong>
+                <small>
+                  {activeHeart
+                    ? `${t.average} ${Math.round(activeHeart.avg)} bpm`
+                    : 'bpm'}
+                </small>
               </article>
-              <article>
-                <RefreshCw size={16} />
-                <span>{t.lastUpdate}</span>
-                <strong>
-                  {activeSession.last_synced_at
-                    ? fmtDate(activeSession.last_synced_at)
-                    : t.waiting}
-                </strong>
-              </article>
+
+              {activeEnergy && (
+                <article>
+                  <Flame size={16} />
+                  <span>{t.calories}</span>
+                  <strong>{activeEnergy}</strong>
+                </article>
+              )}
             </div>
 
-            <div className="rvWorkoutLiveChart">
-              <Sparkline samples={activeSamples} empty={t.chartEmpty} />
-            </div>
+            <Sparkline samples={activeRows} empty={t.chartEmpty} />
 
-            <div className="rvWorkoutLiveActions">
-              <a
-                className="rvWorkoutPrimary"
-                href={SHORTCUT_SYNC}
-                aria-label={t.update}
-              >
-                <RefreshCw size={16} />
+            <div className="rvWatchNowBottom">
+              <small>
+                {activeSession.last_synced_at
+                  ? `${t.updated}: ${fmtShort(activeSession.last_synced_at)}`
+                  : t.updated}
+              </small>
+
+              <a href={SHORTCUT_SYNC} className="rvWatchSimplePrimary">
+                <RefreshCw size={15} />
                 {t.update}
               </a>
-              <small>{t.liveHint}</small>
             </div>
           </>
         ) : (
-          <div className="rvWorkoutNoActiveFlow">
-            <div>
-              <Watch size={18} />
-              <span>{t.flow1}</span>
-            </div>
-            <div>
-              <HeartPulse size={18} />
-              <span>{t.flow2}</span>
-            </div>
-            <div>
-              <Check size={18} />
-              <span>{t.flow3}</span>
-            </div>
-          </div>
+          <p className="rvWatchEmptyCopy">{t.noWorkoutText}</p>
         )}
       </section>
 
-      <section className="rvWorkoutSetupCard">
-        <div className="rvWorkoutSectionHead">
-          <div>
-            <span>APPLE HEALTH + SHORTCUTS</span>
-            <h3>{t.setup}</h3>
+      {!activeSession && latestSession && (
+        <section className="rvWatchLatestCard">
+          <div className="rvWatchSimpleSectionHead">
+            <div>
+              <span>{t.latest}</span>
+              <h2>
+                {workoutName(latestSession.workout_type)} ·{' '}
+                {fmtShort(latestSession.started_at)}
+              </h2>
+            </div>
+            <Check size={20} />
           </div>
-          <KeyRound size={19} />
-        </div>
 
-        <p>{t.setupText}</p>
+          <div className="rvWatchLatestMetrics">
+            <div>
+              <span>{t.duration}</span>
+              <strong>{duration(latestSession)}</strong>
+            </div>
 
-        <div className="rvWorkoutSetupStatus">
-          <span
-            className={
-              status.last_used_at
-                ? 'ok'
-                : status.configured
-                  ? 'pending'
-                  : ''
-            }
-          />
-          <strong>
-            {status.last_used_at
-              ? t.configured
-              : status.configured
-                ? t.configuredPending
-                : t.notConfigured}
-          </strong>
-        </div>
+            <div>
+              <span>{t.beats}</span>
+              <strong>
+                {latestHeart
+                  ? `${Math.round(latestHeart.min)}–${Math.round(
+                      latestHeart.max,
+                    )} bpm`
+                  : t.noData}
+              </strong>
+              {latestHeart && (
+                <small>
+                  {t.average} {Math.round(latestHeart.avg)} bpm
+                </small>
+              )}
+            </div>
 
-        <div className="rvWorkoutSetupActions">
+            {latestEnergy && (
+              <div>
+                <span>{t.calories}</span>
+                <strong>{latestEnergy}</strong>
+              </div>
+            )}
+          </div>
+
           <button
             type="button"
-            className="rvWorkoutPrimary"
-            onClick={() => void rotate()}
-            disabled={busy}
+            className="rvWatchSimpleLinkButton"
+            onClick={() =>
+              setSelectedId(
+                selectedId === latestSession.id ? null : latestSession.id,
+              )
+            }
           >
-            <KeyRound size={15} />
-            {token ? t.copied : status.configured ? t.newCode : t.create}
+            {t.details}
+            <ChevronRight size={15} />
           </button>
+        </section>
+      )}
 
-          <a
-            className="rvWorkoutSecondary"
-            href={OFFICIAL_SHORTCUT}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <Watch size={15} />
-            {t.install}
-          </a>
-
-          {status.configured && (
-            <a className="rvWorkoutSecondary" href={SHORTCUT_SYNC}>
-              <RefreshCw size={15} />
-              {t.syncTest}
-            </a>
-          )}
-        </div>
-
-        {token && (
-          <div className="rvWorkoutToken">
-            <div>
-              <small>{t.key}</small>
-              <code>{token}</code>
-            </div>
-            <button type="button" onClick={() => void copyToken()}>
-              {copied ? <Check size={14} /> : <Copy size={14} />}
-              {copied ? t.copied : t.key}
-            </button>
-          </div>
-        )}
-
-        <details className="rvWorkoutAdvanced">
-          <summary>{t.advanced}</summary>
-          <code>{ENDPOINT}</code>
-          <code>X-RV-Health-Key</code>
-          {status.configured && (
-            <button type="button" onClick={() => void revoke()} disabled={busy}>
-              {t.disconnect}
-            </button>
-          )}
-        </details>
-      </section>
-
-      <section className="rvWorkoutFlowCard">
-        <div className="rvWorkoutSectionHead">
-          <div>
-            <span>AUTOMAÇÃO</span>
-            <h3>{t.flow}</h3>
-          </div>
-          <ShieldCheck size={19} />
-        </div>
-
-        <div className="rvWorkoutFlowGrid">
-          <article>
-            <span>1</span>
-            <strong>{t.flow1}</strong>
-            <p>{t.flow1Text}</p>
-          </article>
-          <article>
-            <span>2</span>
-            <strong>{t.flow2}</strong>
-            <p>{t.flow2Text}</p>
-          </article>
-          <article>
-            <span>3</span>
-            <strong>{t.flow3}</strong>
-            <p>{t.flow3Text}</p>
-          </article>
-          <article>
-            <span>4</span>
-            <strong>{t.flow4}</strong>
-            <p>{t.flow4Text}</p>
-          </article>
-        </div>
-
-        <small className="rvWorkoutIntegrationNote">{t.integrationNote}</small>
-      </section>
-
-      <section className="rvWorkoutHistory">
-        <div className="rvWorkoutSectionHead">
+      <section className="rvWatchHistorySimple">
+        <div className="rvWatchSimpleSectionHead">
           <div>
             <span>HISTÓRICO</span>
-            <h3>{t.history}</h3>
+            <h2>{t.history}</h2>
           </div>
-          <Route size={19} />
+          <Clock3 size={20} />
         </div>
+
         <p>{t.historyText}</p>
 
         {loading ? (
-          <div className="rvWorkoutEmpty">{t.waiting}</div>
-        ) : sessions.length === 0 ? (
-          <div className="rvWorkoutEmpty">{t.noHistory}</div>
+          <div className="rvWatchSimpleEmpty">
+            <RefreshCw className="rvWatchSimpleSpin" size={18} />
+          </div>
+        ) : completedSessions.length === 0 ? (
+          <div className="rvWatchSimpleEmpty">{t.noHistory}</div>
         ) : (
-          <div className="rvWorkoutHistoryGrid">
-            <div className="rvWorkoutHistoryList">
-              {sessions.map((session) => {
-                const rows = sessionSamples(session)
-                const heart = statsFor(workoutHeartSamples(session), 'heart_rate')
-                const energy = statsFor(rows, 'active_energy')
-                const distance = statsFor(rows, 'distance')
-                const steps = statsFor(rows, 'steps')
+          <div className="rvWatchHistorySimpleList">
+            {completedSessions.slice(0, 12).map((session) => {
+              const heart = statsFor(workoutHeartSamples(session), 'heart_rate')
+              const energy = totalMetric(session, 'active_energy', 0)
+              const selected = selectedId === session.id
 
-                return (
-                  <button
-                    type="button"
-                    key={session.id}
-                    className={`rvWorkoutHistoryItem ${
-                      selectedId === session.id ? 'selected' : ''
-                    }`}
-                    onClick={() => setSelectedId(session.id)}
-                  >
-                    <div className="rvWorkoutHistoryItemTop">
-                      <div>
-                        <span>{fmtDate(session.started_at)}</span>
-                        <strong>{workoutName(session.workout_type)}</strong>
-                      </div>
-                      <small className={`status-${session.status}`}>
-                        {session.status === 'active'
-                          ? t.activeBadge
-                          : session.status === 'completed'
-                            ? t.completed
-                            : t.cancelled}
-                      </small>
-                    </div>
+              return (
+                <button
+                  type="button"
+                  key={session.id}
+                  className={selected ? 'selected' : ''}
+                  onClick={() => setSelectedId(selected ? null : session.id)}
+                >
+                  <div className="rvWatchHistorySimpleMain">
+                    <span>{fmtDate(session.started_at)}</span>
+                    <strong>{workoutName(session.workout_type)}</strong>
+                  </div>
 
-                    <div className="rvWorkoutHistoryNumbers">
-                      <span>
-                        <Clock3 size={13} />
-                        {duration(session, session.status === 'active')}
-                      </span>
+                  <div className="rvWatchHistorySimpleSummary">
+                    <span>
+                      <Clock3 size={13} />
+                      {duration(session)}
+                    </span>
+                    {heart && (
                       <span>
                         <HeartPulse size={13} />
-                        {heart
-                          ? `${Math.round(heart.min)}–${Math.round(
-                              heart.max,
-                            )} · Ø ${Math.round(heart.avg)}`
-                          : '—'}
+                        {Math.round(heart.avg)} bpm
                       </span>
-                      {energy && (
-                        <span>
-                          <Flame size={13} />
-                          {Math.round(energy.sum)} {energy.unit}
-                        </span>
-                      )}
-                      {steps && (
-                        <span>
-                          <Footprints size={13} />
-                          {Math.round(steps.sum)}
-                        </span>
-                      )}
-                      {distance && (
-                        <span>
-                          <Route size={13} />
-                          {distance.sum.toFixed(2)} {distance.unit}
-                        </span>
-                      )}
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-
-            {selectedSession && (
-              <article className="rvWorkoutSessionDetail">
-                <div className="rvWorkoutSessionDetailHead">
-                  <div>
-                    <span>
-                      {selectedSession.status === 'active'
-                        ? t.activeBadge
-                        : t.completed}
-                    </span>
-                    <h4>{sessionTitle(selectedSession)}</h4>
-                    <p>{workoutName(selectedSession.workout_type)}</p>
+                    )}
+                    {energy && (
+                      <span>
+                        <Flame size={13} />
+                        {energy}
+                      </span>
+                    )}
                   </div>
-                  <Activity size={20} />
-                </div>
 
-                <div className="rvWorkoutMetricGrid">
-                  <article>
-                    <HeartPulse size={16} />
-                    <span>{t.bpmRange}</span>
-                    <strong>
-                      {selectedHeart
-                        ? `${Math.round(selectedHeart.min)}–${Math.round(
-                            selectedHeart.max,
-                          )} bpm`
-                        : t.noMetric}
-                    </strong>
-                    <small>
-                      {selectedHeart
-                        ? `${t.average}: ${Math.round(selectedHeart.avg)} bpm`
-                        : ''}
-                    </small>
-                  </article>
-
-                  <article>
-                    <Flame size={16} />
-                    <span>{t.calories}</span>
-                    <strong>
-                      {metricValue(selectedSession, 'active_energy', 'sum', 0)}
-                    </strong>
-                  </article>
-
-                  <article>
-                    <Footprints size={16} />
-                    <span>{t.steps}</span>
-                    <strong>
-                      {metricValue(selectedSession, 'steps', 'sum', 0)}
-                    </strong>
-                  </article>
-
-                  <article>
-                    <Route size={16} />
-                    <span>{t.distance}</span>
-                    <strong>
-                      {metricValue(selectedSession, 'distance', 'sum', 2)}
-                    </strong>
-                  </article>
-
-                  <article>
-                    <Activity size={16} />
-                    <span>{t.hrv}</span>
-                    <strong>
-                      {metricValue(
-                        selectedSession,
-                        'heart_rate_variability',
-                        'avg',
-                        0,
-                      )}
-                    </strong>
-                  </article>
-
-                  <article>
-                    <Activity size={16} />
-                    <span>{t.respiratory}</span>
-                    <strong>
-                      {metricValue(
-                        selectedSession,
-                        'respiratory_rate',
-                        'avg',
-                        1,
-                      )}
-                    </strong>
-                  </article>
-
-                  <article>
-                    <Activity size={16} />
-                    <span>{t.oxygen}</span>
-                    <strong>
-                      {metricValue(
-                        selectedSession,
-                        'oxygen_saturation',
-                        'avg',
-                        1,
-                      )}
-                    </strong>
-                  </article>
-
-                  <article>
-                    <TimerReset size={16} />
-                    <span>{t.recovery}</span>
-                    <strong>
-                      {recoveryDrop === null
-                        ? t.noMetric
-                        : `${recoveryDrop > 0 ? '−' : '+'}${Math.abs(
-                            recoveryDrop,
-                          )} bpm`}
-                    </strong>
-                    <small>{recoveryDrop === null ? '' : t.recoveryText}</small>
-                  </article>
-                </div>
-
-                <div className="rvWorkoutSessionChart">
-                  <div>
-                    <strong>{t.chart}</strong>
-                    <small>
-                      {selectedHeart
-                        ? `${selectedHeart.count} ${t.samples}`
-                        : t.waiting}
-                    </small>
-                  </div>
-                  <Sparkline samples={selectedSamples} empty={t.chartEmpty} />
-                </div>
-              </article>
-            )}
+                  <ChevronDown
+                    size={16}
+                    className={selected ? 'open' : ''}
+                  />
+                </button>
+              )
+            })}
           </div>
         )}
       </section>
+
+      {selectedSession && (
+        <section className="rvWatchDetailSimple">
+          <div className="rvWatchDetailHead">
+            <div>
+              <span>{t.finished}</span>
+              <h2>{t.details}</h2>
+              <p>
+                {workoutName(selectedSession.workout_type)} ·{' '}
+                {fmtDate(selectedSession.started_at)}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              aria-label={t.close}
+              onClick={() => setSelectedId(null)}
+            >
+              <X size={17} />
+            </button>
+          </div>
+
+          <div className="rvWatchDetailMainMetrics">
+            <article>
+              <Clock3 size={16} />
+              <span>{t.duration}</span>
+              <strong>{duration(selectedSession)}</strong>
+            </article>
+
+            <article>
+              <HeartPulse size={16} />
+              <span>{t.average}</span>
+              <strong>
+                {detailHeart ? `${Math.round(detailHeart.avg)} bpm` : t.noData}
+              </strong>
+            </article>
+
+            <article>
+              <HeartPulse size={16} />
+              <span>{t.minimum}</span>
+              <strong>
+                {detailHeart ? `${Math.round(detailHeart.min)} bpm` : t.noData}
+              </strong>
+            </article>
+
+            <article>
+              <HeartPulse size={16} />
+              <span>{t.maximum}</span>
+              <strong>
+                {detailHeart ? `${Math.round(detailHeart.max)} bpm` : t.noData}
+              </strong>
+            </article>
+
+            {detailEnergy && (
+              <article>
+                <Flame size={16} />
+                <span>{t.calories}</span>
+                <strong>{detailEnergy}</strong>
+              </article>
+            )}
+
+            {detailDistance && (
+              <article>
+                <Route size={16} />
+                <span>{t.distance}</span>
+                <strong>{detailDistance}</strong>
+              </article>
+            )}
+
+            {detailSteps && (
+              <article>
+                <Footprints size={16} />
+                <span>{t.steps}</span>
+                <strong>{detailSteps}</strong>
+              </article>
+            )}
+          </div>
+
+          <div className="rvWatchDetailChart">
+            <div>
+              <strong>{t.chart}</strong>
+              {detailHeart && (
+                <small>
+                  {detailHeart.count} {t.readings}
+                </small>
+              )}
+            </div>
+            <Sparkline samples={detailRows} empty={t.chartEmpty} />
+          </div>
+
+          {detailExtras.length > 0 && (
+            <details className="rvWatchOtherData">
+              <summary>{t.otherData}</summary>
+              <div>
+                {detailExtras.map((item) => (
+                  <article key={item.key}>
+                    <span>{item.label}</span>
+                    <strong>{item.value}</strong>
+                  </article>
+                ))}
+              </div>
+            </details>
+          )}
+        </section>
+      )}
+
+      <details className="rvWatchSimpleHow">
+        <summary>{t.simpleHow}</summary>
+        <p>{t.simpleHowText}</p>
+      </details>
     </section>
   )
 }

@@ -1,957 +1,203 @@
-.rvHealthModule {
+/* RV_WATCH_SIMPLE_V20 */
+.rvWatchSimplePage {
+  width: min(1040px, 100%);
+  margin: 0 auto;
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
-.rvHealthModuleHead,
-.rvHealthBox {
-  border: 1px solid rgba(126, 163, 195, .16);
-  border-radius: 16px;
+.rvWatchSimpleHeader {
+  min-height: 112px;
+  padding: 22px;
+  border: 1px solid rgba(126, 163, 195, .14);
+  border-radius: 18px;
+  background: #071a2d;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.rvWatchSimpleEyebrow {
+  color: #20d6cf;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.rvWatchSimpleHeader h1 {
+  margin: 7px 0 0;
+  color: #f2f7fa;
+  font-size: clamp(24px, 3.8vw, 34px);
+  line-height: 1.05;
+  letter-spacing: -.7px;
+}
+
+.rvWatchSimpleBadge {
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid rgba(32, 214, 207, .18);
+  border-radius: 999px;
+  background: rgba(32, 214, 207, .06);
+  color: #aee9e6;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 9px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.rvWatchSimpleModule {
+  display: grid;
+  gap: 12px;
+}
+
+.rvWatchConnectCard,
+.rvWatchNowCard,
+.rvWatchLatestCard,
+.rvWatchHistorySimple,
+.rvWatchDetailSimple {
+  padding: 18px;
+  border: 1px solid rgba(126, 163, 195, .13);
+  border-radius: 17px;
   background: #071a2d;
 }
 
-.rvHealthModuleHead {
-  padding: 18px 20px;
+.rvWatchNowCard.live {
+  border-color: rgba(32, 214, 207, .23);
+}
+
+.rvWatchSimpleSectionHead,
+.rvWatchDetailHead {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 14px;
 }
 
-.rvHealthModuleHead > div > span,
-.rvHealthBoxHead > div > span {
+.rvWatchSimpleSectionHead > div > span,
+.rvWatchDetailHead > div > span {
   color: #20d6cf;
-  font-size: 9px;
-  font-weight: 850;
-  letter-spacing: 1.2px;
-}
-
-.rvHealthModuleHead h2,
-.rvHealthBoxHead h3 {
-  margin: 3px 0 0;
-  color: #f2f7fa;
-}
-
-.rvHealthModuleHead h2 {
-  font-size: 21px;
-}
-
-.rvHealthBoxHead h3 {
-  font-size: 16px;
-}
-
-.rvHealthModuleHead p,
-.rvHealthBox > p {
-  margin: 6px 0 0;
-  color: #829aae;
-  font-size: 10px;
-  line-height: 1.5;
-}
-
-.rvHealthModuleHead > svg,
-.rvHealthBoxHead > svg {
-  color: #718aa1;
-}
-
-.rvHealthQuickGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.rvHealthQuickGrid article {
-  min-width: 0;
-  min-height: 108px;
-  padding: 14px;
-  border: 1px solid rgba(126, 163, 195, .14);
-  border-radius: 14px;
-  background: #061729;
-}
-
-.rvHealthQuickGrid article > svg {
-  color: #20d6cf;
-}
-
-.rvHealthQuickGrid span {
-  margin-top: 9px;
-  color: #718aa1;
-  display: block;
-  font-size: 8.5px;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 1px;
   text-transform: uppercase;
-  letter-spacing: .65px;
 }
 
-.rvHealthQuickGrid strong {
-  margin-top: 4px;
-  color: #edf4f8;
-  display: block;
-  font-size: 13px;
+.rvWatchSimpleSectionHead h2,
+.rvWatchDetailHead h2 {
+  margin: 4px 0 0;
+  color: #edf5f8;
+  font-size: 17px;
 }
 
-.rvHealthQuickGrid small {
-  margin-top: 4px;
-  color: #617a91;
-  display: block;
-  font-size: 8.5px;
-  line-height: 1.4;
-}
-
-.rvHealthTwoColumns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.rvHealthBox {
-  padding: 17px;
-  min-width: 0;
-}
-
-.rvHealthBoxHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.rvHealthActions {
-  margin-top: 13px;
-  display: flex;
-  gap: 7px;
-  flex-wrap: wrap;
-}
-
-.rvHealthActions button,
-.rvHealthActions a,
-.rvPressureMiniForm button {
-  min-height: 39px;
-  padding: 0 12px;
-  border: 1px solid rgba(32, 214, 207, .25);
-  border-radius: 9px;
-  background: #0a2b3a;
-  color: #ddf7f5;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  font: inherit;
-  font-size: 9px;
-  font-weight: 800;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.rvHealthActions .ghost {
-  border-color: rgba(126, 163, 195, .15);
-  background: #051522;
-  color: #9eb2c3;
-}
-
-.rvHealthSecret {
-  margin-top: 13px;
-  padding: 12px;
-  border: 1px solid rgba(32, 214, 207, .18);
-  border-radius: 11px;
-  background: #05202d;
-}
-
-.rvHealthSecret > strong {
-  color: #c5ecea;
-  font-size: 9px;
-}
-
-.rvHealthSecret > div {
-  margin-top: 8px;
-  padding: 9px;
-  border-radius: 9px;
-  background: #041522;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
-  align-items: center;
-}
-
-.rvHealthSecret small {
-  color: #688198;
-  display: block;
-  font-size: 7.5px;
-}
-
-.rvHealthSecret code,
-.rvHealthSetup code {
-  color: #d8e7ee;
-  display: block;
-  font-size: 8px;
-  overflow-wrap: anywhere;
-}
-
-.rvHealthSecret button {
-  min-height: 31px;
-  border: 1px solid rgba(126, 163, 195, .14);
-  border-radius: 8px;
-  background: #071d2c;
-  color: #9eb5c5;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font: inherit;
-  font-size: 8px;
-}
-
-.rvHealthSetup {
-  margin-top: 12px;
-  padding: 0 12px 12px;
-  border: 1px solid rgba(126, 163, 195, .12);
-  border-radius: 10px;
-  background: #051522;
-}
-
-.rvHealthSetup summary {
-  padding: 12px 0;
-  color: #d7e4eb;
-  font-size: 9.5px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.rvHealthSetup ol {
-  margin: 0 0 10px;
-  padding-left: 18px;
-  color: #8199ad;
-  font-size: 8.5px;
-  line-height: 1.5;
-}
-
-.rvHealthSetup code + code {
-  margin-top: 4px;
-}
-
-.rvPressureMiniForm {
-  margin-top: 13px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 7px;
-}
-
-.rvPressureMiniForm label span {
-  margin-bottom: 4px;
-  color: #718aa1;
-  display: block;
-  font-size: 8px;
-}
-
-.rvPressureMiniForm input {
-  width: 100%;
-  min-height: 40px;
-  padding: 0 9px;
-  border: 1px solid rgba(126, 163, 195, .14);
-  border-radius: 9px;
-  outline: 0;
-  background: #051522;
-  color: #eef5f8;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.rvPressureMiniForm button {
-  grid-column: 1 / -1;
-}
-
-.rvHealthMessage {
-  margin-top: 9px;
-  padding: 8px 10px;
-  border: 1px solid rgba(32, 214, 207, .13);
-  border-radius: 8px;
-  background: #06202d;
-  color: #9ec3c1;
-  font-size: 8.5px;
-}
-
-.rvHealthList {
-  margin-top: 12px;
-  display: grid;
-  gap: 6px;
-}
-
-.rvHealthList article {
-  min-height: 53px;
-  padding: 9px 10px;
-  border: 1px solid rgba(126, 163, 195, .1);
-  border-radius: 9px;
-  background: #051522;
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: center;
-}
-
-.rvHealthList strong {
-  color: #d9e6ed;
-  display: block;
-  font-size: 9px;
-}
-
-.rvHealthList small {
-  margin-top: 3px;
-  color: #667f95;
-  display: block;
-  font-size: 7.5px;
-}
-
-.rvHealthList b {
+.rvWatchSimpleSectionHead > svg {
   color: #20d6cf;
-  font-size: 9.5px;
-  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
-.rvHealthEmpty {
-  min-height: 70px;
-  margin-top: 12px;
-  padding: 12px;
-  border: 1px dashed rgba(126, 163, 195, .13);
-  border-radius: 9px;
-  color: #71899e;
-  display: grid;
-  place-items: center;
-  text-align: center;
-  font-size: 8.5px;
-}
-
-.rvHealthSpin {
-  animation: rvHealthSpin .8s linear infinite;
-}
-
-@keyframes rvHealthSpin {
-  to { transform: rotate(360deg); }
-}
-
-/* O caminho atual usa Apple Health + Atalhos; o diagnóstico Bluetooth antigo fica oculto. */
-.rvWatchConnectionCard {
-  display: none !important;
-}
-
-@media (max-width: 760px) {
-  .rvHealthQuickGrid,
-  .rvHealthTwoColumns {
-    grid-template-columns: 1fr;
-  }
-
-  .rvHealthModuleHead,
-  .rvHealthBox {
-    border-radius: 14px;
-  }
-
-  .rvHealthModuleHead,
-  .rvHealthBox {
-    padding: 14px;
-  }
-
-  .rvHealthActions {
-    display: grid;
-  }
-
-  .rvHealthActions button,
-  .rvHealthActions a {
-    width: 100%;
-  }
-
-  .rvHealthSecret > div {
-    grid-template-columns: 1fr;
-  }
-
-  .rvHealthSecret button {
-    width: fit-content;
-  }
-}
-
-
-/* RV_HEALTH_SIMPLE_SETUP_V17 */
-.rvHealthSimpleSetup {
-  grid-column: 1 / -1;
-}
-
-.rvHealthOnceNote {
-  width: fit-content;
-  min-height: 32px;
-  margin-top: 12px;
-  padding: 0 11px;
-  border: 1px solid rgba(32, 214, 207, .18);
-  border-radius: 999px;
-  background: #06202d;
-  color: #a9d7d4;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 8.5px;
-  font-weight: 750;
-}
-
-.rvHealthOnceNote svg {
-  color: #20d6cf;
-}
-
-.rvHealthSimpleSteps {
+.rvWatchConnectSteps {
   margin-top: 14px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
-.rvHealthSimpleSteps article {
-  min-width: 0;
-  min-height: 180px;
-  padding: 14px;
-  border: 1px solid rgba(126, 163, 195, .12);
-  border-radius: 12px;
-  background: #051522;
-  display: flex;
-  gap: 11px;
-  align-items: flex-start;
-}
-
-.rvHealthSimpleSteps article.done {
-  border-color: rgba(32, 214, 207, .2);
-}
-
-.rvHealthStepNumber {
-  width: 27px;
-  height: 27px;
-  border: 1px solid rgba(32, 214, 207, .22);
-  border-radius: 50%;
-  background: #082333;
-  color: #20d6cf;
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  font-size: 9px;
-  font-weight: 900;
-}
-
-.rvHealthSimpleSteps article > div {
-  min-width: 0;
-  flex: 1;
-}
-
-.rvHealthSimpleSteps strong {
-  color: #e7f0f5;
-  display: block;
-  font-size: 10px;
-}
-
-.rvHealthSimpleSteps p {
-  min-height: 42px;
-  margin: 6px 0 11px;
-  color: #718aa1;
-  font-size: 8.5px;
-  line-height: 1.45;
-}
-
-.rvHealthSimpleSteps small {
-  margin-top: 8px;
-  color: #667f95;
-  display: block;
-  font-size: 7.5px;
-  line-height: 1.4;
-}
-
-.rvHealthSimplePrimary {
-  width: 100%;
-  min-height: 40px;
-  padding: 0 11px;
-  border: 1px solid rgba(32, 214, 207, .25);
-  border-radius: 9px;
-  background: #0a2b3a;
-  color: #ddf7f5;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  font: inherit;
-  font-size: 8.5px;
-  font-weight: 850;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.rvHealthSimplePrimary.disabled {
-  border-color: rgba(126, 163, 195, .11);
-  background: #071622;
-  color: #586f83;
-  pointer-events: none;
-}
-
-.rvHealthSimpleCode {
-  margin-top: 10px;
-  padding: 11px;
-  border: 1px solid rgba(32, 214, 207, .17);
-  border-radius: 11px;
-  background: #05202d;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px;
-  align-items: center;
-}
-
-.rvHealthSimpleCode small {
-  color: #7590a5;
-  display: block;
-  font-size: 7.5px;
-}
-
-.rvHealthSimpleCode code {
-  margin-top: 3px;
-  color: #d8e7ee;
-  display: block;
-  font-size: 8px;
-  overflow-wrap: anywhere;
-}
-
-.rvHealthSimpleCode button,
-.rvHealthDisconnect {
-  min-height: 34px;
-  padding: 0 10px;
-  border: 1px solid rgba(126, 163, 195, .14);
-  border-radius: 8px;
-  background: #071d2c;
-  color: #9eb5c5;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font: inherit;
-  font-size: 8px;
-  cursor: pointer;
-}
-
-.rvHealthAdvanced > p {
-  margin: 0 0 10px;
-  color: #71899e;
-  font-size: 8px;
-}
-
-.rvHealthAdvancedRow {
-  padding: 9px;
-  border: 1px solid rgba(126, 163, 195, .1);
-  border-radius: 8px;
-  background: #041522;
-}
-
-.rvHealthAdvancedRow + .rvHealthAdvancedRow {
-  margin-top: 6px;
-}
-
-.rvHealthAdvancedRow small {
-  color: #688198;
-  display: block;
-  font-size: 7.5px;
-}
-
-.rvHealthAdvancedRow code {
-  margin-top: 3px;
-  color: #d8e7ee;
-  display: block;
-  font-size: 8px;
-  overflow-wrap: anywhere;
-}
-
-.rvHealthDisconnect {
-  margin-top: 10px;
-  border-color: rgba(214, 128, 128, .16);
-  color: #c7a2a2;
-}
-
-@media (max-width: 760px) {
-  .rvHealthSimpleSteps {
-    grid-template-columns: 1fr;
-  }
-
-  .rvHealthSimpleSteps article {
-    min-height: 0;
-  }
-
-  .rvHealthSimpleSteps p {
-    min-height: 0;
-  }
-
-  .rvHealthSimpleCode {
-    grid-template-columns: 1fr;
-  }
-
-  .rvHealthSimpleCode button {
-    width: fit-content;
-  }
-}
-
-
-/* RV_WORKOUT_SESSIONS_V19 */
-.rvWorkoutModule {
-  display: grid;
-  gap: 14px;
-}
-
-.rvWorkoutModuleHead,
-.rvWorkoutLiveCard,
-.rvWorkoutSetupCard,
-.rvWorkoutFlowCard,
-.rvWorkoutHistory {
-  border: 1px solid rgba(126, 163, 195, .14);
-  border-radius: 18px;
-  background: #071a2d;
-}
-
-.rvWorkoutModuleHead {
-  padding: 21px 22px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.rvWorkoutModuleHead > div > span,
-.rvWorkoutSectionHead > div > span {
-  color: #20d6cf;
-  font-size: 9px;
-  font-weight: 900;
-  letter-spacing: 1.25px;
-}
-
-.rvWorkoutModuleHead h2,
-.rvWorkoutSectionHead h3 {
-  margin: 4px 0 0;
-  color: #f2f7fa;
-}
-
-.rvWorkoutModuleHead h2 {
-  font-size: 22px;
-}
-
-.rvWorkoutModuleHead p,
-.rvWorkoutSetupCard > p,
-.rvWorkoutHistory > p {
-  max-width: 760px;
-  margin: 7px 0 0;
-  color: #849bb0;
-  font-size: 11px;
-  line-height: 1.55;
-}
-
-.rvWorkoutModuleHead > svg,
-.rvWorkoutSectionHead > svg {
-  color: #20d6cf;
-  flex: 0 0 auto;
-}
-
-.rvWorkoutLiveCard,
-.rvWorkoutSetupCard,
-.rvWorkoutFlowCard,
-.rvWorkoutHistory {
-  padding: 20px;
-}
-
-.rvWorkoutLiveCard.is-active {
-  border-color: rgba(32, 214, 207, .25);
-}
-
-.rvWorkoutLiveTop,
-.rvWorkoutSectionHead,
-.rvWorkoutSessionDetailHead,
-.rvWorkoutHistoryItemTop {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
-}
-
-.rvWorkoutLiveTop h3,
-.rvWorkoutSessionDetail h4 {
-  margin: 5px 0 0;
-  color: #edf5f8;
-}
-
-.rvWorkoutLiveTop h3 {
-  font-size: 19px;
-}
-
-.rvWorkoutLiveTop p,
-.rvWorkoutSessionDetailHead p {
-  margin: 6px 0 0;
-  color: #7f97ab;
-  font-size: 10px;
-  line-height: 1.45;
-}
-
-.rvWorkoutLiveBadge {
-  width: fit-content;
-  min-height: 23px;
-  padding: 0 8px;
-  border: 1px solid rgba(32, 214, 207, .2);
-  border-radius: 999px;
-  background: rgba(32, 214, 207, .07);
-  color: #68e4df;
-  display: inline-flex;
-  align-items: center;
-  font-size: 8px;
-  font-weight: 900;
-  letter-spacing: 1px;
-}
-
-.rvWorkoutLiveTop > svg {
-  color: #20d6cf;
-}
-
-.rvWorkoutLiveStats {
-  margin-top: 16px;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.rvWorkoutLiveStats article,
-.rvWorkoutMetricGrid article {
-  min-width: 0;
-  padding: 13px;
-  border: 1px solid rgba(126, 163, 195, .12);
-  border-radius: 13px;
-  background: #051522;
-}
-
-.rvWorkoutLiveStats article {
-  min-height: 88px;
-}
-
-.rvWorkoutLiveStats svg,
-.rvWorkoutMetricGrid svg {
-  color: #20d6cf;
-}
-
-.rvWorkoutLiveStats span,
-.rvWorkoutMetricGrid span {
-  margin-top: 7px;
-  color: #6f879f;
-  display: block;
-  font-size: 8.5px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: .65px;
-}
-
-.rvWorkoutLiveStats strong,
-.rvWorkoutMetricGrid strong {
-  margin-top: 4px;
-  color: #e9f2f6;
-  display: block;
-  font-size: 12px;
-  line-height: 1.35;
-}
-
-.rvWorkoutMetricGrid small {
-  margin-top: 4px;
-  color: #718aa1;
-  display: block;
-  font-size: 8.5px;
-}
-
-.rvWorkoutLiveChart,
-.rvWorkoutSessionChart {
-  margin-top: 12px;
-  border: 1px solid rgba(126, 163, 195, .1);
-  border-radius: 14px;
-  background: #051522;
-  overflow: hidden;
-}
-
-.rvWorkoutChart {
-  position: relative;
-  height: 180px;
-  padding: 10px;
-}
-
-.rvWorkoutChart svg {
-  width: 100%;
-  height: 100%;
-  color: #20d6cf;
-}
-
-.rvWorkoutChart polyline {
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.rvWorkoutChartScale {
-  position: absolute;
-  inset: 10px 12px auto auto;
-  color: #638099;
-  display: grid;
-  gap: 5px;
-  font-size: 8px;
-  text-align: right;
-}
-
-.rvWorkoutChartEmpty,
-.rvWorkoutEmpty {
-  min-height: 110px;
-  padding: 18px;
-  color: #718aa1;
-  display: grid;
-  place-items: center;
-  text-align: center;
-  font-size: 10px;
-  line-height: 1.5;
-}
-
-.rvWorkoutLiveActions {
-  margin-top: 12px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.rvWorkoutLiveActions small {
-  max-width: 620px;
-  color: #718aa1;
-  font-size: 9px;
-  line-height: 1.45;
-}
-
-.rvWorkoutPrimary,
-.rvWorkoutSecondary {
-  min-height: 42px;
-  padding: 0 14px;
-  border-radius: 11px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font: inherit;
-  font-size: 10px;
-  font-weight: 850;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.rvWorkoutPrimary {
-  border: 1px solid rgba(32, 214, 207, .28);
-  background: #0a2b3a;
-  color: #e1fbf9;
-}
-
-.rvWorkoutSecondary {
-  border: 1px solid rgba(126, 163, 195, .16);
-  background: #061729;
-  color: #c4d2dc;
-}
-
-button.rvWorkoutPrimary {
-  appearance: none;
-}
-
-.rvWorkoutPrimary:disabled,
-.rvWorkoutSecondary:disabled {
-  opacity: .6;
-  cursor: wait;
-}
-
-.rvWorkoutNoActiveFlow {
-  margin-top: 16px;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.rvWorkoutNoActiveFlow > div {
-  min-height: 72px;
+.rvWatchConnectSteps article {
+  min-height: 112px;
   padding: 12px;
   border: 1px solid rgba(126, 163, 195, .11);
   border-radius: 12px;
   background: #051522;
-  color: #9db0bf;
-  display: flex;
+  display: grid;
+  grid-template-columns: 27px 1fr;
+  gap: 8px;
   align-items: center;
-  gap: 9px;
-  font-size: 9.5px;
 }
 
-.rvWorkoutNoActiveFlow svg {
+.rvWatchConnectSteps article > span {
+  width: 27px;
+  height: 27px;
+  border-radius: 9px;
+  background: #082333;
   color: #20d6cf;
+  display: grid;
+  place-items: center;
+  font-size: 9px;
+  font-weight: 900;
 }
 
-.rvWorkoutSectionHead h3 {
-  font-size: 17px;
+.rvWatchConnectSteps article > strong {
+  color: #dce7ee;
+  font-size: 10px;
 }
 
-.rvWorkoutSetupStatus {
-  width: fit-content;
-  margin-top: 13px;
-  padding: 7px 10px;
-  border: 1px solid rgba(126, 163, 195, .13);
-  border-radius: 999px;
-  background: #051522;
+.rvWatchConnectSteps article > button,
+.rvWatchConnectSteps article > a {
+  grid-column: 1 / -1;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid rgba(32, 214, 207, .19);
+  border-radius: 10px;
+  background: #082433;
+  color: #d9f5f2;
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.rvWorkoutSetupStatus > span {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #667d91;
-}
-
-.rvWorkoutSetupStatus > span.pending {
-  background: #d7a85f;
-}
-
-.rvWorkoutSetupStatus > span.ok {
-  background: #20d6cf;
-}
-
-.rvWorkoutSetupStatus strong {
-  color: #aebdca;
+  justify-content: center;
+  gap: 7px;
+  font: inherit;
   font-size: 9px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
 }
 
-.rvWorkoutSetupActions {
-  margin-top: 13px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.rvWatchConnectSteps article.disabled {
+  opacity: .45;
 }
 
-.rvWorkoutToken {
-  margin-top: 12px;
-  padding: 11px 12px;
-  border: 1px solid rgba(32, 214, 207, .16);
-  border-radius: 12px;
+.rvWatchConnectSteps article.done {
+  border-color: rgba(32, 214, 207, .17);
+}
+
+.rvWatchConnectCode {
+  margin-top: 10px;
+  padding: 10px 11px;
+  border: 1px solid rgba(32, 214, 207, .14);
+  border-radius: 11px;
   background: #051522;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
 }
 
-.rvWorkoutToken small {
-  color: #6f879f;
+.rvWatchConnectCode small {
+  color: #718aa1;
   display: block;
   font-size: 8px;
 }
 
-.rvWorkoutToken code {
-  max-width: 560px;
-  margin-top: 4px;
-  color: #c7e8e6;
+.rvWatchConnectCode code {
+  max-width: 600px;
+  margin-top: 3px;
+  color: #c8e8e6;
   display: block;
   overflow: hidden;
-  font-size: 9px;
   text-overflow: ellipsis;
+  font-size: 9px;
 }
 
-.rvWorkoutToken button,
-.rvWorkoutAdvanced button {
-  min-height: 34px;
-  padding: 0 10px;
-  border: 1px solid rgba(126, 163, 195, .14);
+.rvWatchConnectCode button,
+.rvWatchConnectedBar details button {
+  min-height: 33px;
+  padding: 0 9px;
+  border: 1px solid rgba(126, 163, 195, .13);
   border-radius: 9px;
   background: #071a2d;
   color: #b9cad5;
@@ -959,285 +205,541 @@ button.rvWorkoutPrimary {
   align-items: center;
   gap: 6px;
   font: inherit;
-  font-size: 9px;
+  font-size: 8.5px;
   cursor: pointer;
 }
 
-.rvWorkoutAdvanced {
-  margin-top: 11px;
-}
-
-.rvWorkoutAdvanced summary {
-  color: #6f879f;
+.rvWatchConnectNote {
+  margin: 10px 0 0;
+  color: #718aa1;
   font-size: 9px;
-  cursor: pointer;
+  line-height: 1.5;
 }
 
-.rvWorkoutAdvanced code {
-  margin-top: 8px;
-  padding: 8px 9px;
-  border-radius: 8px;
-  background: #051522;
-  color: #829bae;
-  display: block;
-  overflow-wrap: anywhere;
-  font-size: 8px;
+.rvWatchConnectedBar {
+  min-height: 50px;
+  padding: 10px 13px;
+  border: 1px solid rgba(32, 214, 207, .14);
+  border-radius: 13px;
+  background: #06202d;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.rvWorkoutAdvanced button {
-  margin-top: 8px;
-}
-
-.rvWorkoutFlowGrid {
-  margin-top: 14px;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+.rvWatchConnectedBar > div {
+  color: #c8ece9;
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
 
-.rvWorkoutFlowGrid article {
-  min-height: 128px;
-  padding: 13px;
-  border: 1px solid rgba(126, 163, 195, .11);
+.rvWatchConnectedBar strong {
+  font-size: 9.5px;
+}
+
+.rvWatchConnectedDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #20d6cf;
+}
+
+.rvWatchConnectedBar details {
+  position: relative;
+  color: #718aa1;
+  font-size: 8.5px;
+}
+
+.rvWatchConnectedBar summary {
+  cursor: pointer;
+}
+
+.rvWatchConnectedBar details[open] {
+  padding: 9px;
+  border-radius: 10px;
+  background: #051522;
+}
+
+.rvWatchConnectedBar details p {
+  max-width: 470px;
+  margin: 8px 0;
+  line-height: 1.45;
+}
+
+.rvWatchNowSub,
+.rvWatchHistorySimple > p,
+.rvWatchDetailHead p {
+  margin: 7px 0 0;
+  color: #7d95a9;
+  font-size: 9.5px;
+  line-height: 1.45;
+}
+
+.rvWatchNowMetrics {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rvWatchNowMetrics article {
+  min-width: 138px;
+  flex: 1 1 150px;
+  padding: 12px;
+  border: 1px solid rgba(126, 163, 195, .1);
   border-radius: 12px;
   background: #051522;
 }
 
-.rvWorkoutFlowGrid article > span {
-  width: 27px;
-  height: 27px;
-  border: 1px solid rgba(32, 214, 207, .18);
-  border-radius: 9px;
-  background: rgba(32, 214, 207, .06);
+.rvWatchNowMetrics svg,
+.rvWatchDetailMainMetrics svg {
   color: #20d6cf;
+}
+
+.rvWatchNowMetrics span,
+.rvWatchDetailMainMetrics span,
+.rvWatchLatestMetrics span {
+  margin-top: 6px;
+  color: #718aa1;
+  display: block;
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .55px;
+}
+
+.rvWatchNowMetrics strong,
+.rvWatchDetailMainMetrics strong,
+.rvWatchLatestMetrics strong {
+  margin-top: 3px;
+  color: #e8f1f5;
+  display: block;
+  font-size: 13px;
+}
+
+.rvWatchNowMetrics small,
+.rvWatchLatestMetrics small {
+  margin-top: 3px;
+  color: #8298aa;
+  display: block;
+  font-size: 8px;
+}
+
+.rvWatchSimpleChart {
+  position: relative;
+  height: 160px;
+  margin-top: 10px;
+  border: 1px solid rgba(126, 163, 195, .08);
+  border-radius: 12px;
+  background: #051522;
+  overflow: hidden;
+}
+
+.rvWatchSimpleChart svg {
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  color: #20d6cf;
+}
+
+.rvWatchSimpleChart polyline {
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.rvWatchSimpleChartScale {
+  position: absolute;
+  top: 9px;
+  right: 10px;
+  color: #607b92;
+  display: grid;
+  gap: 4px;
+  font-size: 7.5px;
+  text-align: right;
+}
+
+.rvWatchSimpleChartEmpty,
+.rvWatchSimpleEmpty {
+  min-height: 92px;
+  padding: 16px;
+  color: #718aa1;
   display: grid;
   place-items: center;
-  font-size: 9px;
-  font-weight: 900;
+  text-align: center;
+  font-size: 9.5px;
+  line-height: 1.45;
 }
 
-.rvWorkoutFlowGrid strong {
-  margin-top: 11px;
-  color: #dce8ee;
-  display: block;
-  font-size: 10px;
-}
-
-.rvWorkoutFlowGrid p {
-  margin: 6px 0 0;
-  color: #718aa1;
-  font-size: 9px;
-  line-height: 1.5;
-}
-
-.rvWorkoutIntegrationNote {
-  margin-top: 11px;
-  color: #718aa1;
-  display: block;
-  font-size: 9px;
-  line-height: 1.5;
-}
-
-.rvWorkoutHistoryGrid {
-  margin-top: 14px;
-  display: grid;
-  grid-template-columns: minmax(260px, .78fr) minmax(0, 1.42fr);
+.rvWatchNowBottom {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 10px;
-  align-items: start;
 }
 
-.rvWorkoutHistoryList {
-  display: grid;
+.rvWatchNowBottom > small {
+  color: #6f879f;
+  font-size: 8px;
+}
+
+.rvWatchSimplePrimary {
+  min-height: 38px;
+  padding: 0 11px;
+  border: 1px solid rgba(32, 214, 207, .2);
+  border-radius: 10px;
+  background: #082433;
+  color: #dff7f5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: 7px;
+  font-size: 9px;
+  font-weight: 800;
+  text-decoration: none;
 }
 
-.rvWorkoutHistoryItem {
+.rvWatchEmptyCopy {
+  margin: 12px 0 0;
+  padding: 16px;
+  border-radius: 11px;
+  background: #051522;
+  color: #8299ac;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.rvWatchLatestMetrics {
+  margin-top: 13px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rvWatchLatestMetrics > div {
+  min-height: 72px;
+  padding: 11px;
+  border-radius: 11px;
+  background: #051522;
+}
+
+.rvWatchSimpleLinkButton {
+  margin-top: 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #20d6cf;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.rvWatchHistorySimpleList {
+  margin-top: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.rvWatchHistorySimpleList > button {
   width: 100%;
-  padding: 12px;
-  border: 1px solid rgba(126, 163, 195, .11);
-  border-radius: 12px;
+  min-height: 64px;
+  padding: 10px 11px;
+  border: 1px solid rgba(126, 163, 195, .1);
+  border-radius: 11px;
   background: #051522;
   color: inherit;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 18px;
+  align-items: center;
+  gap: 10px;
   text-align: left;
   cursor: pointer;
 }
 
-.rvWorkoutHistoryItem.selected {
-  border-color: rgba(32, 214, 207, .25);
+.rvWatchHistorySimpleList > button.selected {
+  border-color: rgba(32, 214, 207, .2);
   background: #06202d;
 }
 
-.rvWorkoutHistoryItemTop span {
-  color: #6f879f;
-  display: block;
-  font-size: 8px;
+.rvWatchHistorySimpleMain {
+  min-width: 0;
 }
 
-.rvWorkoutHistoryItemTop strong {
-  margin-top: 3px;
-  color: #dce8ef;
+.rvWatchHistorySimpleMain span {
+  color: #718aa1;
   display: block;
-  font-size: 10px;
-}
-
-.rvWorkoutHistoryItemTop > small {
-  padding: 4px 6px;
-  border-radius: 999px;
-  color: #8199ac;
-  background: #081d2f;
   font-size: 7.5px;
-  font-weight: 850;
 }
 
-.rvWorkoutHistoryItemTop > small.status-active {
-  color: #7ce3de;
-  background: rgba(32, 214, 207, .08);
+.rvWatchHistorySimpleMain strong {
+  margin-top: 3px;
+  color: #dce7ee;
+  display: block;
+  overflow: hidden;
+  font-size: 9.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.rvWorkoutHistoryNumbers {
-  margin-top: 10px;
+.rvWatchHistorySimpleSummary {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px 10px;
+  justify-content: flex-end;
+  gap: 5px 8px;
 }
 
-.rvWorkoutHistoryNumbers span {
-  color: #8ea3b4;
+.rvWatchHistorySimpleSummary span {
+  color: #8ca1b1;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 8.5px;
-}
-
-.rvWorkoutHistoryNumbers svg {
-  color: #20d6cf;
-}
-
-.rvWorkoutSessionDetail {
-  padding: 14px;
-  border: 1px solid rgba(126, 163, 195, .11);
-  border-radius: 14px;
-  background: #051522;
-}
-
-.rvWorkoutSessionDetailHead > div > span {
-  color: #20d6cf;
   font-size: 8px;
-  font-weight: 900;
-  letter-spacing: .8px;
 }
 
-.rvWorkoutSessionDetail h4 {
-  font-size: 14px;
-}
-
-.rvWorkoutSessionDetailHead > svg {
+.rvWatchHistorySimpleSummary svg {
   color: #20d6cf;
 }
 
-.rvWorkoutMetricGrid {
-  margin-top: 12px;
+.rvWatchHistorySimpleList > button > svg {
+  color: #688096;
+  transition: transform .18s ease;
+}
+
+.rvWatchHistorySimpleList > button > svg.open {
+  transform: rotate(180deg);
+}
+
+.rvWatchDetailHead button {
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(126, 163, 195, .12);
+  border-radius: 9px;
+  background: #051522;
+  color: #8ca2b2;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.rvWatchDetailMainMetrics {
+  margin-top: 13px;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 7px;
 }
 
-.rvWorkoutMetricGrid article {
-  min-height: 94px;
+.rvWatchDetailMainMetrics article {
+  min-height: 82px;
+  padding: 11px;
+  border: 1px solid rgba(126, 163, 195, .09);
+  border-radius: 11px;
+  background: #051522;
 }
 
-.rvWorkoutSessionChart {
-  padding: 12px;
+.rvWatchDetailChart {
+  margin-top: 11px;
 }
 
-.rvWorkoutSessionChart > div:first-child {
-  padding: 0 2px 8px;
+.rvWatchDetailChart > div:first-child {
+  padding: 0 1px 7px;
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 8px;
 }
 
-.rvWorkoutSessionChart > div:first-child strong {
-  color: #dce8ef;
-  font-size: 10px;
+.rvWatchDetailChart > div:first-child strong {
+  color: #dce7ee;
+  font-size: 9.5px;
 }
 
-.rvWorkoutSessionChart > div:first-child small {
+.rvWatchDetailChart > div:first-child small {
   color: #718aa1;
   font-size: 8px;
 }
 
-@media (max-width: 900px) {
-  .rvWorkoutLiveStats,
-  .rvWorkoutMetricGrid,
-  .rvWorkoutFlowGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+.rvWatchOtherData {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(126, 163, 195, .08);
+}
+
+.rvWatchOtherData summary,
+.rvWatchSimpleHow summary {
+  color: #8299ac;
+  font-size: 9px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.rvWatchOtherData > div {
+  margin-top: 9px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.rvWatchOtherData article {
+  padding: 10px;
+  border-radius: 10px;
+  background: #051522;
+}
+
+.rvWatchOtherData span {
+  color: #718aa1;
+  display: block;
+  font-size: 8px;
+}
+
+.rvWatchOtherData strong {
+  margin-top: 4px;
+  color: #dce7ee;
+  display: block;
+  font-size: 10px;
+}
+
+.rvWatchSimpleHow {
+  padding: 0 3px;
+}
+
+.rvWatchSimpleHow p {
+  max-width: 680px;
+  margin: 7px 0 0;
+  color: #718aa1;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.rvWatchSimpleSpin {
+  animation: rvWatchSimpleSpin .8s linear infinite;
+}
+
+@keyframes rvWatchSimpleSpin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 760px) {
+  .rvWatchSimpleHeader {
+    min-height: 0;
+    padding: 17px;
+    align-items: flex-start;
+    flex-direction: column;
   }
 
-  .rvWorkoutHistoryGrid {
+  .rvWatchSimpleBadge {
+    min-height: 30px;
+  }
+
+  .rvWatchConnectSteps {
     grid-template-columns: 1fr;
+  }
+
+  .rvWatchConnectSteps article {
+    min-height: 0;
+    grid-template-columns: 27px 1fr auto;
+  }
+
+  .rvWatchConnectSteps article > button,
+  .rvWatchConnectSteps article > a {
+    grid-column: auto;
+    min-width: 120px;
+  }
+
+  .rvWatchDetailMainMetrics,
+  .rvWatchOtherData > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 620px) {
-  .rvWorkoutModule {
-    gap: 10px;
+@media (max-width: 560px) {
+  .rvWatchSimplePage,
+  .rvWatchSimpleModule {
+    gap: 9px;
   }
 
-  .rvWorkoutModuleHead,
-  .rvWorkoutLiveCard,
-  .rvWorkoutSetupCard,
-  .rvWorkoutFlowCard,
-  .rvWorkoutHistory {
-    border-radius: 15px;
+  .rvWatchSimpleHeader,
+  .rvWatchConnectCard,
+  .rvWatchNowCard,
+  .rvWatchLatestCard,
+  .rvWatchHistorySimple,
+  .rvWatchDetailSimple {
+    border-radius: 14px;
   }
 
-  .rvWorkoutModuleHead,
-  .rvWorkoutLiveCard,
-  .rvWorkoutSetupCard,
-  .rvWorkoutFlowCard,
-  .rvWorkoutHistory {
-    padding: 15px;
+  .rvWatchConnectCard,
+  .rvWatchNowCard,
+  .rvWatchLatestCard,
+  .rvWatchHistorySimple,
+  .rvWatchDetailSimple {
+    padding: 14px;
   }
 
-  .rvWorkoutModuleHead h2 {
-    font-size: 19px;
+  .rvWatchSimpleHeader h1 {
+    font-size: 23px;
   }
 
-  .rvWorkoutLiveStats,
-  .rvWorkoutMetricGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .rvWatchConnectSteps article {
+    grid-template-columns: 27px 1fr;
   }
 
-  .rvWorkoutNoActiveFlow,
-  .rvWorkoutFlowGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .rvWorkoutFlowGrid article {
-    min-height: 0;
-  }
-
-  .rvWorkoutLiveActions {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .rvWorkoutPrimary,
-  .rvWorkoutSecondary {
+  .rvWatchConnectSteps article > button,
+  .rvWatchConnectSteps article > a {
+    grid-column: 1 / -1;
     width: 100%;
   }
 
-  .rvWorkoutSetupActions {
-    display: grid;
-  }
-
-  .rvWorkoutToken {
+  .rvWatchConnectCode,
+  .rvWatchConnectedBar,
+  .rvWatchNowBottom {
     align-items: stretch;
     flex-direction: column;
   }
 
-  .rvWorkoutChart {
-    height: 150px;
+  .rvWatchConnectedBar details[open] {
+    width: 100%;
+  }
+
+  .rvWatchNowMetrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rvWatchNowMetrics article {
+    min-width: 0;
+  }
+
+  .rvWatchSimplePrimary {
+    width: 100%;
+  }
+
+  .rvWatchLatestMetrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rvWatchHistorySimpleList > button {
+    grid-template-columns: minmax(0, 1fr) 18px;
+  }
+
+  .rvWatchHistorySimpleSummary {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-content: flex-start;
+  }
+
+  .rvWatchHistorySimpleList > button > svg {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .rvWatchSimpleChart {
+    height: 142px;
   }
 }
