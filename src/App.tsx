@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import type { Profile } from './types'
@@ -40,11 +40,13 @@ export default function App() {
   const [loading, setLoading] = useState(true)
   const [profileLoading, setProfileLoading] = useState(false)
   const [profileError, setProfileError] = useState('')
+  const profileRequest = useRef(0)
   const [recoveryMode, setRecoveryMode] = useState(
     () => new URLSearchParams(window.location.search).get('recovery') === '1',
   )
 
   async function loadProfile(userId: string) {
+    const request = ++profileRequest.current
     setProfileLoading(true)
     setProfileError('')
 
@@ -57,6 +59,7 @@ export default function App() {
           .maybeSingle(),
       )
 
+      if (request !== profileRequest.current) return false
       if (error) throw error
 
       if (!data) {
@@ -70,6 +73,7 @@ export default function App() {
       setProfile(data as Profile)
       return true
     } catch (error) {
+      if (request !== profileRequest.current) return false
       console.error('Falha ao carregar perfil:', error)
       setProfile(null)
       setProfileError(
@@ -77,7 +81,7 @@ export default function App() {
       )
       return false
     } finally {
-      setProfileLoading(false)
+      if (request === profileRequest.current) setProfileLoading(false)
     }
   }
 
@@ -116,7 +120,9 @@ export default function App() {
     void initialize()
 
     const { data: listener } = supabase.auth.onAuthStateChange(
-      async (event, next) => {
+      (event, next) => {
+        if (!active) return
+        const authChange = ++profileRequest.current
         if (event === 'PASSWORD_RECOVERY') {
           setRecoveryMode(true)
         }
@@ -124,8 +130,12 @@ export default function App() {
         setSession(next)
 
         if (next) {
-          await loadProfile(next.user.id)
+          setProfile(current => current?.id === next.user.id ? current : null)
+          window.setTimeout(() => {
+            if (active && authChange === profileRequest.current) void loadProfile(next.user.id)
+          }, 0)
         } else {
+          profileRequest.current += 1
           setProfile(null)
           setProfileError('')
           setProfileLoading(false)
@@ -135,6 +145,7 @@ export default function App() {
 
     return () => {
       active = false
+      profileRequest.current += 1
       listener.subscription.unsubscribe()
     }
   }, [])

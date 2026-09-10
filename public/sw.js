@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rv-fisiologia-pwa-v7'
+const CACHE_NAME = 'rv-fisiologia-pwa-v8'
 
 const CORE_ASSETS = [
   '/',
@@ -11,7 +11,7 @@ const CORE_ASSETS = [
 ]
 
 function canCache(response) {
-  return Boolean(response && response.ok && response.type === 'basic')
+  return Boolean(response && response.ok && response.type === 'basic' && !/no-store|private/i.test(response.headers.get('cache-control') || ''))
 }
 
 async function putInCache(cacheKey, response) {
@@ -154,10 +154,13 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
 
-  const target = new URL(
+  const requestedTarget = new URL(
     event.notification.data?.url || '/',
     self.location.origin,
-  ).href
+  )
+  const target = requestedTarget.origin === self.location.origin
+    ? requestedTarget.href
+    : self.location.origin + '/'
 
   event.waitUntil(
     (async () => {
@@ -213,5 +216,5 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  event.respondWith(networkFirst(request))
+  return
 })

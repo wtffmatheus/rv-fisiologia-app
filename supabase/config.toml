@@ -1,0 +1,2 @@
+[functions.health-ingest]
+verify_jwt = false

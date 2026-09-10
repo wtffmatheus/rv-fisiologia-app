@@ -3,7 +3,7 @@ import {
   ShieldCheck,
   X,
 } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useId, useRef } from 'react'
 
 export default function RvConfirmModal({
   eyebrow = 'CONFIRMAÇÃO',
@@ -26,8 +26,30 @@ export default function RvConfirmModal({
   onConfirm: () => void
   onCancel: () => void
 }) {
+  const dialogRef = useRef<HTMLDivElement>(null)
+  const titleId = useId()
+  const textId = useId()
+  useEffect(() => {
+    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    dialogRef.current?.querySelector<HTMLButtonElement>('.rvConfirmCancel')?.focus()
+    return () => previous?.focus()
+  }, [])
+
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Tab') {
+        const controls = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), [tabindex="0"]') ?? [])
+        const first = controls[0]
+        const last = controls.at(-1)
+        if (!first) { event.preventDefault(); return }
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault()
+          last?.focus()
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault()
+          first.focus()
+        }
+      }
       if (event.key === 'Escape' && !busy) {
         onCancel()
       }
@@ -43,9 +65,12 @@ export default function RvConfirmModal({
   return (
     <div
       className="rvConfirmBackdrop"
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="rv-confirm-title"
+      aria-labelledby={titleId}
+      aria-describedby={text ? textId : undefined}
+      aria-busy={busy}
       onMouseDown={(event) => {
         if (event.currentTarget === event.target && !busy) {
           onCancel()
@@ -75,8 +100,8 @@ export default function RvConfirmModal({
 
         <div className="rvConfirmCopy">
           <span>{eyebrow}</span>
-          <h2 id="rv-confirm-title">{title}</h2>
-          {text && <p>{text}</p>}
+          <h2 id={titleId}>{title}</h2>
+          {text && <p id={textId}>{text}</p>}
         </div>
 
         <div className="rvConfirmActions">

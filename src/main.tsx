@@ -9,9 +9,10 @@ import './ui-fixes.css'
 import './styles/rv-premium.css'
 import './styles/apple-watch.css'
 import './styles/health-watch.css'
+import './styles/accessibility.css'
 
 // RV_PWA_SERVICE_WORKER_V3
-if ('serviceWorker' in navigator) {
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
       const registration = await navigator.serviceWorker.register('/sw.js', {

@@ -1,6 +1,3 @@
--- JÁ APLICADA EM PRODUÇÃO.
--- Corrige a troca de idioma do próprio aluno sem abrir UPDATE geral em profiles.
-
 create or replace function public.set_own_language(p_language text)
 returns text
 language plpgsql
@@ -33,5 +30,4 @@ end;
 $$;
 
 revoke all on function public.set_own_language(text) from public, anon;
-grant execute on function public.set_own_language(text)
-to authenticated, service_role;
+grant execute on function public.set_own_language(text) to authenticated, service_role;

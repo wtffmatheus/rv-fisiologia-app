@@ -68,7 +68,7 @@ export default function StudentWatchHub({
         </span>
       </header>
 
-      <StudentHealthData studentId={studentId} />
+      <StudentHealthData key={studentId} studentId={studentId} />
     </section>
   )
 }

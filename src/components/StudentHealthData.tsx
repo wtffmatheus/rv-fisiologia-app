@@ -15,9 +15,12 @@ import {
   Watch,
   X,
 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useI18n } from '../i18n'
+import { cleanSamples } from '../../supabase/functions/health-ingest/normalizers'
+import { healthIntegration } from '../health/config'
+import { loadHealthSamples } from '../health/loadSamples'
 
 type WorkoutSession = {
   id: string
@@ -43,6 +46,7 @@ type Sample = {
   unit: string
   measured_at: string
   received_at: string
+  raw_payload?: { source_id?: string | null }
 }
 
 type IngestStatus = {
@@ -65,14 +69,9 @@ type ExtraMetric = {
   value: string
 }
 
-const OFFICIAL_SHORTCUT =
-  'https://www.icloud.com/shortcuts/7f89138a88834de78d0a256ba0418c5b'
-
-const SHORTCUT_SYNC =
-  'shortcuts://run-shortcut?name=RV%20-%20Sincronizar%20Sa%C3%BAde&input=text&text=sync'
-
-const SHORTCUT_ANALYSIS =
-  'shortcuts://run-shortcut?name=RV%20-%20Sincronizar%20Sa%C3%BAde&input=text&text=analysis'
+const SHORTCUT_INSTALL_URL = healthIntegration.installUrl
+const SHORTCUT_SYNC = healthIntegration.run('sync')
+const SHORTCUT_ANALYSIS = healthIntegration.run('analysis')
 
 function statsFor(samples: Sample[], metric: string): Stats | null {
   const rows = samples.filter((item) => item.metric === metric)
@@ -165,6 +164,9 @@ export default function StudentHealthData({
   const [copied, setCopied] = useState(false)
   const [busy, setBusy] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState('')
+  const loadInFlight = useRef(false)
+  const loadController = useRef<AbortController | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [, setTick] = useState(0)
 
@@ -556,55 +558,72 @@ export default function StudentHealthData({
   const storageKey = `rv_health_setup_token_${studentId}`
 
   async function load() {
-    const [sessionResult, sampleResult, statusResult] = await Promise.all([
-      supabase
-        .from('workout_sessions')
-        .select(
-          'id,student_id,source,workout_type,planned_duration_minutes,started_at,ended_at,status,last_synced_at,created_at,updated_at',
-        )
-        .eq('student_id', studentId)
-        .order('started_at', { ascending: false })
-        .limit(20),
-      supabase
-        .from('health_samples')
-        .select(
-          'id,student_id,workout_session_id,source,metric,value,unit,measured_at,received_at',
-        )
-        .eq('student_id', studentId)
-        .order('measured_at', { ascending: false })
-        .limit(5000),
-      supabase.rpc('get_own_health_ingest_status'),
-    ])
+    if (loadInFlight.current && !loadController.current?.signal.aborted) return
+    loadInFlight.current = true
+    const controller = new AbortController()
+    loadController.current = controller
+    const timeout = window.setTimeout(() => controller.abort(), 30000)
+    setErrorMessage('')
+    try {
+      const [sessionResult, statusResult] = await Promise.all([
+        supabase
+          .from('workout_sessions')
+          .select(
+            'id,student_id,source,workout_type,planned_duration_minutes,started_at,ended_at,status,last_synced_at,created_at,updated_at',
+          )
+          .eq('student_id', studentId)
+          .order('started_at', { ascending: false })
+          .limit(20)
+          .abortSignal(controller.signal),
+        supabase.rpc('get_own_health_ingest_status').abortSignal(controller.signal),
+      ])
+      if (controller.signal.aborted) return
 
-    if (!sessionResult.error) {
-      setSessions((sessionResult.data as WorkoutSession[]) ?? [])
-    }
+      if (sessionResult.error || statusResult.error) {
+        setErrorMessage(language === 'pt-BR' ? 'Não foi possível atualizar todos os dados. Tente novamente.' : 'Could not refresh all data. Please retry.')
+      }
 
-    if (!sampleResult.error) {
-      setSamples((sampleResult.data as Sample[]) ?? [])
-    }
+      if (!sessionResult.error) {
+        setSessions((sessionResult.data as WorkoutSession[]) ?? [])
+      }
 
-    if (!statusResult.error && statusResult.data) {
-      const next = statusResult.data as IngestStatus
-      setStatus(next)
+      if (sessionResult.error) throw sessionResult.error
+      const sampleData = await loadHealthSamples(studentId, (sessionResult.data ?? []).map(row => row.id), controller.signal)
+      if (controller.signal.aborted) return
+      setSamples(cleanSamples(sampleData as Sample[]))
 
-      if (next.last_used_at) {
-        setToken('')
-        try {
-          window.localStorage.removeItem(storageKey)
-        } catch {
-          // Mantém a interface funcionando sem localStorage.
+      if (!statusResult.error && statusResult.data) {
+        const next = statusResult.data as IngestStatus
+        setStatus(next)
+
+        if (next.last_used_at) {
+          setToken('')
+          try {
+            window.localStorage.removeItem(storageKey)
+          } catch {
+            // Mantém a interface funcionando sem localStorage.
+          }
         }
       }
-    }
 
-    setLoading(false)
+    } catch {
+      if (loadController.current === controller) setErrorMessage(language === 'pt-BR' ? 'Falha de conexão. Tente novamente.' : 'Connection failed. Please retry.')
+    } finally {
+      window.clearTimeout(timeout)
+      if (loadController.current === controller) {
+        loadInFlight.current = false
+        setLoading(false)
+      }
+    }
   }
 
   useEffect(() => {
+    setToken('')
+    setSamples([])
+    setSessions([])
+    setStatus({ configured: false })
     try {
-      const stored = window.localStorage.getItem(storageKey)
-      if (stored) setToken(stored)
+      window.localStorage.removeItem(storageKey)
     } catch {
       // Mantém a interface funcionando sem localStorage.
     }
@@ -649,10 +668,8 @@ export default function StudentHealthData({
           if (!row?.id) return
 
           setSamples((current) =>
-            [row, ...current.filter((item) => item.id !== row.id)].slice(
-              0,
-              5000,
-            ),
+            cleanSamples([row, ...current.filter((item) => item.id !== row.id)])
+              .sort((first, second) => Date.parse(second.measured_at) - Date.parse(first.measured_at)),
           )
         },
       )
@@ -666,11 +683,18 @@ export default function StudentHealthData({
     window.addEventListener('pageshow', refreshWhenVisible)
 
     return () => {
+      loadController.current?.abort()
       document.removeEventListener('visibilitychange', refreshWhenVisible)
       window.removeEventListener('pageshow', refreshWhenVisible)
       void supabase.removeChannel(channel)
     }
   }, [studentId])
+
+  useEffect(() => {
+    if (!token) return
+    const timeout = window.setTimeout(() => setToken(''), 5 * 60 * 1000)
+    return () => window.clearTimeout(timeout)
+  }, [token])
 
   useEffect(() => {
     const timer = window.setInterval(() => setTick((value) => value + 1), 1000)
@@ -694,7 +718,7 @@ export default function StudentHealthData({
     sessions.find((session) => session.status === 'active') ?? null
 
   const completedSessions = sessions.filter(
-    (session) => session.status !== 'active',
+    (session) => session.status === 'completed',
   )
 
   const latestSession = completedSessions[0] ?? null
@@ -773,6 +797,7 @@ export default function StudentHealthData({
         : start
 
     const totalSeconds = Math.max(0, Math.round((end - start) / 1000))
+    if (!Number.isFinite(totalSeconds) || end < start || totalSeconds > 86400) return t.noData
     const hours = Math.floor(totalSeconds / 3600)
     const minutes = Math.floor((totalSeconds % 3600) / 60)
     const seconds = totalSeconds % 60
@@ -834,60 +859,72 @@ export default function StudentHealthData({
 
   async function rotate() {
     setBusy(true)
+    setErrorMessage('')
+    try {
 
-    const { data, error } = await supabase.rpc(
-      'rotate_own_health_ingest_token',
-      { p_label: 'iPhone / Atalhos' },
-    )
+      const { data, error } = await supabase.rpc(
+        'rotate_own_health_ingest_token',
+        { p_label: 'iPhone / Atalhos' },
+      )
+      if (error) throw error
 
-    if (!error && data) {
-      const next = String((data as { token?: string }).token || '')
-      setToken(next)
-      setStatus({ configured: true, last_used_at: null })
+      if (!error && data) {
+        const next = String((data as { token?: string }).token || '')
+        setToken(next)
+        setStatus({ configured: true, last_used_at: null })
 
-      if (next) {
-        try {
-          window.localStorage.setItem(storageKey, next)
-        } catch {
-          // A chave continua disponível na tela.
-        }
-
-        try {
-          await navigator.clipboard.writeText(next)
-          setCopied(true)
-          window.setTimeout(() => setCopied(false), 1800)
-        } catch {
-          // O botão copiar continua disponível.
+        if (next) {
+          try {
+            await navigator.clipboard.writeText(next)
+            setCopied(true)
+            window.setTimeout(() => setCopied(false), 1800)
+          } catch {
+            // O botão copiar continua disponível.
+          }
         }
       }
-    }
 
-    setBusy(false)
+    } catch {
+      setErrorMessage(language === 'pt-BR' ? 'Não foi possível criar o código.' : 'Could not create the code.')
+    } finally {
+      setBusy(false)
+    }
   }
 
   async function copyToken() {
     if (!token) return
-    await navigator.clipboard.writeText(token)
-    setCopied(true)
-    window.setTimeout(() => setCopied(false), 1800)
+    try {
+      await navigator.clipboard.writeText(token)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1800)
+    } catch {
+      setErrorMessage(language === 'pt-BR' ? 'Selecione e copie o código exibido.' : 'Select and copy the displayed code.')
+    }
   }
 
   async function revoke() {
     setBusy(true)
-    const { error } = await supabase.rpc('revoke_own_health_ingest_token')
+    setErrorMessage('')
+    try {
+      const { error } = await supabase.rpc('revoke_own_health_ingest_token')
+      if (error) throw error
 
-    if (!error) {
-      setStatus({ configured: false })
-      setToken('')
+      if (!error) {
+        setStatus({ configured: false })
+        setToken('')
 
-      try {
-        window.localStorage.removeItem(storageKey)
-      } catch {
-        // Nada a fazer.
+        try {
+          window.localStorage.removeItem(storageKey)
+        } catch {
+          // Nada a fazer.
+        }
       }
-    }
 
-    setBusy(false)
+    } catch {
+      setErrorMessage(language === 'pt-BR' ? 'Não foi possível revogar a conexão.' : 'Could not revoke the connection.')
+    } finally {
+      setBusy(false)
+    }
   }
 
   const connected = Boolean(status.last_used_at)
@@ -902,8 +939,7 @@ export default function StudentHealthData({
   )
 
   const analysisResting =
-    statsFor(analysisRows, 'resting_heart_rate') ??
-    statsFor(analysisRows, 'heart_rate')
+    statsFor(analysisRows, 'resting_heart_rate')
   const analysisHeart = statsFor(analysisRows, 'heart_rate')
   const analysisHrv = statsFor(analysisRows, 'heart_rate_variability')
   const analysisBreathing = statsFor(analysisRows, 'respiratory_rate')
@@ -912,6 +948,7 @@ export default function StudentHealthData({
   const analysisEnergy = statsFor(analysisRows, 'active_energy')
 
   const analysisMetricCount = [
+    analysisHeart,
     analysisResting,
     analysisHrv,
     analysisBreathing,
@@ -920,9 +957,11 @@ export default function StudentHealthData({
     analysisEnergy,
   ].filter(Boolean).length
 
-  const analysisReady = analysisMetricCount >= 2
+  const analysisReady = analysisMetricCount >= 1
 
   const activeRows = sessionSamples(activeSession)
+  const recentHeart = activeRows.filter(sample => sample.metric === 'heart_rate')
+    .reduce<Sample | undefined>((recent, sample) => !recent || Date.parse(sample.measured_at) > Date.parse(recent.measured_at) ? sample : recent, undefined)
   const activeHeart = statsFor(workoutHeartSamples(activeSession), 'heart_rate')
   const activeEnergy = activeSession
     ? totalMetric(activeSession, 'active_energy', 0)
@@ -955,6 +994,22 @@ export default function StudentHealthData({
 
   return (
     <section className="rvWatchSimpleModule" data-rv-health-module="simple-v21">
+      {errorMessage && <p role="alert">{errorMessage} <button type="button" onClick={() => void load()}>{t.update}</button></p>}
+      <details className="rvWatchSimpleHow">
+      <summary>{t.simpleHow}</summary>
+      <p className="rvWatchEmptyCopy">
+        {language === 'pt-BR'
+          ? 'Integração atual: análise pelo Atalhos; início e fim por automações separadas do iPhone. Sincronização durante o treino ainda em validação. Se a automação não disparar, execute-a manualmente no Atalhos e retorne ao RV.'
+          : 'Current integration: analysis via Shortcuts; start and end through separate iPhone automations. Workout sync is still being validated. If automation does not run, run it manually in Shortcuts, then return to RV.'}
+      </p>
+      </details>
+      {healthIntegration.supportsModes && healthIntegration.name && (
+        <nav aria-label="Workout Shortcuts">
+          <a href={healthIntegration.run('start')}>START</a>{' · '}
+          <a href={healthIntegration.run('sync')}>SYNC</a>{' · '}
+          <a href={healthIntegration.run('end')}>END</a>
+        </nav>
+      )}
       {!connected && (
         <section className="rvWatchConnectCard">
           <div className="rvWatchSimpleSectionHead">
@@ -983,7 +1038,8 @@ export default function StudentHealthData({
               <span>2</span>
               <strong>{t.step2}</strong>
               <a
-                href={OFFICIAL_SHORTCUT}
+                href={SHORTCUT_INSTALL_URL}
+                aria-disabled={!SHORTCUT_INSTALL_URL}
                 target="_blank"
                 rel="noreferrer"
               >
@@ -995,13 +1051,14 @@ export default function StudentHealthData({
             <article className={status.configured ? '' : 'disabled'}>
               <span>3</span>
               <strong>{t.step3}</strong>
-              <a
-                href={status.configured ? SHORTCUT_SYNC : undefined}
-                aria-disabled={!status.configured}
+              <button
+                type="button"
+                onClick={() => void load()}
+                disabled={!status.configured || loading}
               >
                 <RefreshCw size={15} />
                 {t.test}
-              </a>
+              </button>
             </article>
           </div>
 
@@ -1057,7 +1114,9 @@ export default function StudentHealthData({
           </div>
 
           <p className="rvWatchAnalysisCopy">
-            {analysisReady ? t.analysisPeriod : t.analysisText}
+            {analysisReady && analysisRows.length
+              ? `${fmtShort(analysisRows.at(-1)!.measured_at)} – ${fmtShort(analysisRows[0].measured_at)}`
+              : t.analysisText}
           </p>
 
           {analysisReady && (
@@ -1139,7 +1198,7 @@ export default function StudentHealthData({
       <section className={`rvWatchNowCard ${activeSession ? 'live' : ''}`}>
         <div className="rvWatchSimpleSectionHead">
           <div>
-            <span>{activeSession ? t.live : 'APPLE WATCH'}</span>
+            <span>{activeSession ? t.currentWorkout : 'APPLE WATCH'}</span>
             <h2>{activeSession ? t.currentWorkout : t.noWorkout}</h2>
           </div>
           {activeSession ? <Activity size={21} /> : <TimerReset size={21} />}
@@ -1154,6 +1213,12 @@ export default function StudentHealthData({
 
             <div className="rvWatchNowMetrics">
               <article>
+                <HeartPulse size={16} />
+                <span>{t.beats}</span>
+                <strong>{recentHeart ? `${Math.round(recentHeart.value)} bpm` : t.noData}</strong>
+                <small>{recentHeart ? fmtShort(recentHeart.measured_at) : t.noData}</small>
+              </article>
+              <article>
                 <Clock3 size={16} />
                 <span>{t.elapsed}</span>
                 <strong>{duration(activeSession, true)}</strong>
@@ -1161,7 +1226,7 @@ export default function StudentHealthData({
 
               <article>
                 <HeartPulse size={16} />
-                <span>{t.beats}</span>
+                <span>{t.minimum} / {t.maximum}</span>
                 <strong>
                   {activeHeart
                     ? `${Math.round(activeHeart.min)}–${Math.round(
@@ -1190,18 +1255,18 @@ export default function StudentHealthData({
             <div className="rvWatchNowBottom">
               <small>
                 {activeSession.last_synced_at
-                  ? `${t.updated}: ${fmtShort(activeSession.last_synced_at)}`
+                  ? `${t.updated}: ${new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }).format(-Math.max(0, Math.floor((Date.now() - Date.parse(activeSession.last_synced_at)) / 60000)), 'minute')}`
                   : t.updated}
               </small>
 
-              <a href={SHORTCUT_SYNC} className="rvWatchSimplePrimary">
+              <button type="button" onClick={() => SHORTCUT_SYNC ? window.location.assign(SHORTCUT_SYNC) : void load()} className="rvWatchSimplePrimary">
                 <RefreshCw size={15} />
                 {t.update}
-              </a>
+              </button>
             </div>
           </>
         ) : (
-          <p className="rvWatchEmptyCopy">{t.noWorkoutText}</p>
+          <p className="rvWatchEmptyCopy">{t.noWorkout} · {t.connectionHelp}</p>
         )}
       </section>
 
@@ -1434,10 +1499,6 @@ export default function StudentHealthData({
         </section>
       )}
 
-      <details className="rvWatchSimpleHow">
-        <summary>{t.simpleHow}</summary>
-        <p>{t.simpleHowText}</p>
-      </details>
     </section>
   )
 }

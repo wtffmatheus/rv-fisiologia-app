@@ -1,0 +1,115 @@
+:root {
+  --rv-readable-muted: #a3b7c9;
+  --rv-focus-ring: #54dfd5;
+}
+
+body :is(button, a, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--rv-focus-ring);
+  outline-offset: 4px;
+  scroll-margin-block: 96px;
+}
+
+button, a, summary {
+  touch-action: manipulation;
+}
+
+.rvWatchSimplePage {
+  gap: 20px;
+  padding-bottom: calc(32px + env(safe-area-inset-bottom));
+}
+
+.rvWatchSimpleModule {
+  gap: 18px;
+}
+
+.rvWatchSimplePage :is(small, .rvWatchEmptyCopy, .rvWatchNowSub, .rvWatchAnalysisCopy, .rvWatchAnalysisBottom span, .rvWatchSimpleHow p) {
+  color: var(--rv-readable-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.rvWatchSimplePage :is(.rvWatchSimpleEyebrow, .rvWatchSimpleBadge, .rvWatchSimpleSectionHead > div > span, .rvWatchDetailHead > div > span, .rvWatchAnalysisMetrics span) {
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.rvWatchSimplePage :is(button, a, summary) {
+  min-height: 44px;
+  font-size: 13px;
+}
+
+.rvWatchSimplePage :is(button, a) {
+  white-space: normal;
+}
+
+.rvWatchSimplePage :is(.rvWatchAnalysisMetrics strong, .rvWatchConnectSteps article > strong) {
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.rvWatchSimplePage :is(.rvWatchNowMetrics strong, .rvWatchDetailMainMetrics strong) {
+  font-variant-numeric: tabular-nums;
+  font-size: 22px;
+  line-height: 1.35;
+}
+
+.rvWatchSimplePage :is(.rvWatchSimpleChartScale span, .rvWatchHistorySimple > p) {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--rv-readable-muted);
+}
+
+.rvWatchSimplePage :is(.rvWatchConnectedBar strong, .rvWatchNowMetrics article > span, .rvWatchDetailMainMetrics article > span, .rvWatchHistorySimple small) {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--rv-readable-muted);
+}
+
+.rvWatchSimplePage a[aria-disabled="true"] {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.rvWatchDetailHead > button {
+  min-width: 44px;
+}
+
+.rvWatchConnectCode code {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.rvConfirmModal {
+  max-height: calc(100dvh - 32px - env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.rvConfirmClose {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+@media (max-width: 560px) {
+  .auth :is(input, select), .rvWatchSimplePage :is(input, select) {
+    font-size: 16px;
+  }
+
+  .rvWatchSimpleHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .rvWatchSimplePage :is(.rvWatchConnectCard, .rvWatchNowCard, .rvWatchHistorySimple, .rvWatchDetailSimple, .rvWatchAnalysisCard) {
+    padding: 18px 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
