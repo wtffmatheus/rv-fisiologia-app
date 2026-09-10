@@ -21,6 +21,7 @@ import { useI18n } from '../i18n'
 import { cleanSamples } from '../../supabase/functions/health-ingest/normalizers'
 import { healthIntegration } from '../health/config'
 import { loadHealthSamples } from '../health/loadSamples'
+import { samplesDuringWorkout } from '../health/workoutSamples'
 
 type WorkoutSession = {
   id: string
@@ -159,6 +160,7 @@ export default function StudentHealthData({
   const { language, locale } = useI18n()
   const [sessions, setSessions] = useState<WorkoutSession[]>([])
   const [samples, setSamples] = useState<Sample[]>([])
+  const [discardedSamples, setDiscardedSamples] = useState(0)
   const [status, setStatus] = useState<IngestStatus>({ configured: false })
   const [token, setToken] = useState('')
   const [copied, setCopied] = useState(false)
@@ -590,7 +592,9 @@ export default function StudentHealthData({
       if (sessionResult.error) throw sessionResult.error
       const sampleData = await loadHealthSamples(studentId, (sessionResult.data ?? []).map(row => row.id), controller.signal)
       if (controller.signal.aborted) return
-      setSamples(cleanSamples(sampleData as Sample[]))
+      const validSamples = cleanSamples(sampleData as Sample[])
+      setSamples(validSamples)
+      setDiscardedSamples(sampleData.length - validSamples.length)
 
       if (!statusResult.error && statusResult.data) {
         const next = statusResult.data as IngestStatus
@@ -620,6 +624,7 @@ export default function StudentHealthData({
   useEffect(() => {
     setToken('')
     setSamples([])
+    setDiscardedSamples(0)
     setSessions([])
     setStatus({ configured: false })
     try {
@@ -727,7 +732,7 @@ export default function StudentHealthData({
 
   function sessionSamples(session: WorkoutSession | null) {
     if (!session) return []
-    return samplesBySession.get(session.id) ?? []
+    return samplesDuringWorkout(samplesBySession.get(session.id) ?? [], session)
   }
 
   function workoutHeartSamples(session: WorkoutSession | null) {
@@ -745,7 +750,7 @@ export default function StudentHealthData({
     if (!session?.ended_at) return null
 
     const end = new Date(session.ended_at).getTime()
-    const rows = sessionSamples(session)
+    const rows = (samplesBySession.get(session.id) ?? [])
       .filter(
         (item) =>
           item.metric === 'heart_rate' &&
@@ -932,7 +937,6 @@ export default function StudentHealthData({
   const analysisSince = Date.now() - 7 * 24 * 60 * 60 * 1000
   const analysisRows = samples.filter(
     (item) =>
-      !item.workout_session_id &&
       item.metric !== 'workout_start' &&
       item.metric !== 'workout_end' &&
       new Date(item.measured_at).getTime() >= analysisSince,
@@ -994,6 +998,13 @@ export default function StudentHealthData({
 
   return (
     <section className="rvWatchSimpleModule" data-rv-health-module="simple-v21">
+      {discardedSamples > 0 && (
+        <p role="status" className="rvWatchEmptyCopy">
+          {language === 'pt-BR'
+            ? `${discardedSamples} amostras inválidas ou repetidas foram desconsideradas. Os números abaixo usam apenas as leituras aceitas.`
+            : `${discardedSamples} invalid or duplicate samples were excluded. Figures below use accepted readings only.`}
+        </p>
+      )}
       {errorMessage && <p role="alert">{errorMessage} <button type="button" onClick={() => void load()}>{t.update}</button></p>}
       <details className="rvWatchSimpleHow">
       <summary>{t.simpleHow}</summary>
@@ -1396,6 +1407,13 @@ export default function StudentHealthData({
 
       {selectedSession && (
         <section className="rvWatchDetailSimple">
+          {!detailRows.length && (
+            <p role="status" className="rvWatchEmptyCopy">
+              {language === 'pt-BR'
+                ? 'Início e fim recebidos, mas ainda não há leituras válidas neste intervalo. A automação de exercício não envia os dados de Saúde sozinha: execute a coleta no iPhone e atualize o RV. Não estimamos BPM ou calorias ausentes.'
+                : 'Start and end received, but no valid readings arrived for this interval. Run Health data collection on iPhone, then refresh RV. Missing BPM and calories are not estimated.'}
+            </p>
+          )}
           <div className="rvWatchDetailHead">
             <div>
               <span>{t.finished}</span>

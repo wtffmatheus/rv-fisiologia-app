@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "@supabase/supabase-js"
-import { normalizeSample, sampleIdentity } from "./normalizers.ts"
+import { normalizeSample, sampleIdentity, sampleRejectionReason } from "./normalizers.ts"
 
 const allowedOrigins = new Set([
   "https://app.rvfisiologista.com.br",
@@ -141,13 +141,20 @@ Deno.serve(async (req: Request) => {
     }
 
     const rows = []
+    const rejectedSamples: { index: number; reason: string }[] = []
     const now = Date.now()
 
-    for (const raw of body.samples) {
-      if (!raw || typeof raw !== "object") continue
+    for (const [index, raw] of body.samples.entries()) {
+      if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+        rejectedSamples.push({ index, reason: "invalid_sample_object" })
+        continue
+      }
       const item = raw as Record<string, unknown>
       const normalized = normalizeSample({ ...item, source: item.source || source }, now)
-      if (!normalized) continue
+      if (!normalized) {
+        rejectedSamples.push({ index, reason: sampleRejectionReason(item, now) || "invalid_source" })
+        continue
+      }
       const { source: itemSource, metric, value, unit, measured_at: measuredAt, source_id: sourceId } = normalized
       const dedupeKey = await sha256(sampleIdentity(tokenRow.student_id, normalized))
 
@@ -168,7 +175,7 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!rows.length) {
-      return json(req, { error: "invalid_samples", accepted: 0, rejected: body.samples.length }, 400)
+      return json(req, { error: "invalid_samples", accepted: 0, rejected: body.samples.length, rejected_samples: rejectedSamples }, 400)
     }
 
     const { data, error } = await sb
@@ -192,6 +199,7 @@ Deno.serve(async (req: Request) => {
       type: "batch",
       accepted: rows.length,
       rejected: body.samples.length - rows.length,
+      rejected_samples: rejectedSamples,
       inserted: data?.length ?? 0,
       duplicates: rows.length - (data?.length ?? 0),
       saved: data ?? [],
@@ -250,7 +258,7 @@ Deno.serve(async (req: Request) => {
     result = data
   } else {
     const normalized = normalizeSample({ ...body, metric: body.metric || type, source })
-    if (!normalized) return json(req, { error: "invalid_sample", accepted: 0, rejected: 1 }, 400)
+    if (!normalized) return json(req, { error: "invalid_sample", reason: sampleRejectionReason({ ...body, metric: body.metric || type }), accepted: 0, rejected: 1 }, 400)
     const { metric, value, unit, measured_at: sampleAt, source_id: sourceId } = normalized
     const dedupeKey = await sha256(sampleIdentity(tokenRow.student_id, normalized))
 

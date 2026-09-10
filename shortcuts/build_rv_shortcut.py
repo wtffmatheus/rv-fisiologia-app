@@ -89,6 +89,16 @@ def post(fields):
     end(group)
 
 
+def reset_batch():
+    empty = add('list', WFItems=[])
+    add('setvariable', WFVariableName='RV Batch', WFInput=output(empty))
+
+
+def flush_batch():
+    post([('source', 'apple_health', 0), ('samples', variable('RV Batch'), 2)])
+    reset_batch()
+
+
 def event(metric):
     moment = iso_now()
     identity = add('gettext', WFTextActionText={'Value': {'string': metric + '|\ufffc', 'attachmentsByRange': {f'{{{len(metric) + 1}, 1}}': variable('RV Session')['Value']}}, 'WFSerializationType': 'WFTextTokenString'})
@@ -165,14 +175,15 @@ set_text('RV Days', '7')
 end(analysis)
 
 for block_start in (23, 32, 41, 50, 59):
+    optional = condition(variable('RV Mode'), 'analysis') if block_start in (32, 41) else None
     template = copy.deepcopy(original['WFWorkflowActions'][block_start]['WFWorkflowActionParameters'])
     template.pop('UUID', None)
     date_filter = template['WFContentItemFilter']['Value']['WFActionParameterFilterTemplates'][1]
     date_filter['Values']['Number'] = text_value(variable('RV Days'))
-    template.update(WFContentItemLimitEnabled=True, WFContentItemLimitNumber=500,
-                    WFContentItemSortProperty='Start Date', WFContentItemSortOrder='Latest First')
+    template.update(WFContentItemLimitEnabled=False)
     find = add('filter.health.quantity', **template)
     nonempty = condition(output(find))
+    reset_batch()
     repeat_group = str(uuid.uuid4()).upper()
     add('repeat.each', WFInput=output(find), WFControlFlowMode=0, GroupingIdentifier=repeat_group)
     value = add('properties.health.quantity', WFInput=variable('Repeat Item'), WFContentItemPropertyName='Value')
@@ -182,10 +193,20 @@ for block_start in (23, 32, 41, 50, 59):
     formatted = add('format.date', WFDate=output(date), WFDateFormatStyle='ISO 8601', WFISO8601IncludeTime=True, WFTimeFormatStyle='None')
     old_fields = original['WFWorkflowActions'][block_start + 6]['WFWorkflowActionParameters']['WFJSONValues']['Value']['WFDictionaryFieldValueItems']
     metric = next(item['WFValue']['Value']['string'] for item in old_fields if item['WFKey']['Value']['string'] == 'metric')
-    add('dictionary', WFItems=dictionary([('source', 'apple_health', 0), ('metric', metric, 0), ('value', output(number), 3), ('unit', output(unit), 0), ('measured_at', output(formatted), 0)]))
-    repeated = add('repeat.each', WFControlFlowMode=2, GroupingIdentifier=repeat_group)
-    post([('source', 'apple_health', 0), ('samples', output(repeated, 'Repeat Results'), 2)])
+    sample = add('dictionary', WFItems=dictionary([('source', 'apple_health', 0), ('metric', metric, 0), ('value', output(number), 3), ('unit', output(unit), 0), ('measured_at', output(formatted), 0)]))
+    add('appendvariable', WFVariableName='RV Batch', WFInput=output(sample))
+    count = add('count', WFInput=variable('RV Batch'), WFCountType='Items')
+    full = str(uuid.uuid4()).upper()
+    add('conditional', WFInput={'Type': 'Variable', 'Variable': output(count)}, WFCondition=4, WFNumberValue=200, WFControlFlowMode=0, GroupingIdentifier=full)
+    flush_batch()
+    end(full)
+    add('repeat.each', WFControlFlowMode=2, GroupingIdentifier=repeat_group)
+    remaining = condition(variable('RV Batch'))
+    flush_batch()
+    end(remaining)
     end(nonempty)
+    if optional:
+        end(optional)
 
 ending = condition(variable('RV Mode'), 'end')
 event('workout_end')

@@ -89,10 +89,10 @@ begin
     into v_session_id
     from public.workout_sessions s
    where s.student_id = new.student_id
-     and new.measured_at >= s.started_at - interval '10 minutes'
+     and new.measured_at >= s.started_at
      and new.measured_at <= case
        when s.status = 'active' then s.started_at + interval '24 hours'
-       else coalesce(s.ended_at, s.started_at) + interval '5 minutes'
+       else coalesce(s.ended_at, s.started_at)
      end
      and s.status in ('active', 'completed')
    order by

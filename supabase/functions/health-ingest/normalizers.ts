@@ -25,6 +25,8 @@ export function normalizeSample(input: Record<string, unknown>, now = Date.now()
   if (rule.unit === 'bpm' && ['count/min', 'contagem/min'].includes(unit)) unit = 'bpm'
   if (metric === 'steps' && unit === 'count') unit = 'steps'
   if (metric === 'active_energy' && unit === 'Cal') unit = 'kcal'
+  if (metric === 'active_energy' && unit === 'kJ') { value /= 4.184; unit = 'kcal' }
+  if (metric === 'active_energy' && unit === 'cal') { value /= 1000; unit = 'kcal' }
   if (metric === 'distance' && unit === 'm') { value /= 1000; unit = 'km' }
   if (metric === 'oxygen_saturation' && unit === 'fraction') { value *= 100; unit = '%' }
   if (unit !== rule.unit || !Number.isFinite(value) || value < rule.min || value > rule.max) return null
@@ -35,6 +37,13 @@ export function normalizeSample(input: Record<string, unknown>, now = Date.now()
   const sourceId = String(input.source_id || '').trim()
   if (sourceId.length > 160) return null
   return { source, metric, value, unit, measured_at: new Date(measured).toISOString(), source_id: sourceId }
+}
+
+export function sampleRejectionReason(input: Record<string, unknown>, now = Date.now()) {
+  if (!input.measured_at) return 'missing_original_timestamp'
+  if (!metricRules[String(input.metric || input.type || '').trim().toLowerCase()]) return 'unsupported_metric'
+  if (normalizeSample(input, now)) return null
+  return 'invalid_value_unit_or_timestamp'
 }
 
 export function sampleIdentity(student: string, sample: NonNullable<ReturnType<typeof normalizeSample>>) {
