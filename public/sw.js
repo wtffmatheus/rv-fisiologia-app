@@ -65,24 +65,6 @@ async function staleWhileRevalidate(request) {
   return cached || networkPromise
 }
 
-async function reloadOpenWindows() {
-  const windows = await self.clients.matchAll({
-    type: 'window',
-    includeUncontrolled: true,
-  })
-
-  await Promise.allSettled(
-    windows.map((client) => {
-      if (!('navigate' in client)) return Promise.resolve()
-
-      const url = new URL(client.url)
-      url.searchParams.set('rv_sw', String(Date.now()))
-
-      return client.navigate(url.toString())
-    }),
-  )
-}
-
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
@@ -114,7 +96,6 @@ self.addEventListener('activate', (event) => {
       )
 
       await self.clients.claim()
-      await reloadOpenWindows()
     })(),
   )
 })

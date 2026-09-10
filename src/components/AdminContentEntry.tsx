@@ -1,7 +1,6 @@
 import {
   lazy,
   Suspense,
-  useEffect,
   useState,
 } from 'react'
 import { RvLoadingState } from './PlatformState'
@@ -21,24 +20,8 @@ function readMobile() {
 }
 
 export default function AdminContentEntry() {
-  const [mobile, setMobile] =
+  const [mobile] =
     useState(readMobile)
-
-  useEffect(() => {
-    const media = window.matchMedia(
-      '(max-width: 820px)',
-    )
-
-    function sync() {
-      setMobile(media.matches)
-    }
-
-    media.addEventListener('change', sync)
-
-    return () => {
-      media.removeEventListener('change', sync)
-    }
-  }, [])
 
   return (
     <Suspense
@@ -49,11 +32,13 @@ export default function AdminContentEntry() {
         />
       }
     >
-      {mobile ? (
-        <MobileEditor />
-      ) : (
-        <DesktopEditor />
-      )}
+      <div data-rv-editor-open>
+        {mobile ? (
+          <MobileEditor />
+        ) : (
+          <DesktopEditor />
+        )}
+      </div>
     </Suspense>
   )
 }

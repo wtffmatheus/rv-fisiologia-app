@@ -802,6 +802,23 @@
   line-height: 1.35;
 }
 
+.rvWatchAnalysisMetrics small {
+  color: #adc1ce;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.rvWatchAutomationSteps {
+  padding-left: 24px;
+  color: #adc1ce;
+  line-height: 1.6;
+}
+
+.rvWatchAutomationSteps li + li {
+  margin-top: 10px;
+}
+
 .rvWatchAnalysisBottom {
   margin-top: 13px;
   display: flex;

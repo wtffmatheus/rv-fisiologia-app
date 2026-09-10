@@ -185,7 +185,7 @@ export default function StudentHealthData({
       test: 'Testar agora',
       copied: 'Código copiado',
       yourCode: 'Seu código',
-      connected: 'Apple Watch conectado ao RV',
+      connected: 'RV recebeu dados do Apple Saúde',
       waitingFirst: 'Falta testar a conexão',
       manage: 'Gerenciar conexão',
       disconnect: 'Desconectar',
@@ -228,14 +228,14 @@ export default function StudentHealthData({
       minutes: 'min',
       noData: '—',
       justNow: 'agora',
-      setupDone: 'Tudo certo. A integração já está pronta.',
+      setupDone: 'Há dados recebidos. Isso não confirma as automações de início e fim.',
       analysisEyebrow: 'PRIMEIRO PASSO',
       analysisTitle: 'Faça sua análise inicial',
       analysisText:
         'O RV busca seus dados recentes do Apple Saúde e monta uma visão geral antes de começar a acompanhar os treinos.',
       analysisButton: 'Analisar meus dados',
       analysisUpdate: 'Atualizar análise',
-      analysisReady: 'Análise inicial pronta',
+      analysisReady: 'Dados recebidos para análise',
       analysisPeriod: 'Resumo dos últimos 7 dias',
       restingHeart: 'Batimentos em repouso',
       heartVariation: 'Batimentos registrados',
@@ -263,7 +263,7 @@ export default function StudentHealthData({
       test: 'Test now',
       copied: 'Code copied',
       yourCode: 'Your code',
-      connected: 'Apple Watch connected to RV',
+      connected: 'RV received Apple Health data',
       waitingFirst: 'Connection still needs testing',
       manage: 'Manage connection',
       disconnect: 'Disconnect',
@@ -305,14 +305,14 @@ export default function StudentHealthData({
       minutes: 'min',
       noData: '—',
       justNow: 'now',
-      setupDone: 'All set. The integration is ready.',
+      setupDone: 'Data received. Start and end automations still need verification.',
       analysisEyebrow: 'FIRST STEP',
       analysisTitle: 'Run your initial analysis',
       analysisText:
         'RV checks recent Apple Health data and builds an overview before workout tracking starts.',
       analysisButton: 'Analyze my data',
       analysisUpdate: 'Update analysis',
-      analysisReady: 'Initial analysis ready',
+      analysisReady: 'Data received for analysis',
       analysisPeriod: 'Last 7 days',
       restingHeart: 'Resting heart rate',
       heartVariation: 'Recorded heart rate',
@@ -340,7 +340,7 @@ export default function StudentHealthData({
       test: 'Probar ahora',
       copied: 'Código copiado',
       yourCode: 'Tu código',
-      connected: 'Apple Watch conectado a RV',
+      connected: 'RV recibió datos de Apple Salud',
       waitingFirst: 'Falta probar la conexión',
       manage: 'Administrar conexión',
       disconnect: 'Desconectar',
@@ -382,14 +382,14 @@ export default function StudentHealthData({
       minutes: 'min',
       noData: '—',
       justNow: 'ahora',
-      setupDone: 'Todo listo. La integración ya funciona.',
+      setupDone: 'Hay datos recibidos. Falta verificar las automatizaciones de inicio y fin.',
       analysisEyebrow: 'PRIMER PASO',
       analysisTitle: 'Haz tu análisis inicial',
       analysisText:
         'RV revisa datos recientes de Apple Salud y crea una visión general antes de seguir los entrenamientos.',
       analysisButton: 'Analizar mis datos',
       analysisUpdate: 'Actualizar análisis',
-      analysisReady: 'Análisis inicial listo',
+      analysisReady: 'Datos recibidos para el análisis',
       analysisPeriod: 'Últimos 7 días',
       restingHeart: 'Pulsaciones en reposo',
       heartVariation: 'Pulsaciones registradas',
@@ -417,7 +417,7 @@ export default function StudentHealthData({
       test: '立即测试',
       copied: '代码已复制',
       yourCode: '你的代码',
-      connected: 'Apple Watch 已连接到 RV',
+      connected: 'RV 已收到 Apple 健康数据',
       waitingFirst: '还需要测试连接',
       manage: '管理连接',
       disconnect: '断开连接',
@@ -458,13 +458,13 @@ export default function StudentHealthData({
       minutes: '分钟',
       noData: '—',
       justNow: '刚刚',
-      setupDone: '已完成，连接可以使用。',
+      setupDone: '已收到数据。开始和结束自动化仍需验证。',
       analysisEyebrow: '第一步',
       analysisTitle: '进行初始分析',
       analysisText: 'RV 会读取最近的 Apple 健康数据，并在训练追踪前生成概览。',
       analysisButton: '分析我的数据',
       analysisUpdate: '更新分析',
-      analysisReady: '初始分析已完成',
+      analysisReady: '已收到分析数据',
       analysisPeriod: '最近 7 天',
       restingHeart: '静息心率',
       heartVariation: '已记录心率',
@@ -489,7 +489,7 @@ export default function StudentHealthData({
       test: 'Jetzt testen',
       copied: 'Code kopiert',
       yourCode: 'Dein Code',
-      connected: 'Apple Watch mit RV verbunden',
+      connected: 'RV hat Apple-Health-Daten empfangen',
       waitingFirst: 'Verbindung muss noch getestet werden',
       manage: 'Verbindung verwalten',
       disconnect: 'Trennen',
@@ -531,14 +531,14 @@ export default function StudentHealthData({
       minutes: 'Min',
       noData: '—',
       justNow: 'jetzt',
-      setupDone: 'Alles bereit. Die Integration funktioniert.',
+      setupDone: 'Daten empfangen. Start- und Endautomationen müssen noch geprüft werden.',
       analysisEyebrow: 'ERSTER SCHRITT',
       analysisTitle: 'Erstanalyse durchführen',
       analysisText:
         'RV prüft aktuelle Apple-Health-Daten und erstellt vor dem Trainingstracking eine Übersicht.',
       analysisButton: 'Meine Daten analysieren',
       analysisUpdate: 'Analyse aktualisieren',
-      analysisReady: 'Erstanalyse fertig',
+      analysisReady: 'Daten zur Analyse empfangen',
       analysisPeriod: 'Letzte 7 Tage',
       restingHeart: 'Ruhepuls',
       heartVariation: 'Erfasster Puls',
@@ -950,6 +950,7 @@ export default function StudentHealthData({
   const analysisOxygen = statsFor(analysisRows, 'oxygen_saturation')
   const analysisSteps = statsFor(analysisRows, 'steps')
   const analysisEnergy = statsFor(analysisRows, 'active_energy')
+  const analysisDistance = statsFor(analysisRows, 'distance')
 
   const analysisMetricCount = [
     analysisHeart,
@@ -959,9 +960,21 @@ export default function StudentHealthData({
     analysisOxygen,
     analysisSteps,
     analysisEnergy,
+    analysisDistance,
   ].filter(Boolean).length
 
   const analysisReady = analysisMetricCount >= 1
+
+  const analysisCards = [
+    { metric: 'resting_heart_rate', label: t.restingHeart, icon: HeartPulse, value: analysisResting && `${Math.round(analysisResting.avg)} bpm` },
+    { metric: 'heart_rate', label: t.heartVariation, icon: Activity, value: analysisHeart && `${Math.round(analysisHeart.min)}–${Math.round(analysisHeart.max)} bpm` },
+    { metric: 'heart_rate_variability', label: t.hrvAnalysis, icon: Activity, value: analysisHrv && `${Math.round(analysisHrv.avg)} ${analysisHrv.unit}` },
+    { metric: 'steps', label: t.steps, icon: Footprints, value: analysisSteps && `${Math.round(analysisSteps.sum)} ${t.steps.toLowerCase()}` },
+    { metric: 'respiratory_rate', label: t.breathingAnalysis, icon: Activity, value: analysisBreathing && `${analysisBreathing.avg.toFixed(1)} ${analysisBreathing.unit}` },
+    { metric: 'oxygen_saturation', label: t.oxygenAnalysis, icon: Activity, value: analysisOxygen && `${analysisOxygen.avg.toFixed(1)} ${analysisOxygen.unit}` },
+    { metric: 'active_energy', label: language === 'pt-BR' ? 'Calorias ativas recebidas' : 'Active calories received', icon: Flame, value: analysisEnergy && `${Math.round(analysisEnergy.sum)} ${analysisEnergy.unit}` },
+    { metric: 'distance', label: t.distance, icon: Route, value: analysisDistance && `${analysisDistance.sum.toFixed(2)} ${analysisDistance.unit}` },
+  ]
 
   const activeRows = sessionSamples(activeSession)
   const recentHeart = activeRows.filter(sample => sample.metric === 'heart_rate')
@@ -1010,9 +1023,23 @@ export default function StudentHealthData({
       <summary>{t.simpleHow}</summary>
       <p className="rvWatchEmptyCopy">
         {language === 'pt-BR'
-          ? 'Integração atual: análise pelo Atalhos; início e fim por automações separadas do iPhone. Sincronização durante o treino ainda em validação. Se a automação não disparar, execute-a manualmente no Atalhos e retorne ao RV.'
-          : 'Current integration: analysis via Shortcuts; start and end through separate iPhone automations. Workout sync is still being validated. If automation does not run, run it manually in Shortcuts, then return to RV.'}
+          ? `A análise usa o atalho ${healthIntegration.name}. Instalar o atalho não instala as automações pessoais do iPhone.`
+          : `Analysis uses the ${healthIntegration.name} shortcut. Installing it does not install iPhone personal automations.`}
       </p>
+      {!healthIntegration.supportsModes && (
+        <>
+          <p className="rvWatchEmptyCopy">
+            {language === 'pt-BR'
+              ? 'Este atalho só coleta dados: não aceita start, sync ou end. Preserve as duas automações que enviavam início e fim diretamente ao RV. Não substitua esses envios por Executar Atalho de análise.'
+              : 'This shortcut only collects data: it does not accept start, sync or end. Keep the two automations that sent start and end directly to RV. Do not replace those requests with Run Analysis Shortcut.'}
+          </p>
+          <ol className="rvWatchAutomationSteps">
+            <li>{language === 'pt-BR' ? 'Atalhos → Automação → Exercício Apple Watch → Qualquer Exercício → Início: manter o envio workout_start.' : 'Shortcuts → Automation → Apple Watch Workout → Any Workout → Starts: keep the workout_start request.'}</li>
+            <li>{language === 'pt-BR' ? 'Outra automação → Fim: manter o envio workout_end. Nas duas, ativar Executar imediatamente (ou desativar Perguntar Antes de Executar).' : 'A separate automation → Ends: keep the workout_end request. Enable Run Immediately (or disable Ask Before Running) on both.'}</li>
+            <li>{language === 'pt-BR' ? 'Teste cada automação no iPhone. Depois de encerrar e os dados chegarem ao Saúde, execute a análise. Só início/fim não preenche o relatório.' : 'Test each automation on iPhone. After ending the workout and Health receives the readings, run analysis. Start/end alone cannot fill the report.'}</li>
+          </ol>
+        </>
+      )}
       </details>
       {healthIntegration.supportsModes && healthIntegration.name && (
         <nav aria-label="Workout Shortcuts">
@@ -1103,6 +1130,12 @@ export default function StudentHealthData({
           <details>
             <summary>{t.manage}</summary>
             <p>{t.connectionHelp}</p>
+            {SHORTCUT_INSTALL_URL && (
+              <a href={SHORTCUT_INSTALL_URL} target="_blank" rel="noreferrer" className="rvWatchSimpleLinkButton">
+                <Watch size={15} />
+                {language === 'pt-BR' ? 'Instalar / atualizar atalho de análise' : 'Install / update analysis shortcut'}
+              </a>
+            )}
             <button
               type="button"
               onClick={() => void revoke()}
@@ -1119,7 +1152,7 @@ export default function StudentHealthData({
           <div className="rvWatchSimpleSectionHead">
             <div>
               <span>{analysisReady ? t.analysisReady : t.analysisEyebrow}</span>
-              <h2>{t.analysisTitle}</h2>
+              <h2>{analysisReady ? t.analysisPeriod : t.analysisTitle}</h2>
             </div>
             <HeartPulse size={21} />
           </div>
@@ -1130,67 +1163,31 @@ export default function StudentHealthData({
               : t.analysisText}
           </p>
 
-          {analysisReady && (
-            <div className="rvWatchAnalysisMetrics">
-              {analysisResting && (
-                <article>
-                  <HeartPulse size={15} />
-                  <span>{t.restingHeart}</span>
-                  <strong>{Math.round(analysisResting.avg)} bpm</strong>
+          <div className="rvWatchAnalysisMetrics">
+            {analysisCards.map(({ metric, label, icon: Icon, value }) => {
+              const latest = analysisRows.reduce<Sample | undefined>((recent, sample) => sample.metric === metric && (!recent || Date.parse(sample.measured_at) > Date.parse(recent.measured_at)) ? sample : recent, undefined)
+              const notCollected = healthIntegration.collectedMetrics && !healthIntegration.collectedMetrics.includes(metric)
+              return (
+                <article key={metric}>
+                  <Icon size={15} />
+                  <span>{label}</span>
+                  <strong>{value ?? t.noData}</strong>
+                  <small>
+                    {latest
+                      ? `${language === 'pt-BR' ? 'Última leitura' : 'Latest reading'}: ${fmtShort(latest.measured_at)}`
+                      : notCollected
+                        ? (language === 'pt-BR' ? 'Não coletado pelo atalho atual' : 'Not collected by the current shortcut')
+                        : (language === 'pt-BR' ? 'Nenhuma leitura recebida neste período' : 'No readings received for this period')}
+                  </small>
                 </article>
-              )}
-
-              {analysisHeart && (
-                <article>
-                  <Activity size={15} />
-                  <span>{t.heartVariation}</span>
-                  <strong>
-                    {Math.round(analysisHeart.min)}–{Math.round(analysisHeart.max)} bpm
-                  </strong>
-                </article>
-              )}
-
-              {analysisHrv && (
-                <article>
-                  <Activity size={15} />
-                  <span>{t.hrvAnalysis}</span>
-                  <strong>{Math.round(analysisHrv.avg)} {analysisHrv.unit}</strong>
-                </article>
-              )}
-
-              {analysisSteps && (
-                <article>
-                  <Footprints size={15} />
-                  <span>{t.activity}</span>
-                  <strong>{Math.round(analysisSteps.sum)} {analysisSteps.unit}</strong>
-                </article>
-              )}
-
-              {analysisBreathing && (
-                <article>
-                  <Activity size={15} />
-                  <span>{t.breathingAnalysis}</span>
-                  <strong>{analysisBreathing.avg.toFixed(1)} {analysisBreathing.unit}</strong>
-                </article>
-              )}
-
-              {analysisOxygen && (
-                <article>
-                  <Activity size={15} />
-                  <span>{t.oxygenAnalysis}</span>
-                  <strong>{analysisOxygen.avg.toFixed(1)} {analysisOxygen.unit}</strong>
-                </article>
-              )}
-
-              {analysisEnergy && (
-                <article>
-                  <Flame size={15} />
-                  <span>{t.calories}</span>
-                  <strong>{Math.round(analysisEnergy.sum)} {analysisEnergy.unit}</strong>
-                </article>
-              )}
-            </div>
-          )}
+              )
+            })}
+          </div>
+          <p className="rvWatchAnalysisCopy">
+            {language === 'pt-BR'
+              ? 'Passos, calorias e distância somam as amostras recebidas nos últimos 7 dias, não um treino nem o total consolidado do Fitness. Dados antigos sem horário original podem estar repetidos. Ausência de leitura não significa zero: confira a coleta e as permissões no Saúde.'
+              : 'Steps, calories and distance sum received samples over the last 7 days, not a workout or the consolidated Fitness total. Older data without original timestamps may be duplicated. Missing readings do not mean zero: check collection and Health permissions.'}
+          </p>
 
           <div className="rvWatchAnalysisBottom">
             <div>
@@ -1291,8 +1288,16 @@ export default function StudentHealthData({
                 {fmtShort(latestSession.started_at)}
               </h2>
             </div>
-            <Check size={20} />
+            {latestHeart && latestEnergy ? <Check size={20} /> : <Clock3 size={20} />}
           </div>
+
+          {(!latestHeart || !latestEnergy) && (
+            <p className="rvWatchEmptyCopy">
+              {language === 'pt-BR'
+                ? `Treino encerrado; relatório parcial. Sem leituras de ${[!latestHeart && 'BPM', !latestEnergy && 'calorias ativas'].filter(Boolean).join(' e ')} neste intervalo. Execute a análise depois que os dados chegarem ao Saúde do iPhone.`
+                : `Workout ended; partial report. Missing ${[!latestHeart && 'BPM', !latestEnergy && 'active calories'].filter(Boolean).join(' and ')} for this interval. Run analysis after iPhone Health receives the readings.`}
+            </p>
+          )}
 
           <div className="rvWatchLatestMetrics">
             <div>
@@ -1373,6 +1378,7 @@ export default function StudentHealthData({
                   <div className="rvWatchHistorySimpleMain">
                     <span>{fmtDate(session.started_at)}</span>
                     <strong>{workoutName(session.workout_type)}</strong>
+                    {(!heart || !energy) && <span>{language === 'pt-BR' ? 'Relatório parcial' : 'Partial report'}</span>}
                   </div>
 
                   <div className="rvWatchHistorySimpleSummary">

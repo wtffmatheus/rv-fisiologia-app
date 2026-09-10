@@ -152,7 +152,7 @@ export default function App() {
 
   useEffect(() => { if (profile?.language) setLanguage(profile.language) }, [profile?.language, setLanguage])
 
-  if (loading || (session && profileLoading)) {
+  if (loading || (session && profileLoading && !profile)) {
     return (
       <RvLoadingState
         fullScreen

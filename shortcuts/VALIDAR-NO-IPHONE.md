@@ -1,5 +1,7 @@
 # RV Saúde — candidato para validação, NÃO versão oficial
 
+**Não aplique as instruções de quatro modos deste documento ao link iCloud `4a2347dfb1c945bf89873284c3e6ceeb`.** O arquivo desse link foi inspecionado e continua sendo somente análise, embora se chame `RV - Sincronizar Saúde`. Para ele, siga [Atalho atual e automações](ATALHO-ATUAL-E-AUTOMACOES.md) e preserve os POSTs START/END anteriores. Esta página descreve apenas o candidato local não assinado.
+
 ## Antes de transferir
 
 O arquivo `RV-Saude-v1-NAO-ASSINADO.shortcut` foi gerado e verificado estruturalmente. **Não foi executado no iOS, não está assinado e não é uma entrega instalável validada.** Trocar a extensão ou reutilizar a assinatura do atalho antigo não resolve isso.
@@ -47,7 +49,7 @@ Em um Mac com Atalhos, copie esta pasta e execute `zsh ASSINAR-NO-MAC.command`. 
 - Sync/End abrangem 24h, não uma reconciliação ilimitada. Treinos abandonados/longos e dados que chegarem do Watch depois do END requerem validação adicional e retry de sync antes de considerar o histórico final.
 - A produção ainda usa o backend anterior: endurecimentos locais do checkup não foram publicados. Dados antigos corrompidos continuam exigindo tratamento; esta fonte não os limpa.
 - Após inserir sua chave, **não compartilhe/exporte essa cópia**; ela passa a conter um segredo e pode sincronizar pelo iCloud. Revogue a chave no RV se compartilhar sem querer.
-- O app continua apontando para a integração antiga conhecida. Não alterei links nem ativei quatro modos no app antes da sua validação.
+- O app aponta para o link de análise informado em 10/09/2026, não para este candidato. Os quatro modos continuam desativados para esse link.
 
 ## Fontes Apple
 

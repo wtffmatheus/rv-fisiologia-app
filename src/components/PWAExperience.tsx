@@ -132,6 +132,7 @@ function clearUpdateAttempt() {
 }
 
 function isEditingForm() {
+  if (document.querySelector('[data-rv-editor-open]')) return true
   const element = document.activeElement
 
   if (!element) return false
@@ -324,8 +325,6 @@ export default function PWAExperience() {
               type: 'SKIP_WAITING',
             })
 
-            // O SW novo assume a aba e também força a navegação.
-            return
           }
         }
 
